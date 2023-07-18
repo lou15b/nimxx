@@ -107,7 +107,9 @@ registerAssetLoader(["nimx"]) do(url: string, callback: proc(j: JsonNode) {.gcsa
 
 
 when isMainModule:
-    loadAsset[JsonNode]("res://assets/back.nimx") do(jn: JsonNode, err: string):
-        echo "res: " & $jn
-    proc a {.async.} = echo await(loadViewAsync("assets/back.nimx")).dump
-    asyncCheck a()
+  import ./assets/native_asset_bundle
+  setNativeAssetBasePath("../editor")
+  loadAsset[JsonNode]("res://assets/back.nimx") do(jn: JsonNode, err: string):
+      echo "res: " & $jn
+  proc a {.async.} = echo await(loadViewAsync("assets/back.nimx")).dump
+  asyncCheck a()
