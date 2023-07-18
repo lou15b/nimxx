@@ -346,12 +346,16 @@ when isMainModule:
     o.o = newMyObj(5)
     o.o.children.add(newMyObj(3))
     o.o.children.add(newMyObj(4))
-    o.o.children = @[]
 
     o.o.yo = 5
 
     var s: JsonSerializer
     s.new()
 
+    s.serialize(o)
+    echo s.jsonNode()
+
+    o.o.children = @[]
+    s.new()
     s.serialize(o)
     echo s.jsonNode()
