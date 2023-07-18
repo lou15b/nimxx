@@ -1,10 +1,10 @@
 import typetraits, tables
-import types, context, animation_runner, layout_vars
-import property_visitor
-import class_registry
-import serializers
+import ./ [ types, context, animation_runner, layout_vars ]
+import ./property_visitor
+import ./class_registry
+import ./serializers
 import kiwi
-import notification_center
+import ./notification_center
 
 export types
 export animation_runner, class_registry
@@ -165,7 +165,7 @@ proc constraints*(v: View): seq[Constraint] =
     result = newSeqOfCap[Constraint](v.layout.constraints.len)
     for c in v.layout.constraints: result.add(c.proto)
 
-method init*(v: View, frame: Rect) {.base, gcsafe.} =
+method init*(v: View, frame: Rect) {.base.} =
     v.frame = frame
     v.layout.init()
     v.bounds = newRect(0, 0, frame.width, frame.height)

@@ -2,9 +2,9 @@ import dom except Window
 import opengl
 import jsbind
 
-import nimx/[ abstract_window, system_logger, view, context, matrixes, app,
+import ../../ [ abstract_window, system_logger, view, context, matrixes, app,
             portable_gl, event ]
-import nimx/private/js_vk_map
+import ../js_vk_map
 
 type JSCanvasWindow* = ref object of Window
     renderingContext: GraphicsContext

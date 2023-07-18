@@ -1,5 +1,5 @@
 import macros, times
-import view, table_view_cell, text_field, context, app, view_event_handling, font
+import ./ [ view, table_view_cell, text_field, context, app, view_event_handling, font ]
 
 type MenuItem* = ref object of RootObj
     title*: string

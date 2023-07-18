@@ -1,7 +1,7 @@
-import types
-import abstract_window
-import view_event_handling
-import drag_and_drop
+import ./types
+import ./abstract_window
+import ./view_event_handling
+import ./drag_and_drop
 
 proc propagateEventThroughResponderChain(w: Window, e: var Event): bool =
     var r = w.firstResponder

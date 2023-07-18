@@ -1,5 +1,5 @@
-import sample_registry
-import nimx / [ view, menu, button, text_field ]
+import ./sample_registry
+import ../nimx / [ view, menu, button, text_field ]
 
 type MenuSampleView = ref object of View
 

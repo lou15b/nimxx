@@ -1,12 +1,12 @@
-import nimx/font
-import nimx/button
-import nimx/view
-import nimx/context
-import nimx/types
-import nimx/color
+import ./font
+import ./button
+import ./view
+import ./context
+import ./types
+import ./color
 
-import nimx/stack_view
-import nimx/common/expand_button
+import ./stack_view
+import ./common/expand_button
 
 const titleSize = 20.0
 const expandButtonSize = 20.0

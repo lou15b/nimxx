@@ -1,5 +1,5 @@
 import os
-import abstract_asset_bundle
+import ./abstract_asset_bundle
 
 type NativeAssetBundle* = ref object of AssetBundle
     mBaseUrl: string

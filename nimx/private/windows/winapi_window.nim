@@ -1,11 +1,11 @@
 
-import nimx/[ abstract_window, system_logger, view, context, event, app, screen,
+import ../../ [ abstract_window, system_logger, view, context, event, app, screen,
                 linkage_details, portable_gl, types, cursor ]
 
-import nimx / private / winapi_vk_map
+import ../winapi_vk_map
 
 import opengl
-import std/[logging, asyncdispatch, times, monotimes, heapqueue]
+import std/ [ logging, asyncdispatch, times, monotimes, heapqueue ]
 import winim except SIZE, COORD
 import strutils
 import unicode

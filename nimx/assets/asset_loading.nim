@@ -1,5 +1,5 @@
 import os, streams, variant, logging
-import asset_cache, url_stream
+import ./asset_cache, ./url_stream
 
 type UrlLoaderProc* = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
 type SimpleUrlLoaderProc*[T] = proc(url: string, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}

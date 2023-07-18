@@ -1,4 +1,4 @@
-import times, mini_profiler
+import times, ./mini_profiler
 
 when defined(js) or defined(emscripten) or defined(wasm):
     import jsbind
@@ -135,7 +135,7 @@ elif defined(nimxAvoidSDL):
     proc cancel(t: Timer) {.inline.} = discard
 
 else:
-    import perform_on_main_thread
+    import ./perform_on_main_thread
 
     proc fireCallback(timer: pointer) {.cdecl.} =
         let t = cast[Timer](timer)

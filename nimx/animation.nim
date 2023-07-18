@@ -599,7 +599,7 @@ when isMainModule:
     a.numberOfLoops = 1
 
     var progresses = newSeq[float]()
-    a.onAnimate = proc(p: float) =
+    a.onAnimate = proc(p: float) {.gcsafe.} =
         progresses.add(p)
 
     let timeTaken = a.emulateAnimationRun(5.0, 6.0, 60)

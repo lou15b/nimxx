@@ -1,8 +1,8 @@
-import types
+import ./types
 import unicode
-import abstract_window
+import ./abstract_window
 
-import keyboard
+import ./keyboard
 export keyboard
 
 type EventType* = enum

@@ -1,4 +1,4 @@
-import animation
+import ./animation
 import times
 import logging
 

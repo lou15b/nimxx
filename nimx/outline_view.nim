@@ -1,11 +1,11 @@
-import nimx/view
-import nimx/context
-import nimx/font
-import nimx/types
-import nimx/table_view_cell
-import nimx/view_event_handling
+import ./view
+import ./context
+import ./font
+import ./types
+import ./table_view_cell
+import ./view_event_handling
 
-import scroll_view
+import ./scroll_view
 
 import math
 import variant

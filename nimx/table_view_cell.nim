@@ -1,7 +1,7 @@
-import view
+import ./view
 export view
-import context
-import types
+import ./context
+import ./types
 
 type TableViewCell* = ref object of View
     row*, col*: int

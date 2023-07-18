@@ -1,9 +1,9 @@
-import control
+import ./control
 export control
 
-import composition
-import context
-import view_event_handling
+import ./composition
+import ./context
+import ./view_event_handling
 
 type Slider* = ref object of Control
     mValue: Coord

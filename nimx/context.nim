@@ -1,10 +1,10 @@
-import types
+import ./types
 import opengl
-import system_logger
-import matrixes
-import image
+import ./system_logger
+import ./matrixes
+import ./image
 import math
-import portable_gl
+import ./portable_gl
 import nimsl/nimsl
 
 export matrixes
@@ -221,7 +221,7 @@ proc setPointUniform*(c: GraphicsContext, loc: UniformLocation, r: Point) =
 template setPointUniform*(c: GraphicsContext, prog: ProgramRef, name: cstring, r: Point) =
     c.setPointUniform(c.gl.getUniformLocation(prog, name), r)
 
-import composition
+import ./composition
 
 const roundedRectComposition = newComposition """
 uniform vec4 uFillColor;
@@ -600,5 +600,5 @@ template withClippingRect*(c: GraphicsContext, r: Rect, body: typed) =
     body
     c.applyClippingRect(r, false)
 
-import private/text_drawing
+import ./private/text_drawing
 export text_drawing

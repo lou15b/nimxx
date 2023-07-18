@@ -1,6 +1,6 @@
-import view, view_event_handling, table_view_cell, scroll_view
+import ./ [ view, view_event_handling, table_view_cell, scroll_view ]
 
-import clip_view
+import ./clip_view
 
 import intsets
 import kiwi

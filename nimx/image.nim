@@ -1,17 +1,17 @@
 import math, tables, streams, logging
-import types, portable_gl, mini_profiler
+import ./ [ types, portable_gl, mini_profiler ]
 import opengl
 
-import nimx / assets / [ asset_loading, url_stream, asset_manager ]
-import nimx / serializers
+import ./assets / [ asset_loading, url_stream, asset_manager ]
+import ./serializers
 const web = defined(js) or defined(emscripten) or defined(wasm)
 
 when web:
     import jsbind
 else:
     import nimwebp / decoder
-    import load_image_impl
-    import write_image_impl
+    import ./load_image_impl
+    import ./write_image_impl
 
 type
     Image* = ref object of RootObj
@@ -462,8 +462,8 @@ const asyncResourceLoad = not web and not defined(nimxAvoidSDL) and compileOptio
 when asyncResourceLoad:
     const loadAsyncTextureInMainThread = defined(android) or defined(ios)
 
-    import perform_on_main_thread, sdl2
-    import private/worker_queue
+    import ./perform_on_main_thread, sdl2
+    import ./private/worker_queue
 
     var threadCtx : GlContextPtr
     var loadingQueue {.threadvar.}: WorkerQueue
@@ -639,7 +639,7 @@ elif defined(js):
         """.}
 
 else:
-    import nimx/http_request
+    import ./http_request
     proc loadImageFromURL*(url: string, callback: proc(i: Image) {.gcsafe.}) =
         sendRequest("GET", url, "", []) do(r: Response):
             if r.statusCode >= 200 and r.statusCode < 300:

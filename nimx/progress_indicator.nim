@@ -1,9 +1,9 @@
-import view
+import ./view
 export view
 
-import composition
-import animation
-import abstract_window
+import ./composition
+import ./animation
+import ./abstract_window
 
 import times
 import math

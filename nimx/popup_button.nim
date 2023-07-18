@@ -1,10 +1,10 @@
-import control
+import ./control
 export control
-import menu
-import composition
-import context
-import font
-import view_event_handling
+import ./menu
+import ./composition
+import ./context
+import ./font
+import ./view_event_handling
 
 type PopupButton* = ref object of Control
     mItems: seq[MenuItem]

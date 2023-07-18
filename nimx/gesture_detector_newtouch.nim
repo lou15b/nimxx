@@ -1,3 +1,3 @@
 {.deprecated.}
-import gesture_detector
+import ./gesture_detector
 export gesture_detector

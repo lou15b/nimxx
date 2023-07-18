@@ -1,9 +1,9 @@
-import control, context, font, types, event, abstract_window, unistring, timer, table_view_cell,
-    window_event_handling, property_visitor, serializers, key_commands, formatted_text, scroll_view, timer
+import ./ [ control, context, font, types, event, abstract_window, unistring, timer, table_view_cell,
+    window_event_handling, property_visitor, serializers, key_commands, formatted_text, scroll_view, timer ]
 import unicode
-import clipboard
+import ./clipboard
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 export control
 

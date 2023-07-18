@@ -1,4 +1,4 @@
-import nimx/[button, view, types, color]
+import ./ [ button, view, types, color ]
 
 type StackView* = ref object of View
 

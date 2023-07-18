@@ -1,5 +1,5 @@
-import event, keyboard
-import private/js_platform_detector
+import ./ [ event, keyboard ]
+import ./private/js_platform_detector
 
 type KeyCommand* = enum
     kcUnknown

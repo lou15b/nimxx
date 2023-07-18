@@ -1,4 +1,4 @@
-import nimx / [ types, view, context, event, view_event_handling, gesture_detector, keyboard ]
+import ../ [ types, view, context, event, view_event_handling, gesture_detector, keyboard ]
 
 
 type

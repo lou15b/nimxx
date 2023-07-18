@@ -1,5 +1,5 @@
 import tables
-import nimx/keyboard
+import ../keyboard
 
 const virtualKeyMapping: Table[int, VirtualKey] = {
     # 0: VirtualKey.Unknown,

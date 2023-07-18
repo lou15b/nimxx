@@ -1,7 +1,7 @@
-import url_stream
+import ./url_stream
 import async_http_request except Handler
 
-import nimx/http_request except Handler
+import ../http_request except Handler
 
 const web = defined(js) or defined(emscripten)
 
@@ -13,7 +13,7 @@ when web:
     import jsbind
 
     when defined(js):
-        import nimx/private/js_data_view_stream
+        import ../private/js_data_view_stream
 
     proc errorDesc(r: XMLHTTPRequest, url: string): URLLoadingError =
         var statusText = r.statusText

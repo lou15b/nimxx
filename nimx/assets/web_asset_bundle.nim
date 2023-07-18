@@ -1,7 +1,7 @@
 import os, strutils
-import abstract_asset_bundle, url_stream
+import ./ [ abstract_asset_bundle, url_stream ]
 
-import nimx/pathutils
+import ../pathutils
 
 var resourceUrlMapper*: proc(p: string): string # Deprecated
 

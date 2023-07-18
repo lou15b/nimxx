@@ -1,12 +1,12 @@
-import control
+import ./control
 export control
 
-import composition
-import context
-import font
-import view_event_handling
-import property_visitor
-import serializers
+import ./composition
+import ./context
+import ./font
+import ./view_event_handling
+import ./property_visitor
+import ./serializers
 
 type SegmentedControl* = ref object of Control
     mSegments: seq[string]

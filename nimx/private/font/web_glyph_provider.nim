@@ -2,7 +2,7 @@
 
 # import jsbind
 import wasmrt
-import nimx/private/font/font_data
+import ./font_data
 import rect_packer
 
 type WebGlyphProvider* = ref object

@@ -1,6 +1,6 @@
-import nimx/keyboard
+import ../keyboard
 import tables, hashes
-import x11/[x, keysym]
+import x11/ [ x, keysym ]
 
 # proc hash(s: KeySym): Hash {.inline.} = hash(culong(s))
 

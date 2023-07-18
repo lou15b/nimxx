@@ -1,8 +1,8 @@
 {.used.}
 import json, sugar
 
-import editor_types
-import nimx / [ undo_manager, view, serializers, ui_resource, private/async ]
+import ./editor_types
+import ../ [ undo_manager, view, serializers, ui_resource, private/async ]
 
 const savingAndLoadingEnabled* = not defined(ios) and not defined(android)
 
@@ -35,7 +35,7 @@ proc serializeView*(ui: UIDocument): string =
     return $s.jsonNode()
 
 when savingAndLoadingEnabled:
-    import nimx / assets / [asset_loading]
+    import ../assets/asset_loading
 
     proc fileDialog(title: string, kind: DialogKind): string =
         var di: DialogInfo

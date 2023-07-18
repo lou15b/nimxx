@@ -1,15 +1,15 @@
 import math
 
-import nimx/font
-import nimx/image
-import nimx/button
-import nimx/view
-import nimx/event
-import nimx/panel_view
-import nimx/context
-import nimx/types
+import ./font
+import ./image
+import ./button
+import ./view
+import ./event
+import ./panel_view
+import ./context
+import ./types
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 
 const titleSize = 20.0

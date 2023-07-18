@@ -1,5 +1,5 @@
-import sample_registry
-import nimx / [ view, window, button, text_field, layout, scroll_view, table_view,
+import ./sample_registry
+import ../nimx / [ view, window, button, text_field, layout, scroll_view, table_view,
     split_view, context ]
 
 type LayoutSampleView = ref object of View

@@ -1,8 +1,8 @@
 import sequtils
 
-import abstract_window
-import event
-import window_event_handling
+import ./abstract_window
+import ./event
+import ./window_event_handling
 import logging
 
 type EventFilterControl* = enum

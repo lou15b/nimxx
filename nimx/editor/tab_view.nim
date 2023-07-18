@@ -1,7 +1,7 @@
 import math
 import kiwi
-import nimx / [view, context, matrixes, font, linear_layout, button, menu, split_view, layout_vars]
-import nimx / [ view_event_handling, window_event_handling ]
+import ../ [ view, context, matrixes, font, linear_layout, button, menu, split_view, layout_vars ]
+import ../ [ view_event_handling, window_event_handling ]
 
 type
     Tab = tuple[title: string, view: View, frame: Rect]

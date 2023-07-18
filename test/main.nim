@@ -1,27 +1,27 @@
 #!/usr/local/bin/nim c -r --threads:on
-import sample_registry
+import ./sample_registry
 
-import nimx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
+import ../nimx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
 import sequtils, intsets
 
 {.warning[UnusedImport]: off.}
 
-import sample01_welcome
-import sample02_controls
-import sample03_image
-import sample04_animation
-# import sample15_animation_easings
-import sample05_fonts
-import sample06_timers
-import sample07_collections
-import sample08_events
-import sample09_docking_tabs
-import sample10_text
-import sample11_expanded_views
-import sample12_menus
-import sample13_drag_and_drop
-import sample14_layout
-import sample16_outline
+import ./sample01_welcome
+import ./sample02_controls
+import ./sample03_image
+import ./sample04_animation
+# import ./sample15_animation_easings
+import ./sample05_fonts
+import ./sample06_timers
+import ./sample07_collections
+import ./sample08_events
+import ./sample09_docking_tabs
+import ./sample10_text
+import ./sample11_expanded_views
+import ./sample12_menus
+import ./sample13_drag_and_drop
+import ./sample14_layout
+import ./sample16_outline
 
 
 const isMobile = defined(ios) or defined(android)

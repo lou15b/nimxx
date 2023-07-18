@@ -1,7 +1,7 @@
-import nimx/text_field
-import nimx/scroll_view
-import nimx/panel_view
-import nimx/inspector_view
+import ./text_field
+import ./scroll_view
+import ./panel_view
+import ./inspector_view
 
 export panel_view
 

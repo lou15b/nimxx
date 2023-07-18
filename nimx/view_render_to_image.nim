@@ -1,4 +1,4 @@
-import nimx / [ view, render_to_image, image, types, context ]
+import ./ [ view, render_to_image, image, types, context ]
 
 proc renderToImage*(v: View, image: SelfContainedImage)=
     image.draw:

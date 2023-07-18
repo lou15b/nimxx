@@ -1,8 +1,8 @@
-import abstract_pasteboard
+import ./abstract_pasteboard
 export abstract_pasteboard
-import pasteboard_item
-import x11/[xlib, x, xatom]
-import nimx/app, nimx/private/windows/sdl_window
+import ./pasteboard_item
+import x11/ [ xlib, x, xatom ]
+import ../app, ../private/windows/sdl_window
 import sdl2
 
 type X11Pasteboard = ref object of Pasteboard

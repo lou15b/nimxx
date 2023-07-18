@@ -1,12 +1,12 @@
-import nimx/[ types, abstract_window, view, context, event, app, screen,
+import ../../ [ types, abstract_window, view, context, event, app, screen,
             portable_gl, linkage_details, notification_center ]
 
-import x11/[xlib, xutil, xresource]
+import x11/ [ xlib, xutil, xresource ]
 import x11/x except Window
 import opengl/glx, opengl
 import asyncdispatch, parseutils, times
 
-import nimx/private/x11_vk_map
+import ../x11_vk_map
 # X11 impl. Nice tutorial: https://github.com/gamedevtech/X11OpenGLWindow
 
 type

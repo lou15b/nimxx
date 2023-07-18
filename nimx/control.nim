@@ -1,5 +1,5 @@
 
-import view, view_event_handling
+import ./ [ view, view_event_handling ]
 export view
 
 type Control* = ref object of View

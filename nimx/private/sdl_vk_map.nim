@@ -1,4 +1,4 @@
-import nimx/keyboard
+import ../keyboard
 import tables, hashes
 import sdl2
 

@@ -1,6 +1,6 @@
 import dom
 
-import nimx/private/font/font_data
+import ./font_data
 import rect_packer
 
 type JsGlyphProvider* = ref object

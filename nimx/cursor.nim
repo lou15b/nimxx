@@ -9,7 +9,7 @@ elif appKit:
 elif not defined(nimxAvoidSDL):
     import sdl2
 elif defined(linux):
-    import x11/[xlib, cursorfont]
+    import x11/[ xlib, cursorfont ]
     import ./private/windows/x11_window
 elif defined(windows):
     import winim

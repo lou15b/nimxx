@@ -1,5 +1,5 @@
 import macros, logging, strutils
-import nimx / [ timer, app, event, abstract_window, button ]
+import ./ [ timer, app, event, abstract_window, button ]
 
 type UITestSuiteStep* = tuple
     code : proc() {.gcsafe.}
@@ -160,7 +160,7 @@ when false:
     registerTest(myTest)
 
 when web:
-    import nimx/pathutils
+    import ./pathutils
 elif defined(android):
     import jnim
     import android/app/activity, android/content/intent, android/os/base_bundle

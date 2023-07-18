@@ -1,4 +1,4 @@
-import types
+import ./types
 
 proc titleBarColor*(): Color = newColor(0.2, 0.2, 0.2)
 proc contentViewColor*(): Color = newColor(0.5, 0.5, 0.5)

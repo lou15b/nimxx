@@ -1,27 +1,27 @@
 import unicode, streams, logging
 
-import nimx / [ types, timer, portable_gl ]
-import nimx/private/font/font_data
+import ./ [ types, timer, portable_gl ]
+import ./private/font/font_data
 
 const pureWasm = defined(wasm) and not defined(emscripten)
 
 when pureWasm:
-    import private/font/web_glyph_provider
+    import ./private/font/web_glyph_provider
     type GlyphProvider = WebGlyphProvider
 elif defined(js):
-    import private/font/js_glyph_provider
+    import ./private/font/js_glyph_provider
     type GlyphProvider = JsGlyphProvider
 else:
-    import private/font/stb_ttf_glyph_provider
+    import ./private/font/stb_ttf_glyph_provider
     type GlyphProvider = StbTtfGlyphProvider
 
     import os
 
 import ttf/edtaa3func
-import private/simple_table
+import ./private/simple_table
 
 when defined(android):
-    import nimx/assets/url_stream
+    import ./assets/url_stream
 
 type Baseline* = enum
     bTop
@@ -182,7 +182,7 @@ const preferredFonts = when defined(js) or defined(windows) or defined(emscripte
         ]
 
 when not defined(js):
-    import nimx/private/font/fontconfig
+    import ./private/font/fontconfig
 
 proc getAvailableFonts*(isSystem: bool = false): seq[string] =
     result = newSeq[string]()

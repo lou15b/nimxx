@@ -1,4 +1,4 @@
-import nimx / [ view, context, button ]
+import ../ [ view, context, button ]
 import math
 
 type ExpandButton* = ref object of Button

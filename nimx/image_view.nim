@@ -1,5 +1,5 @@
-import nimx / [ context, image, types, view ]
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./ [ context, image, types, view ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 type
     ImageFillRule* {.pure.} = enum

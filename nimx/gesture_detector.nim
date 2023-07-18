@@ -1,4 +1,4 @@
-import view, event
+import ./ [ view, event ]
 
 type
     BaseGestureDetector* = ref object of GestureDetector

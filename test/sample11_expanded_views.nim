@@ -1,6 +1,6 @@
 import random
-import sample_registry
-import nimx / [ view, font, context, button, expanding_view, stack_view ]
+import ./sample_registry
+import ../nimx / [ view, font, context, button, expanding_view, stack_view ]
 
 type ExpandingSampleView = ref object of View
     welcomeFont: Font

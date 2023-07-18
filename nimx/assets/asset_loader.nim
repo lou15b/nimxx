@@ -1,4 +1,4 @@
-import asset_loading, asset_cache
+import ./asset_loading, ./asset_cache
 
 const jsEnv = defined(js) or defined(emscripten)
 const debugResCache = false

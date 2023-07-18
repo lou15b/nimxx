@@ -1,6 +1,6 @@
-import abstract_pasteboard
+import ./abstract_pasteboard
 export abstract_pasteboard
-import pasteboard_item
+import ./pasteboard_item
 
 import darwin/app_kit
 

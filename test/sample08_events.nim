@@ -1,6 +1,6 @@
 import strutils
-import sample_registry
-import nimx / [ view, font, context, button, gesture_detector, view_event_handling ]
+import ./sample_registry
+import ../nimx / [ view, font, context, button, gesture_detector, view_event_handling ]
 
 var bttnMesage {.threadvar.}: string
 bttnMesage = "Press or drag buttons"

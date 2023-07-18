@@ -1,4 +1,4 @@
-import types
+import ./types
 import math
 
 type Matrix4* = array[16, Coord]

@@ -1,7 +1,7 @@
-import nimx/gesture_detector
-import nimx/view
-import nimx/event
-import nimx/context
+import ./gesture_detector
+import ./view
+import ./event
+import ./context
 
 type DraggingScrollListener = ref object of OnScrollListener
     view: View

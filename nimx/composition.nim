@@ -1,5 +1,5 @@
-import context, types, portable_gl, image
-import private/helper_macros
+import ./ [ context, types, portable_gl, image ]
+import ./private/helper_macros
 import strutils, tables, hashes
 import nimsl/nimsl
 

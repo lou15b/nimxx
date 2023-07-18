@@ -1,7 +1,7 @@
 import macros, strutils
-import view, layout_vars
+import ./ [ view, layout_vars ]
 import kiwi
-import private/kiwi_vector_symbolics
+import ./private/kiwi_vector_symbolics
 
 import kiwi / [ symbolics, strength ]
 export symbolics, strength, kiwi_vector_symbolics

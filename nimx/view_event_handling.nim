@@ -1,4 +1,5 @@
-import view, event, drag_and_drop, tables, algorithm, sequtils
+import ./ [ view, event, drag_and_drop ]
+import tables, algorithm, sequtils
 
 export event
 

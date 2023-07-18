@@ -4,7 +4,7 @@
 ## member names do not define characters but rather 'common' characters
 ## on those keys places (so that e.g. 'k' and 'K' share same scan code).
 when defined(js) or defined(emscripten):
-    import private/js_platform_detector
+    import ./private/js_platform_detector
 
 type VirtualKey* {.pure.} = enum
     Unknown = 0

@@ -6,7 +6,7 @@
 ## Reading a string
 ## let myString = p.read().data
 
-import pasteboard_item
+import ./pasteboard_item
 export pasteboard_item
 
 type

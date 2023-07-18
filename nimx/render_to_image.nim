@@ -1,4 +1,4 @@
-import image, types, context, portable_gl
+import ./ [ image, types, context, portable_gl ]
 import opengl
 
 type

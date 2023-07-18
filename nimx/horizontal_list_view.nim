@@ -1,10 +1,10 @@
-import view
+import ./view
 export view
 
-import view_event_handling
-import nimx/gesture_detector
-import types
-import clip_view
+import ./view_event_handling
+import ./gesture_detector
+import ./types
+import ./clip_view
 
 type
 

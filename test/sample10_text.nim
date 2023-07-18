@@ -1,6 +1,6 @@
 import strutils
-import sample_registry
-import nimx / [ view, font, context, button, text_field, slider, popup_button,
+import ./sample_registry
+import ../nimx / [ view, font, context, button, text_field, slider, popup_button,
                 formatted_text, segmented_control, scroll_view ]
 
 type TextView = ref object of View

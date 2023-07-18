@@ -1,9 +1,9 @@
-import control, context, image, types, event, font, composition
-import view_event_handling
+import ./ [ control, context, image, types, event, font, composition ]
+import ./view_event_handling
 
-import property_visitor, serializers
+import ./property_visitor, serializers
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 export control
 

@@ -1,6 +1,6 @@
 
-import view, animation, context, font, composition, image, notification_center,
-    mini_profiler, portable_gl, drag_and_drop
+import ./ [ view, animation, context, font, composition, image, notification_center,
+    mini_profiler, portable_gl, drag_and_drop ]
 import times, tables
 import kiwi
 export view

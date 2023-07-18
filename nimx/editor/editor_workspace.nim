@@ -1,6 +1,6 @@
-import nimx / [ types, view ]
-import grid_drawing
-import editor_types
+import ../ [ types, view ]
+import ./grid_drawing
+import ./editor_types
 
 method draw*(v: EditorWorkspace, r: Rect)=
     procCall v.View.draw(r)

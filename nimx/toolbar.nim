@@ -1,7 +1,7 @@
 {.used.}
-import nimx/context
-import nimx/view_dragging_listener
-import nimx/linear_layout
+import ./context
+import ./view_dragging_listener
+import ./linear_layout
 
 type Toolbar* = ref object of LinearLayout
 

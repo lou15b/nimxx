@@ -1,7 +1,7 @@
 import strutils, tables
 import variant
-import abstract_asset_bundle, asset_cache, url_stream, asset_loading, asset_loader
-import nimx/pathutils
+import ./ [ abstract_asset_bundle, asset_cache, url_stream, asset_loading, asset_loader ]
+import ../pathutils
 
 type
     MountEntry = tuple
@@ -39,11 +39,11 @@ proc setDefaultAssetBundle*(am: AssetManager, ab: AssetBundle) =
     am.mDefaultAssetBundle = ab
 
 when defined(android):
-    import android_asset_bundle
+    import ./android_asset_bundle
 elif defined(js) or defined(emscripten):
-    import web_asset_bundle
+    import ./web_asset_bundle
 else:
-    import native_asset_bundle
+    import ./native_asset_bundle
 
 proc createDefaultAssetBundle(): AssetBundle =
     when defined(android):

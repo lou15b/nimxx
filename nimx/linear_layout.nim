@@ -1,7 +1,7 @@
-import nimx / [ view, cursor, view_event_handling, view_dragging_listener ]
+import ./ [ view, cursor, view_event_handling, view_dragging_listener ]
 export view
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 type
     LinearLayout* = ref object of View

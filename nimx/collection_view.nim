@@ -1,11 +1,11 @@
 import math
 
-import nimx/event
-import nimx/gesture_detector
-import nimx/types
-import nimx/view
+import ./event
+import ./gesture_detector
+import ./types
+import ./view
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 type
     LayoutDirection* {.pure.} = enum

@@ -2,23 +2,23 @@ import strutils
 import tables
 import algorithm
 
-import nimx/view
-import nimx/text_field
-import nimx/matrixes
-import nimx/image
-import nimx/button
-import nimx/color_picker
-import nimx/context
-import nimx/portable_gl
-import nimx/popup_button
-import nimx/font
-import nimx/linear_layout
-import nimx/property_visitor
-import nimx/numeric_text_field
-import nimx/system_logger
-import nimx/image_preview
+import ../view
+import ../text_field
+import ../matrixes
+import ../image
+import ../button
+import ../color_picker
+import ../context
+import ../portable_gl
+import ../popup_button
+import ../font
+import ../linear_layout
+import ../property_visitor
+import ../numeric_text_field
+import ../system_logger
+import ../image_preview
 
-import nimx/property_editors/propedit_registry
+import ./propedit_registry
 
 import variant
 

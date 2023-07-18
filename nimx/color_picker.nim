@@ -1,20 +1,20 @@
 import math
 
-import view
+import ./view
 export view
 
-import context
-import composition
-import types
-import portable_gl
-import popup_button
-import strutils
-import text_field
-import view_event_handling
-import view_dragging_listener
-import button
+import ./context
+import ./composition
+import ./types
+import ./portable_gl
+import ./popup_button
+import ./strutils
+import ./text_field
+import ./view_event_handling
+import ./view_dragging_listener
+import ./button
 
-import nimx / meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 const
     margin = 6

@@ -1,7 +1,7 @@
 import strutils, math, times
-import nimx / [keyboard, text_field, formatted_text, 
+import ./ [ keyboard, text_field, formatted_text, 
     view_event_handling, window_event_handling, composition,
-    context, font, animation, window]
+    context, font, animation, window ]
 
 type NumericTextField* = ref object of TextField
     precision*: uint
