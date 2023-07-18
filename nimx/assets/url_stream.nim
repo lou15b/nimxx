@@ -36,11 +36,10 @@ proc getPathFromFileUrl(url: string): string =
     const prefixLen = len("file://")
     result = substr(url, prefixLen)
 
-when not defined(js) and not defined(emscripten):
-    registerUrlHandler("file") do(url: string, handler: Handler) {.gcsafe.}:
-        let p = getPathFromFileUrl(url)
-        let s = newFileStream(p, fmRead)
-        if s.isNil:
-            handler(nil, "Could not open file: " & p)
-        else:
-            handler(s, "")
+registerUrlHandler("file") do(url: string, handler: Handler) {.gcsafe.}:
+    let p = getPathFromFileUrl(url)
+    let s = newFileStream(p, fmRead)
+    if s.isNil:
+        handler(nil, "Could not open file: " & p)
+    else:
+        handler(s, "")

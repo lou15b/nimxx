@@ -22,9 +22,7 @@ import ./propedit_registry
 
 import variant
 
-when defined(js):
-    from dom import alert, window
-elif not defined(android) and not defined(ios):
+when not defined(android) and not defined(ios):
     import os_files/dialog
 
 template toStr(v: SomeFloat, precision: uint): string = formatFloat(v, ffDecimal, precision)
@@ -222,28 +220,23 @@ when not defined(android) and not defined(ios):
         b.autoresizingMask = {afFlexibleWidth, afFlexibleMaxY}
         b.title = "Open image..."
         b.onAction do():
-            when defined(js):
-                alert(window, "Files can be opened only in native editor version")
-            elif defined(emscripten):
-                discard
-            else:
-                var di: DialogInfo
-                di.title = "Select image"
-                di.kind = dkOpenFile
-                di.filters = @[(name:"PNG", ext:"*.png")]
-                let path = di.show()
-                echo "get path (", path, ")", path.len > 0
-                if path.len > 0:
+            var di: DialogInfo
+            di.title = "Select image"
+            di.kind = dkOpenFile
+            di.filters = @[(name:"PNG", ext:"*.png")]
+            let path = di.show()
+            echo "get path (", path, ")", path.len > 0
+            if path.len > 0:
 
-                    var i: Image
-                    try:
-                        i = imageWithContentsOfFile(path)
-                    except:
-                        logi "Image could not be loaded: ", path
-                    if not i.isNil:
-                        setter(i)
-                        if not pv.changeInspector.isNil:
-                            pv.changeInspector()
+                var i: Image
+                try:
+                    i = imageWithContentsOfFile(path)
+                except:
+                    logi "Image could not be loaded: ", path
+                if not i.isNil:
+                    setter(i)
+                    if not pv.changeInspector.isNil:
+                        pv.changeInspector()
 
         result = pv
         result.addSubview(b)

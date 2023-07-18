@@ -67,10 +67,7 @@ proc newShaderProgram*(gl: GL, vs, fs: string,
     elif info.len > 0:
         logi "Program linked: ", info
 
-when defined js:
-    type Transform3DRef = ref Transform3D
-else:
-    type Transform3DRef = ptr Transform3D
+type Transform3DRef = ptr Transform3D
 
 type GraphicsContext* = ref object of RootObj
     gl*: GL
@@ -89,10 +86,7 @@ type GraphicsContext* = ref object of RootObj
 var gCurrentContext {.threadvar.}: GraphicsContext
 
 proc transformToRef(t: Transform3D): Transform3DRef =
-    when defined js:
-        asm "`result` = `t`;"
-    else:
-        {.emit: "`result` = `t`;".}
+    {.emit: "`result` = `t`;".}
 
 template withTransform*(c: GraphicsContext, t: Transform3DRef, body: typed) =
     let old = c.pTransform
@@ -163,7 +157,7 @@ proc createQuadBuffer(c: GraphicsContext): BufferRef =
 proc newGraphicsContext*(canvas: ref RootObj = nil): GraphicsContext =
     result.new()
     result.gl = newGL(canvas)
-    when not defined(ios) and not defined(android) and not defined(js) and not defined(emscripten) and not defined(wasm):
+    when not defined(ios) and not defined(android):
         loadExtensions()
 
     result.gl.clearColor(0, 0, 0, 0.0)
@@ -194,29 +188,20 @@ proc setTransformUniform*(c: GraphicsContext, program: ProgramRef) =
     c.gl.uniformMatrix4fv(c.gl.getUniformLocation(program, "modelViewProjectionMatrix"), false, c.transform)
 
 proc setColorUniform*(c: GraphicsContext, loc: UniformLocation, color: Color) =
-    when defined js:
-        c.gl.uniform4fv(loc, [color.r, color.g, color.b, color.a * c.alpha])
-    else:
-        var arr = [color.r, color.g, color.b, color.a * c.alpha]
-        glUniform4fv(loc, 1, addr arr[0]);
+    var arr = [color.r, color.g, color.b, color.a * c.alpha]
+    glUniform4fv(loc, 1, addr arr[0]);
 
 proc setColorUniform*(c: GraphicsContext, program: ProgramRef, name: cstring, color: Color) =
     c.setColorUniform(c.gl.getUniformLocation(program, name), color)
 
 proc setRectUniform*(c: GraphicsContext, loc: UniformLocation, r: Rect) =
-    when defined js:
-        c.gl.uniform4fv(loc, [r.x, r.y, r.width, r.height])
-    else:
-        glUniform4fv(loc, 1, cast[ptr GLfloat](unsafeAddr r));
+    glUniform4fv(loc, 1, cast[ptr GLfloat](unsafeAddr r));
 
 template setRectUniform*(c: GraphicsContext, prog: ProgramRef, name: cstring, r: Rect) =
     c.setRectUniform(c.gl.getUniformLocation(prog, name), r)
 
 proc setPointUniform*(c: GraphicsContext, loc: UniformLocation, r: Point) =
-    when defined js:
-        c.gl.uniform2fv(loc, [r.x, r.y])
-    else:
-        glUniform2fv(loc, 1, cast[ptr GLfloat](unsafeAddr r));
+    glUniform2fv(loc, 1, cast[ptr GLfloat](unsafeAddr r));
 
 template setPointUniform*(c: GraphicsContext, prog: ProgramRef, name: cstring, r: Point) =
     c.setPointUniform(c.gl.getUniformLocation(prog, name), r)
@@ -453,14 +438,12 @@ proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
     gl.vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, gl.FLOAT, false, 0, 0)
 
     gl.enable(GL_LINE_SMOOTH)
-    when not defined(js):
-      glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
-      glLineWidth(c.strokeWidth)
+    glLineWidth(c.strokeWidth)
 
     gl.drawArrays(GL_LINE_STRIP, 0.GLint, vertexCount.GLsizei)
-    when not defined(js):
-      glLineWidth(1.0)
+    glLineWidth(1.0)
 
 
 const lineComposition = newComposition """

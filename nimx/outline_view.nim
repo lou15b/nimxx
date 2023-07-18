@@ -205,11 +205,7 @@ proc reloadDataForNode(v: OutlineView, n: ItemNode, indexPath: var IndexPath) =
     if childrenCount > 0 and n.children.len == 0:
         n.children = newSeq[ItemNode](childrenCount)
     elif n.children.len != 0:
-        when defined(js):
-            let oldLen = n.children.len
         n.children.setLen(childrenCount)
-        when defined(js): # Workaround for nim bug. Increasing seq len does not init items in js.
-            for i in oldLen ..< childrenCount: n.children[i] = ItemNode(expandable: true)
 
     let lastIndex = indexPath.len
     indexPath.add(0)

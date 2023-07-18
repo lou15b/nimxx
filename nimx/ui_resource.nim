@@ -1,7 +1,6 @@
-import std / [ tables, hashes, json ]
+import std / [ tables, hashes, json, async ]
 import ./ [ view, serializers, control, types ]
 import ./assets / asset_loading
-import ./private / async
 
 type
   UIResID = int
@@ -29,15 +28,10 @@ proc loadAUX[T](path: string, deser: proc(j: JsonNode): T {.gcsafe.}, onLoad: pr
     onLoad(deser(jn))
 
 proc loadAUXAsync[T](path: string, deser: proc(j: JsonNode): T {.gcsafe.}): Future[T] =
-  when defined js:
-    newPromise() do (resolve: proc(response: T) {.gcsafe.}):
-      loadAUX[T](path, deser) do(v: T):
-          resolve(v)
-  else:
-    let resf = newFuture[T]()
-    loadAUX[T](path, deser) do(v: T):
-      resf.complete(v)
-    return resf
+  let resf = newFuture[T]()
+  loadAUX[T](path, deser) do(v: T):
+    resf.complete(v)
+  return resf
 
 proc loadView*(path: string, onLoad: proc(v: View) {.gcsafe.}) =
   loadAUX[View](path, deserializeView, onLoad)

@@ -3,19 +3,10 @@ import unicode, streams, logging
 import ./ [ types, timer, portable_gl ]
 import ./private/font/font_data
 
-const pureWasm = defined(wasm) and not defined(emscripten)
+import ./private/font/stb_ttf_glyph_provider
+type GlyphProvider = StbTtfGlyphProvider
 
-when pureWasm:
-    import ./private/font/web_glyph_provider
-    type GlyphProvider = WebGlyphProvider
-elif defined(js):
-    import ./private/font/js_glyph_provider
-    type GlyphProvider = JsGlyphProvider
-else:
-    import ./private/font/stb_ttf_glyph_provider
-    type GlyphProvider = StbTtfGlyphProvider
-
-    import os
+import os
 
 import ttf/edtaa3func
 import ./private/simple_table
@@ -34,10 +25,7 @@ type CharInfo = ref object
 
 template bakedChars(ci: CharInfo): GlyphMetrics = ci.data.glyphMetrics
 
-when defined(js):
-    type FastString = cstring
-else:
-    type FastString = string
+type FastString = string
 
 
 template charHeightForSize(s: float): float =
@@ -66,10 +54,7 @@ proc cachedImplForFont(face: string, sz: float): FontImpl =
         result.new()
         result.chars = newSimpleTable(int32, CharInfo)
         result.glyphProvider.new()
-        when defined(js) or pureWasm:
-            result.glyphProvider.setFace(face)
-        else:
-            result.glyphProvider.setPath(face)
+        result.glyphProvider.setPath(face)
         result.glyphProvider.setSize(charHeightForSize(sz))
         result.glyphProvider.glyphMargin = 8
         fontCache[key] = result
@@ -96,36 +81,12 @@ template size*(f: Font): float = f.mSize
 const dumpDebugBitmaps = false
 
 when dumpDebugBitmaps:
-    when defined(js):
-        proc logBitmap(title: cstring, bytes: openarray[byte], width, height: int) =
-            {.emit: """
-            var span = document.createElement("span");
-            span.innerHTML = `title`;
-            document.body.appendChild(span);
-            var canvas = document.createElement("canvas")
-            document.body.appendChild(canvas);
-            canvas.width = `width`;
-            canvas.height = `height`;
-            var ctx = `canvas`.getContext('2d');
-            var imgData2 = ctx.createImageData(`width`, `height`);
-            var imgData = imgData2.data;
-            var sz = `width` * `height`;
-            for (var i = 0; i < sz; ++i) {
-                var offs = i * 4;
-                imgData[offs] = 0;// `bytes`[i];
-                imgData[offs + 1] = 0; //`bytes`[i];
-                imgData[offs + 2] = 0; //`bytes`[i];
-                imgData[offs + 3] = `bytes`[i];
-            }
-            ctx.putImageData(imgData2, 0, 0);
-            """.}
-    else:
-        template dumpBitmaps(name: string, bitmap: seq[byte], width, height, start: int, fSize: float) =
-            var bmp = newSeq[byte](width * height * 3)
-            for i in 0 .. < width * height:
-                bmp[3*i] = bitmap[i]
+    template dumpBitmaps(name: string, bitmap: seq[byte], width, height, start: int, fSize: float) =
+        var bmp = newSeq[byte](width * height * 3)
+        for i in 0 .. < width * height:
+            bmp[3*i] = bitmap[i]
 
-            discard stbi_write_bmp("atlas_nimx_" & name & "_" & $fSize & "_" & $start & "_" & $width & "x" & $height & ".bmp", width.cint, height.cint, 3.cint, addr bmp[0])
+        discard stbi_write_bmp("atlas_nimx_" & name & "_" & $fSize & "_" & $start & "_" & $width & "x" & $height & ".bmp", width.cint, height.cint, 3.cint, addr bmp[0])
 
 proc updateFontMetrics(f: Font) =
     f.impl.glyphProvider.getFontMetrics(f.impl.ascent, f.impl.descent)
@@ -146,18 +107,17 @@ proc bakeChars(f: Font, start: int32, res: CharInfo) =
     when dumpDebugBitmaps:
         dumpBitmaps("df", res.data.bitmap, res.data.bitmapWidth, res.data.bitmapHeight, start, fSize)
 
-when not defined(js) and not pureWasm:
-    proc newFontWithFile*(pathToTTFile: string, size: float): Font =
-        result.new()
-        result.isHorizontal = true # TODO: Support vertical fonts
-        result.filePath = pathToTTFile
-        result.face = splitFile(pathToTTFile).name
-        result.size = size
-        result.glyphMargin = 8
+proc newFontWithFile*(pathToTTFile: string, size: float): Font =
+    result.new()
+    result.isHorizontal = true # TODO: Support vertical fonts
+    result.filePath = pathToTTFile
+    result.face = splitFile(pathToTTFile).name
+    result.size = size
+    result.glyphMargin = 8
 
 var sysFont {.threadvar.}: Font
 
-const preferredFonts = when defined(js) or defined(windows) or defined(emscripten) or defined(wasm):
+const preferredFonts = when defined(windows):
         [
             "Arial",
             "OpenSans-Regular"
@@ -181,12 +141,11 @@ const preferredFonts = when defined(js) or defined(windows) or defined(emscripte
             "DejaVuSans"
         ]
 
-when not defined(js):
-    import ./private/font/fontconfig
+import ./private/font/fontconfig
 
 proc getAvailableFonts*(isSystem: bool = false): seq[string] =
     result = newSeq[string]()
-    when not defined(js) and not defined(android) and not defined(ios) and not pureWasm:
+    when not defined(android) and not defined(ios):
         for f in walkFiles(getAppDir() /../ "Resources/*.ttf"):
             result.add(splitFile(f).name)
         for f in walkFiles(getAppDir() / "res/*.ttf"):
@@ -195,27 +154,19 @@ proc getAvailableFonts*(isSystem: bool = false): seq[string] =
             result.add(splitFile(f).name)
 
 proc newFontWithFace*(face: string, size: float): Font =
-    when defined(js) or pureWasm:
-        result.new()
-        result.filePath = face
-        result.face = face
-        result.isHorizontal = true # TODO: Support vertical fonts
-        result.size = size
-        result.glyphMargin = 8
+    let path = findFontFileForFace(face)
+    if path.len != 0:
+        result = newFontWithFile(path, size)
     else:
-        let path = findFontFileForFace(face)
-        if path.len != 0:
-            result = newFontWithFile(path, size)
-        else:
-            when defined(android):
-                let path = face & ".ttf"
-                let url = "res://" & path
-                var s: Stream
-                openStreamForURL(url) do(st: Stream, err: string):
-                    s = st
-                if not s.isNil:
-                    s.close()
-                    result = newFontWithFile(url, size)
+        when defined(android):
+            let path = face & ".ttf"
+            let url = "res://" & path
+            var s: Stream
+            openStreamForURL(url) do(st: Stream, err: string):
+                s = st
+            if not s.isNil:
+                s.close()
+                result = newFontWithFile(url, size)
 
 proc systemFontSize*(): float = 16
 
@@ -231,11 +182,10 @@ proc systemFontOfSize*(size: float): Font =
         result = newFontWithFace(f, size)
         if result != nil: return
 
-    when not defined(js):
-        error "Could not find system font:"
-        for face in preferredFonts:
-            for f in potentialFontFilesForFace(face):
-                error "Tried path '", f, "'"
+    error "Could not find system font:"
+    for face in preferredFonts:
+        for f in potentialFontFilesForFace(face):
+            error "Tried path '", f, "'"
 
 proc systemFont*(): Font =
     if sysFont == nil:

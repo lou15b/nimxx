@@ -1,5 +1,4 @@
 import ./ [ event, keyboard ]
-import ./private/js_platform_detector
 
 type KeyCommand* = enum
     kcUnknown
@@ -22,20 +21,12 @@ type Modifier = enum
     Ctrl
     Alt
 
-const web = defined(emscripten) or defined(js)
-
 template macOsCommands(body: untyped) =
     when defined(macosx):
         body
-    elif web:
-        if isMacOs:
-            body
 
 template nonMacOsCommands(body: untyped) =
-    when web:
-        if not isMacOs:
-            body
-    elif not defined(macosx):
+    when not defined(macosx):
         body
 
 proc commandFromEvent*(e: Event): KeyCommand =

@@ -458,10 +458,7 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         setUniform(name, newPoint(v.width, v.height))
 
     template setUniform(name: string, v: openarray[Point]) {.hint[XDeclaredButNotUsed]: off.} =
-        when defined(js):
-            gl.uniform2fv(uniformLocation(name), unwrapPointArray(v))
-        else:
-            gl.uniform2fv(uniformLocation(name), GLsizei(v.len), cast[ptr GLfloat](unsafeAddr v[0]))
+        gl.uniform2fv(uniformLocation(name), GLsizei(v.len), cast[ptr GLfloat](unsafeAddr v[0]))
 
     template setUniform(name: string, v: Color) {.hint[XDeclaredButNotUsed]: off.} =
         ctx.setColorUniform(uniformLocation(name), v)

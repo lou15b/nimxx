@@ -1,8 +1,9 @@
 {.used.}
 import json, sugar
+import std/async
 
 import ./editor_types
-import ../ [ undo_manager, view, serializers, ui_resource, private/async ]
+import ../ [ undo_manager, view, serializers, ui_resource ]
 
 const savingAndLoadingEnabled* = not defined(ios) and not defined(android)
 
@@ -75,15 +76,10 @@ when savingAndLoadingEnabled:
 
 
     proc loadViewToEditAsync(path: string): Future[View] =
-        when defined js:
-            newPromise() do (resolve: proc(response: View)):
-                loadAsset[JsonNode]("file://" & path) do(jn: JsonNode, err: string):
-                    resolve(deserializeView(jn))
-        else:
-            var r = newFuture[View]()
-            loadAsset[JsonNode]("file://" & path) do(jn: JsonNode, err: string):
-                r.complete(deserializeView(jn))
-            result = r
+        var r = newFuture[View]()
+        loadAsset[JsonNode]("file://" & path) do(jn: JsonNode, err: string):
+            r.complete(deserializeView(jn))
+        result = r
 
     proc loadFromPath*(d: UIDocument, path: string) {.async.}=
         d.path = path

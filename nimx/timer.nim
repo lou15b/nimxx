@@ -1,14 +1,9 @@
 import times, ./mini_profiler
 
-when defined(js) or defined(emscripten) or defined(wasm):
-    import jsbind
-    type TimerID = ref object of JSObj
-elif defined(macosx):
+when defined(macosx):
     type TimerID = pointer
-elif not defined(nimxAvoidSDL):
-    import sdl2
 else:
-    type TimerID = bool
+    import sdl2
 
 type TimerState = enum
     tsInvalid
@@ -28,13 +23,12 @@ type
         isPeriodic: bool
         scheduleTime: float
         state: TimerState
-        when (not defined(js) and not defined(emscripten)):
-            ready: bool
+        ready: bool
         when defined(debugLeaks):
             instantiationStackTrace*: string
 
 
-const profileTimers = not defined(js) and not defined(release)
+const profileTimers = not defined(release)
 
 when profileTimers or defined(debugLeaks):
     var totalTimers {.threadvar.}: ProfilerDataSource[int]
@@ -52,25 +46,7 @@ when profileTimers or defined(debugLeaks):
     else:
         proc finalizeTimer(t: Timer) = destroyAux(t[])
 
-when defined(js) or defined(emscripten) or defined(wasm):
-    proc setInterval(p: proc(), timeout: float): TimerID {.jsImportg.}
-    proc setTimeout(p: proc(), timeout: float): TimerID {.jsImportg.}
-    proc clearInterval(t: TimerID) {.jsImportg.}
-    proc clearTimeout(t: TimerID) {.jsImportg.}
-
-    proc schedule(t: Timer) =
-        if t.isPeriodic:
-            t.timer = setInterval(t.callback, t.interval * 1000)
-        else:
-            t.timer = setTimeout(t.callback, t.interval * 1000)
-
-    template cancel(t: Timer) =
-        if t.isPeriodic:
-            clearInterval(t.timer)
-        else:
-            clearTimeout(t.timer)
-
-elif defined(macosx):
+when defined(macosx):
     type
         CFTimeInterval = cdouble
         CFAbsoluteTime = CFTimeInterval
@@ -118,22 +94,6 @@ elif defined(macosx):
     proc cancel(t: Timer) {.inline.} =
         CFRunLoopTimerInvalidate(t.timer)
 
-elif defined(nimxAvoidSDL):
-    import asyncdispatch
-    proc runTimer(t: Timer) {.async.} =
-        while t.state == tsRunning:
-            await sleepAsync(t.interval * 1000)
-            if t.state == tsRunning:
-                t.callback()
-                if not t.isPeriodic:
-                    break
-
-    proc schedule(t: Timer) =
-        t.timer = true
-        asyncCheck runTimer(t)
-
-    proc cancel(t: Timer) {.inline.} = discard
-
 else:
     import ./perform_on_main_thread
 
@@ -178,8 +138,7 @@ proc clear*(t: Timer) =
             t.state = tsInvalid
             t.callback = nil
             t.origCallback = nil
-            when not defined(js):
-                GC_unref(t)
+            GC_unref(t)
 
 proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Timer =
     assert(not callback.isNil)
@@ -198,23 +157,16 @@ proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Time
         result.instantiationStackTrace = getStackTrace()
         allTimers.add(cast[pointer](result))
 
-    when defined(js) or defined(emscripten) or defined(wasm):
-        result.origCallback = proc() =
-            callback()
-    else:
-        result.origCallback = callback
+    result.origCallback = callback
 
-    when defined(js):
-        result.callback = result.origCallback
+    let t = result
+    GC_ref(t)
+    if repeat:
+        t.callback = callback
     else:
-        let t = result
-        GC_ref(t)
-        if repeat:
-            t.callback = callback
-        else:
-            t.callback = proc() =
-                t.origCallback()
-                t.clear()
+        t.callback = proc() =
+            t.origCallback()
+            t.clear()
 
     result.isPeriodic = repeat
     result.interval = interval
@@ -240,13 +192,11 @@ proc pause*(t: Timer) =
             t.timer = emptyId
             t.scheduleTime = t.timeLeftUntilNextFire()
             t.state = tsPaused
-            when not defined(js):
-                GC_unref(t)
+            GC_unref(t)
 
 proc resume*(t: Timer) =
     if t.state == tsPaused:
-        when not defined(js):
-            GC_ref(t)
+        GC_ref(t)
         # At this point t.scheduleTime is equal to number of seconds remaining
         # until next fire.
         let interval = t.interval

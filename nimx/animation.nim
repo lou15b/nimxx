@@ -249,9 +249,6 @@ template interpolate*(fromValue, toValue: bool, p: float): bool =
         fromValue
 template interpolate*(fromValue, toValue: SomeInteger, p: float): auto = fromValue + type(fromValue)(float(toValue - fromValue) * p)
 
-when defined(js): ## workaround for int64 in javascript
-    template interpolate*(fromValue, toValue: int64, p: float): int64 = fromValue + int(float(toValue - fromValue) * p)
-
 template setInterpolationAnimation(a: Animation, ident: untyped, fromVal, toVal: untyped, body: untyped) =
     let fv = fromVal
     let tv = toVal

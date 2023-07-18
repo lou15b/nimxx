@@ -10,43 +10,6 @@ type UITestSuite* = ref object
     name: string
     steps: seq[UITestSuiteStep]
 
-const web = defined(js) or defined(emscripten) or defined(wasm)
-
-when web:
-    when defined(emscripten) or defined(wasm):
-        import jsbind/emscripten
-
-    # When testing on Firefox, we have to use window.dump instead of console.log
-    type FirefoxAutotestLogger = ref object of Logger
-
-    method log*(logger: FirefoxAutotestLogger, level: Level, args: varargs[string, `$`]) =
-        let s = args.join()
-        let a = cstring(s)
-        when defined(js):
-            {.emit: """
-            window['dump'](`a` + '\n');
-            """.}
-        else:
-            discard EM_ASM_INT("""
-            window['dump'](UTF8ToString($0) + '\n');
-            """, a)
-
-    var loggerSetupDone = false
-
-    proc isWindowDumpAvailable(): bool {.inline.} =
-        when defined(js):
-            {.emit: "`result` = 'dump' in window;".}
-        else:
-            let res = EM_ASM_INT("return ('dump' in window)?1:0;")
-            result = bool(res)
-
-    proc setupLogger() =
-        if not loggerSetupDone:
-            loggerSetupDone = true
-            if isWindowDumpAvailable():
-                let logger = FirefoxAutotestLogger.new()
-                addHandler(logger)
-
 type TestRunnerContext = ref object
     curStep: int
     curTimeout: float
@@ -116,7 +79,7 @@ when true:
                 if not result.isNil: break
 
     proc quitApplication*() =
-        when web or defined(android):
+        when defined(android):
             # Hopefully we're using nimx automated testing in Firefox
             info "---AUTO-TEST-QUIT---"
         else:
@@ -134,7 +97,7 @@ when true:
             if maxTries != -1:
                 if testRunnerContext.waitTries + 2 > maxTries:
                     testRunnerContext.waitTries = -1
-                    when web or defined(android):
+                    when defined(android):
                         info "---AUTO-TEST-FAIL---"
                     else:
                         raise newException(Exception, "Wait tries exceeded!")
@@ -159,9 +122,7 @@ when false:
 
     registerTest(myTest)
 
-when web:
-    import ./pathutils
-elif defined(android):
+when defined(android):
     import jnim
     import android/app/activity, android/content/intent, android/os/base_bundle
 else:
@@ -172,11 +133,7 @@ proc getAllTestNames(): seq[string] =
     for i, t in registeredTests: result[i] = t.name
 
 proc getTestsToRun*(): seq[string] =
-    when web:
-        let testsStr = getCurrentHref().uriParam("nimxAutoTest")
-        if testsStr.len != 0:
-            result = testsStr.split(',')
-    elif defined(android):
+    when defined(android):
         let act = currentActivity()
         assert(not act.isNil)
         let extras = act.getIntent().getExtras()
@@ -198,7 +155,6 @@ proc haveTestsToRun*(): bool =
     getTestsToRun().len != 0
 
 proc startTest*(t: UITestSuite, onComplete: proc() {.gcsafe.} = nil) =
-    when web: setupLogger()
     testRunnerContext.new()
     testRunnerContext.curTimeout = 0.5
     testRunnerContext.waitTries = -1

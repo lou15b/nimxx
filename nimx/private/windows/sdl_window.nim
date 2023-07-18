@@ -9,8 +9,8 @@ import times, logging
 export abstract_window
 
 const
-    x11Platform = defined(linux) and not defined(emscripten) and not defined(android)
-    waylandPlatform = defined(linux) and not defined(emscripten) and not defined(android)
+    x11Platform = defined(linux) and not defined(android)
+    waylandPlatform = defined(linux) and not defined(android)
     appkitPlatform = defined(macosx) and not defined(ios)
 
 when defined(nimxAsyncRunloop):

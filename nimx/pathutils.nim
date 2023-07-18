@@ -94,22 +94,6 @@ proc toAbsolutePath*(relativeOrAbsolutePath, basePath: string): string =
     result = basePath & '/' & relativeOrAbsolutePath
     normalizePath(result)
 
-when defined(js):
-    proc getCurrentHref*(): string =
-        var s: cstring
-        {.emit: """
-        `s` = window.location.href;
-        """.}
-        result = $s
-elif defined(emscripten) or defined(wasm):
-    import jsbind/emscripten
-
-    proc getCurrentHref*(): string =
-        let r = EM_ASM_INT """
-        return _nimem_s(window.location.href);
-        """
-        result = cast[string](r)
-
 iterator uriParamsPairs*(s: string): (string, string) =
     var i = s.skipUntil('?') + 1
     while i < s.len:

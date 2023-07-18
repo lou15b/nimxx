@@ -1,5 +1,3 @@
-when defined(js): {.error: "This file is not supposed to be used in JS mode".}
-
 import os, dynlib, strutils
 
 const fontSearchPaths = when defined(macosx):
@@ -13,10 +11,6 @@ elif defined(android):
 elif defined(windows):
   [
     r"c:\Windows\Fonts" #todo: system will not always in the c disk
-  ]
-elif defined(emscripten) or defined(wasm):
-  [
-    "res"
   ]
 elif defined(haiku):
   [
@@ -36,13 +30,12 @@ else:
 iterator potentialFontFilesForFace*(face: string): string =
   for sp in fontSearchPaths:
     yield sp / face & ".ttf"
-  when not defined(emscripten) and not defined(wasm):
-    yield getAppDir() / "res" / face & ".ttf"
-    yield getAppDir() /../ "Resources" / face & ".ttf"
-    yield getAppDir() / face & ".ttf"
+  yield getAppDir() / "res" / face & ".ttf"
+  yield getAppDir() /../ "Resources" / face & ".ttf"
+  yield getAppDir() / face & ".ttf"
 
 
-const useLibfontconfig = defined(posix) and not defined(android) and not defined(ios) and not defined(emscripten) and not defined(wasm)
+const useLibfontconfig = defined(posix) and not defined(android) and not defined(ios)
 
 
 when useLibfontconfig:

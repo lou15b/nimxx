@@ -67,32 +67,14 @@ proc removeObserverAux(nc: NotificationCenter, observer: ObserverId) =
 
     nc.removeObserverInOldDeprecatedWay(observer)
 
-when defined(js):
-    {.emit:"""
-    var _nimx_observerIdCounter = 0;
+template getObserverID(rawId: ref | SomeOrdinal): ObserverId = cast[int](rawId)
+
+proc castProc[TTo, TFrom](p: TFrom): TTo {.inline.} =
+    # This is needed because of nim bug #5785. Otherwise regular cast could be used
+    {.emit: """
+    `result`->ClP_0 = `p`.ClP_0;
+    `result`->ClE_0 = `p`.ClE_0;
     """.}
-
-    proc getObserverId(rawId: RootRef): ObserverId =
-        {.emit: """
-        if (`rawId`.__nimx_observer_id === undefined) {
-            `rawId`.__nimx_observer_id = --_nimx_observerIdCounter;
-        }
-        `result` = `rawId`.__nimx_observer_id;
-        """.}
-    template getObserverID(rawId: ref): ObserverId = getObserverId(cast[RootRef](rawId))
-    template getObserverID(rawId: SomeOrdinal): ObserverId = int(rawId)
-
-    template castProc[TTo, TFrom](p: TFrom): TTo = cast[TTo](p)
-
-else:
-    template getObserverID(rawId: ref | SomeOrdinal): ObserverId = cast[int](rawId)
-
-    proc castProc[TTo, TFrom](p: TFrom): TTo {.inline.} =
-        # This is needed because of nim bug #5785. Otherwise regular cast could be used
-        {.emit: """
-        `result`->ClP_0 = `p`.ClP_0;
-        `result`->ClE_0 = `p`.ClE_0;
-        """.}
 
 {.push stackTrace: off, inline.}
 
@@ -140,20 +122,12 @@ proc dispatchNotification(nc: NotificationCenter, notificationId: int, ctx: poin
 
 proc dispatchForwarder[TProc, TTuple](prc: proc(), ctx: pointer) =
     let p = castProc[TProc, proc()](prc)
-    when defined(js):
-        var localT: TTuple
-        {.emit: [localT, "=", ctx, ";"].}
-        appendTupleToCall(p(), localT)
-    else:
-        appendTupleToCall(p(), cast[ptr TTuple](ctx)[])
+    appendTupleToCall(p(), cast[ptr TTuple](ctx)[])
 
 template postNotification*[T: proc](nc: NotificationCenter, name: Notification[T], args: varargs[typed]) =
     var t = newTuple(args)
     var pt {.noInit.}: pointer
-    when defined(js):
-        {.emit: [pt, "=", t, ";"].}
-    else:
-        pt = addr t
+    pt = addr t
 
     dispatchNotification(nc, int(name), pt, dispatchForwarder[T, type(t)])
 

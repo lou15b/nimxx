@@ -483,7 +483,7 @@ method onKeyDown*(t: TextField, e: var Event): bool =
                     if s.len != 0:
                         t.insertText(s)
                     result = true
-        when defined(macosx) or defined(windows) or defined(linux) or defined(emscripten) or defined(js):
+        when defined(macosx) or defined(windows) or defined(linux):
             if cmd in { kcCopy, kcCut, kcUseSelectionForFind }:
                 let s = t.selectedText()
                 if s.len != 0:

@@ -39,13 +39,10 @@ when defined(gcDestructors):
     proc `=destroy`(r: var ImageRenderTargetObj) = disposeObj(r)
 
 proc newImageRenderTarget*(needsDepthStencil: bool = true): ImageRenderTarget {.inline.} =
-    when defined(js):
+    when defined(gcDestructors):
         result.new()
     else:
-        when defined(gcDestructors):
-            result.new()
-        else:
-            result.new(dispose)
+        result.new(dispose)
     result.needsDepthStencil = needsDepthStencil
 
 proc init(rt: ImageRenderTarget, texWidth, texHeight: int16) =
@@ -65,7 +62,7 @@ proc init(rt: ImageRenderTarget, texWidth, texHeight: int16) =
 
         let depthBuffer = gl.createRenderbuffer()
         gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer)
-        let depthStencilFormat = when defined(js) or defined(emscripten): gl.DEPTH_STENCIL else: gl.DEPTH24_STENCIL8
+        let depthStencilFormat = gl.DEPTH24_STENCIL8
 
         # The following tries to use DEPTH_STENCIL_ATTACHMENT, but it may fail on some devices,
         # so for those we're creating a separate stencil buffer.
@@ -113,7 +110,7 @@ proc resize(rt: ImageRenderTarget, texWidth, texHeight: int16) =
         let oldRenderBuffer = gl.boundRenderBuffer()
     if rt.depthbuffer != invalidRenderbuffer:
         let depthStencilFormat = if rt.stencilbuffer == invalidRenderbuffer:
-                when defined(js) or defined(emscripten): gl.DEPTH_STENCIL else: gl.DEPTH24_STENCIL8
+                gl.DEPTH24_STENCIL8
             else:
                 gl.DEPTH_COMPONENT16
 
