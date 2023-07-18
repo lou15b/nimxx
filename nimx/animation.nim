@@ -4,6 +4,9 @@ import macros
 import algorithm
 import logging
 import times
+import locks
+
+import ./utils/lock_utils
 
 type LoopPattern* = enum
     lpStartToEndToStart
@@ -192,12 +195,12 @@ proc loopFinishCheck(a: Animation, lp, tp: var float)=
         lp = 1.0
         tp = 1.0
 
-method tick*(a: Animation, t: float) {.base, gcsafe.} =
+method tick*(a: Animation, curTime: float) {.base, gcsafe.} =
     if a.pauseTime != 0: return
 
     let oldLoop = a.curLoop
-    var loopProgress = a.loopProgress(t)
-    var totalProgress = a.totalProgress(t)
+    var loopProgress = a.loopProgress(curTime)
+    var totalProgress = a.totalProgress(curTime)
 
     a.loopFinishCheck(loopProgress, totalProgress)
 
@@ -586,7 +589,7 @@ when isMainModule:
         a.prepare(startTime)
         let timeStep = 1.0 / fps
         while true:
-            a.tick(timeStep)
+            a.tick(curTime)
             if a.finished: break
             curTime += timeStep
         result = curTime - startTime
@@ -595,11 +598,14 @@ when isMainModule:
     a.loopDuration = 1.0
     a.numberOfLoops = 1
 
-    var progresses = newSeq[float]()
+    var progressesLock: Lock
+    var progresses {.guard: progressesLock.} = newSeq[float]()
     a.onAnimate = proc(p: float) {.gcsafe.} =
-        progresses.add(p)
+        withLockGCsafe(progressesLock):
+            progresses.add(p)
 
     let timeTaken = a.emulateAnimationRun(5.0, 6.0, 60)
+    echo "Emulated animation took ", timeTaken, " seconds"
 
     doAssert(progresses[^1] == 1.0)
 
