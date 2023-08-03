@@ -19,6 +19,10 @@ else:
 when isMainModule:
     # Some tests...
     let pb = pasteboardWithName(PboardGeneral)
+    # Note: For Linux the following calls do not write or read anything
+    #   to the clipboard, because the internal display variable has not
+    #   been initialized. So in this case, success criterion is merely that
+    #   there is no exception
     pb.writeString("Hello world!")
     let s = pb.readString()
     echo s

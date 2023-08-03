@@ -1,7 +1,7 @@
 import ./abstract_pasteboard
 export abstract_pasteboard
 import ./pasteboard_item
-import x11/ [ xlib, x, xatom ]
+import x11 / [ xlib, x, xatom ]
 import ../app, ../private/windows/sdl_window
 import sdl2
 
@@ -14,7 +14,7 @@ type WMinfoX11 = object
     display*: PDisplay
     window*: culong
 
-proc getTextFormat(d: PDisplay): TAtom =
+proc getTextFormat(d: PDisplay): Atom =
     when defined(X_HAVE_UTF8_STRING):
         result = XInternAtom(d, "UTF8_STRING", 0)
     else:
@@ -22,10 +22,10 @@ proc getTextFormat(d: PDisplay): TAtom =
 
 const x11ClipboardSelection = "CLIPBOARD"
 
-proc nimxCutBuffer(display: PDisplay): TAtom =
+proc nimxCutBuffer(display: PDisplay): Atom =
     result = XInternAtom(display, "SDL_CUTBUFFER", 0)
 
-proc displayConnection(): (PDisplay, TWindow, TWindow) =
+proc displayConnection(): (PDisplay, x.Window, x.Window) =
     let keyWnd = mainApplication().keyWindow()
     if keyWnd.isNil: return
 
@@ -39,7 +39,7 @@ proc displayConnection(): (PDisplay, TWindow, TWindow) =
     if res == False32 or winInfo.subsystem != SysWM_X11 or display.isNil:
         return
 
-    var rw: TWindow
+    var rw: x.Window
     {.gcsafe.}:
       rw = DefaultRootWindow(display)
     (display, wi.window, rw)
@@ -65,7 +65,7 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
     var format = getTextFormat(display)
     let clipboard = XInternAtom(display, x11ClipboardSelection, 0)
     let cutBuffer = nimxCutBuffer(display)
-    var selection: TAtom
+    var selection: Atom
     var owner = XGetSelectionOwner(display, clipboard)
 
     if owner == None:
@@ -81,7 +81,7 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
         selection = XInternAtom(display, "SDL_SELECTION", 0)
         discard XConvertSelection(display, clipboard, format, selection, owner, CurrentTime)
 
-    var selType: TAtom
+    var selType: Atom
     var selFormat: cint
     var bytes: culong = 0
     var overflow: culong = 0

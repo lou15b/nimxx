@@ -15,6 +15,7 @@ requires "opengl"
 requires "winim"
 requires "nimsl >= 0.3"
 requires "jnim" # For android target
+requires "x11" # For linux target - pasteboard
 requires "nake"
 requires "closure_compiler >= 0.3.1"
 requires "plists"
