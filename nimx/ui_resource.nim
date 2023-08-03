@@ -40,7 +40,7 @@ proc loadViewAsync*(path: string): Future[View] =
   result = loadAUXAsync[View](path, deserializeView)
 
 
-method deserializeFields*(v: View, s: Deserializer) =
+method deserializeFields*(v: View, s: Deserializer) {.gcsafe.} =
   var fr: Rect
   s.deserialize("frame", fr)
   v.init(fr)

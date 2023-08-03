@@ -1,4 +1,5 @@
 import math
+import strutils
 
 import ./view
 export view
@@ -8,7 +9,6 @@ import ./composition
 import ./types
 import ./portable_gl
 import ./popup_button
-import ./strutils
 import ./text_field
 import ./view_event_handling
 import ./view_dragging_listener

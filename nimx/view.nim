@@ -165,7 +165,7 @@ proc constraints*(v: View): seq[Constraint] =
     result = newSeqOfCap[Constraint](v.layout.constraints.len)
     for c in v.layout.constraints: result.add(c.proto)
 
-method init*(v: View, frame: Rect) {.base.} =
+method init*(v: View, frame: Rect) {.base, gcsafe.} =
     v.frame = frame
     v.layout.init()
     v.bounds = newRect(0, 0, frame.width, frame.height)
