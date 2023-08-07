@@ -21,28 +21,17 @@ type
         texWidth*, texHeight*: int16
         needsDepthStencil*: bool
 
-proc disposeObj(r: var ImageRenderTargetObj) =
+proc `=destroy`(r: ImageRenderTargetObj) {.raises: [GLerror].} =
     let gl = sharedGL()
     if r.framebuffer != invalidFrameBuffer:
         gl.deleteFramebuffer(r.framebuffer)
-        r.framebuffer = invalidFrameBuffer
     if r.depthbuffer != invalidRenderbuffer:
         gl.deleteRenderbuffer(r.depthbuffer)
-        r.depthbuffer = invalidRenderbuffer
     if r.stencilbuffer != invalidRenderbuffer:
         gl.deleteRenderbuffer(r.stencilbuffer)
-        r.stencilbuffer = invalidRenderbuffer
-
-proc dispose*(r: ImageRenderTarget) = disposeObj(r[])
-
-when defined(gcDestructors):
-    proc `=destroy`(r: var ImageRenderTargetObj) = disposeObj(r)
 
 proc newImageRenderTarget*(needsDepthStencil: bool = true): ImageRenderTarget {.inline.} =
-    when defined(gcDestructors):
-        result.new()
-    else:
-        result.new(dispose)
+    result.new()
     result.needsDepthStencil = needsDepthStencil
 
 proc init(rt: ImageRenderTarget, texWidth, texHeight: int16) =
@@ -206,7 +195,6 @@ template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, drawBody: untyped
 template draw*(sci: SelfContainedImage, drawBody: untyped) =
     let rt = newImageRenderTarget()
     rt.draw(sci, drawBody)
-    rt.dispose()
 
 proc draw*(sci: SelfContainedImage, drawProc: proc()) {.deprecated.} =
     sci.draw:

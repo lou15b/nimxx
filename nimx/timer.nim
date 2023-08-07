@@ -33,18 +33,13 @@ const profileTimers = not defined(release)
 when profileTimers or defined(debugLeaks):
     var totalTimers {.threadvar.}: ProfilerDataSource[int]
 
-    proc destroyAux(t: var TimerObj) =
+    proc `=destroy`(t: TimerObj) =
         dec totalTimers
         when defined(debugLeaks):
             let p = cast[pointer](addr t)
             let i = allTimers.find(p)
             assert(i != -1)
             allTimers.del(i)
-
-    when defined(gcDestructors):
-        proc `=destroy`(t: var TimerObj) = destroyAux(t)
-    else:
-        proc finalizeTimer(t: Timer) = destroyAux(t[])
 
 when defined(macosx):
     type
@@ -143,10 +138,7 @@ proc clear*(t: Timer) =
 proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Timer =
     assert(not callback.isNil)
     when profileTimers:
-        when defined(gcDestructors):
-            result.new()
-        else:
-            result.new(finalizeTimer)
+        result.new()
         if totalTimers.isNil:
             totalTimers = sharedProfiler().newDataSource(int, "Timers")
         inc totalTimers

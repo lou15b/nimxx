@@ -43,22 +43,16 @@ method filePath*(i: SelfContainedImage): string = i.mFilePath
 
 var totalImages {.threadvar.}: ProfilerDataSource[int]
 
-proc `=destroy`(i: var SelfContainedImageObj) =
+proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
     if i.texture != invalidTexture:
         glDeleteTextures(1, addr i.texture)
     dec totalImages
-
-proc finalize(i: SelfContainedImage) =
-    `=destroy`(i[])
 
 proc newSelfContainedImage(): SelfContainedImage {.inline.} =
     if totalImages.isNil:
         totalImages = sharedProfiler().newDataSource(int, "Images")
     inc totalImages
-    when defined(gcDestructors):
-        result = SelfContainedImage()
-    else:
-        result.new(finalize)
+    result = SelfContainedImage()
 
 type DecodedImageData = object
     data: pointer
