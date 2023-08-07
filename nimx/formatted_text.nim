@@ -856,9 +856,10 @@ proc drawText*(c: GraphicsContext, origP: Point, t: FormattedText, inRect: Rect 
 
 when isMainModule:
     let arial16 = newFontWithFace("Arial", 16)
-    let arial40 = newFontWithFace("Arial", 16)
+    let arial40 = newFontWithFace("Arial", 40)
     if arial16.isNil:
         echo "Could not load font Arial. Skipping test."
     else:
+        echo "Arial font requested, actual font used = ", arial16.face
         let t = newFormattedText("Hello world!")
         let h = t.lineHeight(0)
