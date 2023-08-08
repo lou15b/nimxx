@@ -236,19 +236,21 @@ proc sharedGL*(): GL = globalGL
 
 proc shaderInfoLog*(gl: GL, s: ShaderRef): string =
     var infoLen: GLint
-    var dummy: char
-    glGetShaderInfoLog(s, sizeof(dummy).GLint, addr infoLen, addr dummy)
+    var dummy: string
+    dummy.setLen(1)
+    glGetShaderInfoLog(s, sizeof(dummy).GLint, addr infoLen, cstring(dummy))
     if infoLen > 0:
         result.setLen(infoLen + 1)
-        glGetShaderInfoLog(s, infoLen, nil, addr result[0])
+        glGetShaderInfoLog(s, infoLen, nil, cstring(result))
 
 proc programInfoLog*(gl: GL, s: ProgramRef): string =
     var infoLen: GLint
-    var dummy: char
-    glGetProgramInfoLog(s, sizeof(dummy).GLint, addr infoLen, addr dummy)
+    var dummy: string
+    dummy.setLen(1)
+    glGetProgramInfoLog(s, sizeof(dummy).GLint, addr infoLen, cstring(dummy))
     if infoLen > 0:
         result.setLen(infoLen + 1)
-        glGetProgramInfoLog(s, infoLen, nil, addr result[0])
+        glGetProgramInfoLog(s, infoLen, nil, cstring(result))
 
 proc shaderSource*(gl: GL, s: ShaderRef, src: cstring) =
     var srcArray = [src]

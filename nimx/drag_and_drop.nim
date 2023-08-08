@@ -1,7 +1,5 @@
 import ./view
 import ./types
-import ./class_registry
-import variant
 
 import ./image
 import ./pasteboard/pasteboard_item

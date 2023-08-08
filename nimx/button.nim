@@ -14,7 +14,6 @@ type ButtonStyle* = enum
     bsCheckbox
     bsRadiobox
     bsImage {.deprecated.}
-    bsNinePartImage {.deprecated.}
 
 type ButtonBehavior* = enum
     bbMomentaryLight
@@ -74,7 +73,7 @@ proc newRadiobox*(r: Rect): Button =
 
 proc newImageButton*(r: Rect): Button =
     result = newButton(r)
-    result.style = bsImage
+    result.style = bsRegular
 
 proc newImageButton*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), image: Image = nil): Button =
     result = newImageButton(newRect(position.x, position.y, size.width, size.height))

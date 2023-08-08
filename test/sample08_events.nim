@@ -1,4 +1,3 @@
-import strutils
 import ./sample_registry
 import ../nimx / [ view, font, context, button, gesture_detector, view_event_handling ]
 

@@ -6,7 +6,6 @@ import ./context
 import ./font
 import ./view_event_handling
 import ./property_visitor
-import ./serializers
 
 type SegmentedControl* = ref object of Control
     mSegments: seq[string]

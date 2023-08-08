@@ -53,7 +53,7 @@ proc newShaderProgram*(gl: GL, vs, fs: string,
     gl.attachShader(result, fShader)
 
     for a in attributes:
-        gl.bindAttribLocation(result, a.index, a.name)
+        gl.bindAttribLocation(result, a.index, cstring(a.name))
 
     gl.linkProgram(result)
     gl.deleteShader(vShader)

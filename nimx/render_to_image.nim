@@ -195,7 +195,3 @@ template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, drawBody: untyped
 template draw*(sci: SelfContainedImage, drawBody: untyped) =
     let rt = newImageRenderTarget()
     rt.draw(sci, drawBody)
-
-proc draw*(sci: SelfContainedImage, drawProc: proc()) {.deprecated.} =
-    sci.draw:
-        drawProc()

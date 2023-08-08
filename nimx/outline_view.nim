@@ -1,6 +1,5 @@
 import ./view
 import ./context
-import ./font
 import ./types
 import ./table_view_cell
 import ./view_event_handling

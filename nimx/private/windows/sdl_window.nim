@@ -1,7 +1,7 @@
 import sdl2 except Event, Rect, Point
 
-import ../../ [ abstract_window, system_logger, view, context, event, app, screen,
-                linkage_details, portable_gl ]
+import ../../ [ abstract_window, view, context, event, app, linkage_details,
+                portable_gl ]
 import ../sdl_vk_map
 import opengl
 import times, logging
@@ -10,8 +10,11 @@ export abstract_window
 
 const
     x11Platform = defined(linux) and not defined(android)
-    waylandPlatform = defined(linux) and not defined(android)
+    # waylandPlatform = defined(linux) and not defined(android)
     appkitPlatform = defined(macosx) and not defined(ios)
+
+when not x11Platform and not appkitPlatform:
+    import ../../screen
 
 when defined(nimxAsyncRunloop):
     import asyncdispatch
@@ -171,7 +174,7 @@ proc scaleFactor(w: SdlWindow): float =
                         var typ: cstring
                         if XrmGetResource(db, "Xft.dpi", "String", addr typ, addr value) != 0:
                             if not value.address.isNil:
-                                discard parseFloat($cstring(value.address), dpi, 0)
+                                discard parseFloat($(cast[cstring](value.address)), dpi, 0)
                         XrmDestroyDatabase(db)
 
                 discard XCloseDisplay(nd)

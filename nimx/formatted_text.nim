@@ -1,4 +1,4 @@
-import unicode, algorithm, strutils, sequtils
+import unicode, strutils, sequtils
 import ./ [ font, types, unistring ]
 import ./utils/lower_bound
 
@@ -393,7 +393,7 @@ proc uniDelete*(t: FormattedText, start, stop: int) =
     let bl = stopByte - startByte + 1
     let rl = stop - start + 1
 
-    t.mText.delete(startByte, stopByte)
+    t.mText.delete(startByte .. stopByte)
 
     if sa == ea:
         for i in ea + 1 .. t.mAttributes.high:
@@ -406,7 +406,7 @@ proc uniDelete*(t: FormattedText, start, stop: int) =
             t.mAttributes[i].startRune -= rl
             t.mAttributes[i].startByte -= bl
         if ea - sa > 1:
-            t.mAttributes.delete(sa + 1, ea - 1)
+            t.mAttributes.delete((sa + 1) .. (ea - 1))
 
     if sa < t.mAttributes.high and t.mAttributes[sa].startRune == t.mAttributes[sa + 1].startRune:
         t.mAttributes.delete(sa)

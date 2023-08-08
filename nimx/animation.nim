@@ -4,9 +4,6 @@ import macros
 import algorithm
 import logging
 import times
-import locks
-
-import ./utils/lock_utils
 
 type LoopPattern* = enum
     lpStartToEndToStart
@@ -584,6 +581,9 @@ method tick*(a: MetaAnimation, t: float) =
 
 
 when isMainModule:
+    import locks
+    import ./utils/lock_utils
+
     proc emulateAnimationRun(a: Animation, startTime, endTime, fps: float): float =
         var curTime = startTime
         a.prepare(startTime)

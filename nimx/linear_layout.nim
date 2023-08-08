@@ -1,4 +1,4 @@
-import ./ [ view, cursor, view_event_handling, view_dragging_listener ]
+import ./ [ view, cursor, view_event_handling ]
 export view
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]

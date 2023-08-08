@@ -17,9 +17,9 @@ proc newVector*[T](v0, v1 : T): TVector2[T] = [v0, v1]
 proc newVector*[T](v0, v1, v2 : T): TVector3[T] = [v0, v1, v2]
 proc newVector*[T](v0, v1, v2, v3 : T): TVector3[T] = [v0, v1, v2, v3]
 
-proc newVector2*(x, y: Coord = 0): Vector2 = [x, y]
-proc newVector3*(x, y, z: Coord = 0): Vector3 = [x, y, z]
-proc newVector4*(x, y, z, w: Coord = 0): Vector4 = [x, y, z, w]
+proc newVector2*(x: Coord = 0, y: Coord = 0): Vector2 = [x, y]
+proc newVector3*(x: Coord = 0, y: Coord = 0, z: Coord = 0): Vector3 = [x, y, z]
+proc newVector4*(x: Coord = 0, y: Coord = 0, z: Coord = 0, w: Coord = 0): Vector4 = [x, y, z, w]
 
 proc newVector3*(v2: Vector2): Vector3 = newVector3(v2[0], v2[1])
 proc newVector4*(v2: Vector2): Vector4 = newVector4(v2[0], v2[1])

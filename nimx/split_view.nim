@@ -1,7 +1,6 @@
 import kiwi
 
 import ./ [ view, window, cursor, view_event_handling, layout_vars ]
-import ./view_dragging_listener
 
 export view
 

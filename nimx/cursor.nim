@@ -21,7 +21,7 @@ type
         ckNotAllowed
         ckHand
 
-    Cursor* = ref object
+    Cursor* = object
         when appKit:
             c: pointer
         else:
@@ -43,7 +43,7 @@ when appKit:
         of ckNotAllowed: operationNotAllowedCursor()
         of ckHand: pointingHandCursor()
 
-    proc finalizeCursor(c: Cursor) =
+    proc `=destroy`(c: Cursor) =
         cast[NSCursor](c.c).release()
 else:
     proc cursorKindToSdl(c: CursorKind): SystemCursor =
@@ -61,11 +61,11 @@ else:
         of ckNotAllowed: SDL_SYSTEM_CURSOR_NO
         of ckHand: SDL_SYSTEM_CURSOR_HAND
 
-    proc finalizeCursor(c: Cursor) =
+    proc `=destroy`(c: Cursor) =
         freeCursor(c.c)
 
-proc newCursor*(k: CursorKind): Cursor =
-    result.new(finalizeCursor)
+proc newCursor*(k: CursorKind): ref Cursor =
+    result = new(Cursor)
     when appKit:
         result.c = NSCursorOfKind(k).retain()
     elif not defined(nimxAvoidSdl):
@@ -75,13 +75,13 @@ proc newCursor*(k: CursorKind): Cursor =
     elif defined(windows):
         result.c = LoadCursor(0, cursorKindToWinapi(k))
 
-var gCursor {.threadvar.}: Cursor
-proc currentCursor*(): Cursor =
+var gCursor {.threadvar.}: ref Cursor
+proc currentCursor*(): ref Cursor =
     if gCursor.isNil:
         gCursor = newCursor(ckArrow)
     result = gCursor
 
-proc setCurrent*(c: Cursor) =
+proc setCurrent*(c: ref Cursor) =
     gCursor = c
     when appKit:
         cast[NSCursor](c.c).setCurrent()

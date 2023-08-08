@@ -1,6 +1,5 @@
 import ./ [ view, scroll_bar, event, layout_vars ]
 import kiwi
-import math
 export view
 
 import ./clip_view # [Deprecated old layout]

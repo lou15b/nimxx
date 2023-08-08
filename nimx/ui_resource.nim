@@ -101,7 +101,7 @@ proc onAction*(ui: UIResource, name: string, cb: proc()) =
     raise newException(Exception, "UIResource can't find view by id " & name)
 
 # default tabs hacky registering
-import ./assets/[ asset_loading, json_loading ]
+import ./assets/json_loading
 registerAssetLoader(["nimx"]) do(url: string, callback: proc(j: JsonNode) {.gcsafe.}):
   loadJsonFromURL(url, callback)
 

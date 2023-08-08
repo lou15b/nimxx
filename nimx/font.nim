@@ -1,4 +1,4 @@
-import unicode, streams, logging
+import unicode, logging
 
 import ./ [ types, timer, portable_gl ]
 import ./private/font/font_data

@@ -81,9 +81,9 @@ when useLibfontconfig:
     p configAppFontAddDir, FcConfigAppFontAddDir
 
     when defined(linux):
-      discard fcLib.configAppFontAddDir(nil, getAppDir() / "res")
+      discard fcLib.configAppFontAddDir(nil, cstring(getAppDir() / "res"))
     elif defined(macosx):
-      discard fcLib.configAppFontAddDir(nil, getAppDir() /../ "Resources")
+      discard fcLib.configAppFontAddDir(nil, cstring(getAppDir() /../ "Resources"))
 
   proc getFcWeight(face: var string, weightSymbol: string): bool =
     # face and weightSymbol must be lowercase!
@@ -94,7 +94,7 @@ when useLibfontconfig:
     let lSuffix = "-" & weightSymbol
     result = face.endsWith(lSuffix)
     if result:
-      face.delete(face.len - lSuffix.len, face.high)
+      face.delete((face.len - lSuffix.len) .. face.high)
 
   proc findFontFileForFaceAux(face: string): string =
     if unlikely fcLib.isNil:
