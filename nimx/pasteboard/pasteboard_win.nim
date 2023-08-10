@@ -94,7 +94,7 @@ proc getClipboardFormatByString(str: string): UINT =
         if not *uFormat: error()
         result = uFormat
 
-type WindowsPasteboard = ref object of Pasteboard
+type WindowsPasteboard = object of Pasteboard
 
 proc getPasteboardItem(k: UINT, lpstr: LPVOID, lpdat: Handle): PasteboardItem =
     var lpdatLen = globalSize(lpdat)
@@ -153,7 +153,7 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
     else:
         error()
 
-proc pasteboardWithName*(name: string): Pasteboard=
+proc pasteboardWithName*(name: string): ref Pasteboard=
     var res = new(WindowsPasteboard)
     res.writeImpl = pbWrite
     res.readImpl = pbRead

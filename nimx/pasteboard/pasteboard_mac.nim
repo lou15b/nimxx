@@ -4,10 +4,10 @@ import ./pasteboard_item
 
 import darwin/app_kit
 
-type MacPasteboard = ref object of Pasteboard
+type MacPasteboard = object of Pasteboard
     p: NSPasteboard
 
-proc finalizePboard(p: MacPasteboard) = p.p.release()
+proc `=destroy`(p: MacPasteboard) = p.p.release()
 
 proc nativePboardName(n: string): NSString =
     case n
@@ -47,9 +47,8 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
         result.data = newString(ln)
         d.getBytes(addr result.data[0], ln)
 
-proc pasteboardWithName*(name: string): Pasteboard =
-    var res: MacPasteboard
-    res.new(finalizePboard)
+proc pasteboardWithName*(name: string): ref Pasteboard =
+    var res = new(MacPasteboard)
     res.p = NSPasteboard.withName(nativePboardName(name)).retain()
     res.writeImpl = pbWrite
     res.readImpl = pbRead

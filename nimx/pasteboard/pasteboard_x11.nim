@@ -5,7 +5,7 @@ import x11 / [ xlib, x, xatom ]
 import ../app, ../private/windows/sdl_window
 import sdl2
 
-type X11Pasteboard = ref object of Pasteboard
+type X11Pasteboard = object of Pasteboard
 const XINT_MAX = 32767
 
 type WMinfoX11 = object
@@ -94,7 +94,7 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
             result = newPasteboardItem(PboardKindString, data)
             discard XFree(src)
 
-proc pasteboardWithName*(name: string): Pasteboard=
+proc pasteboardWithName*(name: string): ref Pasteboard=
     var res = new(X11Pasteboard)
     res.writeImpl = pbWrite
     res.readImpl = pbRead

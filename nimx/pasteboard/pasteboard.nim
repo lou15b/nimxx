@@ -23,6 +23,6 @@ when isMainModule:
     #   to the clipboard, because the internal display variable has not
     #   been initialized. So in this case, success criterion is merely that
     #   there is no exception
-    pb.writeString("Hello world!")
-    let s = pb.readString()
+    pb[].writeString("Hello world!")
+    let s = pb[].readString()
     echo s
