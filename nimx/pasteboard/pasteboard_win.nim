@@ -59,7 +59,7 @@ proc getClipboardFormatName(uFormat: UINT, lpszFormatName: pointer, cchMaxCount:
 #   _In_ UINT   uFlags,
 #   _In_ SIZE_T dwBytes
 # );
-proc globalAlloc(uFlags: UINT, dwBytes: csize): Handle {.kernel32, importc: "GlobalAlloc".}
+proc globalAlloc(uFlags: UINT, dwBytes: csize_t): Handle {.kernel32, importc: "GlobalAlloc".}
 
 # HGLOBAL WINAPI GlobalFree(
 #   _In_ HGLOBAL hMem
@@ -69,7 +69,7 @@ proc globalFree(hMem: Handle): Handle {.kernel32, importc: "GlobalFree".}
 # SIZE_T WINAPI GlobalSize(
 #   _In_ HGLOBAL hMem
 # );
-proc globalSize(hMem: Handle): csize {.kernel32, importc: "GlobalSize".}
+proc globalSize(hMem: Handle): csize_t {.kernel32, importc: "GlobalSize".}
 
 # LPVOID WINAPI GlobalLock(
 #   _In_ HGLOBAL hMem
@@ -100,7 +100,7 @@ proc getPasteboardItem(k: UINT, lpstr: LPVOID, lpdat: Handle): PasteboardItem =
     var lpdatLen = globalSize(lpdat)
     if not *lpdatLen: error()
     var str = newWideCString("",int(lpdatLen))
-    copyMem(addr(str[0]), lpstr, csize(lpdatLen) )
+    copyMem(addr(str[0]), lpstr, csize_t(lpdatLen) )
 
     var data = str$lpdatLen.int32
     case k
@@ -119,7 +119,7 @@ proc pbWrite(p: Pasteboard, pi_ar: varargs[PasteboardItem])=
         for pi in pi_ar:
             let fKind = getClipboardFormatByString(pi.kind)
             let cwstr = newWideCString(pi.data)
-            let size = csize((cwstr.len + 1) * sizeof(Utf16Char))
+            let size = csize_t((cwstr.len + 1) * sizeof(Utf16Char))
             var allmem = globalAlloc(GMEM_MOVEABLE, size)
             let pBuf = globalLock(allmem)
             if not pBuf.isNil:
