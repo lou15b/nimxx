@@ -7,7 +7,7 @@ import darwin/app_kit
 type MacPasteboard = object of Pasteboard
     p: NSPasteboard
 
-proc `=destroy`(p: MacPasteboard) = p.p.release()
+proc `=destroy`(p: MacPasteboard) {.raises: [Exception].} = p.p.release()
 
 proc nativePboardName(n: string): NSString =
     case n
@@ -29,7 +29,7 @@ proc pbWrite(p: Pasteboard, pi_ar: varargs[PasteboardItem]) =
     let items = newMutableArray[NSPasteboardItem]()
     for pi in pi_ar:
         let npi = NSPasteboardItem.alloc().init()
-        let data = dataWithBytes(addr pi.data[0], pi.data.len)
+        let data = dataWithBytes(cstring(pi.data), pi.data.len)
         discard npi.setDataForType(data, kindToNative(pi.kind))
         items.add(npi)
         npi.release()
