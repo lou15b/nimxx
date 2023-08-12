@@ -1,4 +1,4 @@
-import ./ [ view, event, drag_and_drop ]
+import ./ [ view, event, drag_and_drop, gesture_detector ]
 import tables, sequtils
 
 export event
@@ -6,7 +6,7 @@ export event
 method onKeyDown*(v: View, e: var Event): bool {.base, gcsafe.} = discard
 method onKeyUp*(v: View, e: var Event): bool {.base, gcsafe.} = discard
 method onTextInput*(v: View, s: string): bool {.base, gcsafe.} = discard
-method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
+# method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
 method onScroll*(v: View, e: var Event): bool {.base, gcsafe.} = discard
 
 method name*(v: View): string {.base.} =

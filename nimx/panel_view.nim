@@ -1,12 +1,9 @@
 import math
 import ./view
-import ./app
-import ./event
 import ./context
 import ./types
 import ./composition
 import ./gesture_detector
-import ./view
 import ./view_dragging_listener
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
@@ -46,7 +43,8 @@ method init*(v: PanelView, r: Rect) =
                 v.collapsed = not v.collapsed
     ))
 
-const gradientComposition = newComposition """
+# Remove the .used pragma when this is used
+const gradientComposition {.used.} = newComposition """
 void compose() {
     vec4 color = gradient(
         smoothstep(bounds.y, 27.0, vPos.y),

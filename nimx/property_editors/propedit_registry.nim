@@ -61,7 +61,8 @@ template createEditorAUX(r: Rect) =
     editor.changeInspector = changeInspectorCallback
     editor.onChange = onChange
 
-proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant, onChange, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
+proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant,
+  onChange: proc() {.gcsafe.} = nil, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
     let creator = propEditors.getOrDefault(v.typeId)
     result = View.new(newRect(0, 0, 328, editorRowHeight))
     result.name = "'" & title & "'"

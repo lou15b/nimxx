@@ -9,21 +9,20 @@ import ../image
 import ../button
 import ../color_picker
 import ../context
-import ../portable_gl
 import ../popup_button
 import ../font
 import ../linear_layout
 import ../property_visitor
 import ../numeric_text_field
-import ../system_logger
 import ../image_preview
 
 import ./propedit_registry
 
 import variant
 
-when not defined(android) and not defined(ios):
-    import os_files/dialog
+#### Hacked out - we need to have our own file dialog
+# when not defined(android) and not defined(ios):
+#     import os_files/dialog
 
 template toStr(v: SomeFloat, precision: uint): string = formatFloat(v, ffDecimal, precision)
 template toStr(v: SomeInteger): string = $v
@@ -220,23 +219,25 @@ when not defined(android) and not defined(ios):
         b.autoresizingMask = {afFlexibleWidth, afFlexibleMaxY}
         b.title = "Open image..."
         b.onAction do():
-            var di: DialogInfo
-            di.title = "Select image"
-            di.kind = dkOpenFile
-            di.filters = @[(name:"PNG", ext:"*.png")]
-            let path = di.show()
-            echo "get path (", path, ")", path.len > 0
-            if path.len > 0:
+            #### Hacked out - we need to have our own file dialog
+            discard
+            # var di: DialogInfo
+            # di.title = "Select image"
+            # di.kind = dkOpenFile
+            # di.filters = @[(name:"PNG", ext:"*.png")]
+            # let path = di.show()
+            # echo "get path (", path, ")", path.len > 0
+            # if path.len > 0:
 
-                var i: Image
-                try:
-                    i = imageWithContentsOfFile(path)
-                except:
-                    logi "Image could not be loaded: ", path
-                if not i.isNil:
-                    setter(i)
-                    if not pv.changeInspector.isNil:
-                        pv.changeInspector()
+            #     var i: Image
+            #     try:
+            #         i = imageWithContentsOfFile(path)
+            #     except:
+            #         logi "Image could not be loaded: ", path
+            #     if not i.isNil:
+            #         setter(i)
+            #         if not pv.changeInspector.isNil:
+            #             pv.changeInspector()
 
         result = pv
         result.addSubview(b)

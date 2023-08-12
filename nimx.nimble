@@ -27,7 +27,7 @@ requires "https://github.com/yglukhov/async_http_request"
 requires "rect_packer"
 requires "https://github.com/yglukhov/android"
 requires "darwin"
-requires "os_files"
+# requires "os_files"   # Used for os-specific file dialog(!!) - requires oldgtk3, which doesn't compile in 2.0.0 
 requires "https://github.com/tormund/nester"
 requires "nimwebp"
 requires "https://github.com/yglukhov/clipboard"

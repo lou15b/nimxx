@@ -1,10 +1,8 @@
 import ../ [
-    view, panel_view, toolbar, button, menu, undo_manager,
-    inspector_panel, gesture_detector, window_event_handling, event, view_event_handling,
-    serializers, key_commands, pasteboard/pasteboard, property_editors/autoresizing_mask_editor
+    view, toolbar, button, undo_manager,
+    inspector_panel, event, view_event_handling
 ]
 
-import ./ui_document
 import ./grid_drawing
 
 type

@@ -1,7 +1,7 @@
 import strutils, math, times
-import ./ [ keyboard, text_field, formatted_text, 
-    view_event_handling, window_event_handling, composition,
-    context, font, animation, window ]
+import ./ [ text_field, formatted_text, view_event_handling, composition,
+    context, animation, window ]
+# import ./keyboard
 
 type NumericTextField* = ref object of TextField
     precision*: uint
@@ -73,7 +73,7 @@ proc roundTo(v, t: float): float =
     else:
         result = vv - m
     if v < 0: result = -result
- ]#
+]#
 
 method onTouchEv*(t: NumericTextField, e: var Event): bool =
     if t.isFirstResponder():

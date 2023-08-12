@@ -38,7 +38,7 @@ method setFilePath*(i: Image, path: string) {.base.} = discard
 method setFilePath*(i: SelfContainedImage, path: string) =
     i.mFilePath = path
 
-method filePath*(i: Image): string {.base.} = discard
+method filePath*(i: Image): string {.base, gcsafe.} = discard
 method filePath*(i: SelfContainedImage): string = i.mFilePath
 
 var totalImages {.threadvar.}: ProfilerDataSource[int]

@@ -1,5 +1,5 @@
 {.used.}
-import json, sugar
+import json
 import std/async
 
 import ./editor_types
@@ -9,8 +9,9 @@ const savingAndLoadingEnabled* = not defined(ios) and not defined(android)
 
 const ViewPboardKind* = "io.github.yglukhov.nimx"
 
-when savingAndLoadingEnabled:
-    import os_files / dialog
+#### Hacked out - we need to have our own file dialog
+# when savingAndLoadingEnabled:
+#     import os_files / dialog
 
 proc newUIDocument*(e: Editor): UIDocument =
     result.new()
@@ -38,22 +39,25 @@ proc serializeView*(ui: UIDocument): string =
 when savingAndLoadingEnabled:
     import ../assets/asset_loading
 
-    proc fileDialog(title: string, kind: DialogKind): string =
-        var di: DialogInfo
-        di.title = title
-        di.kind = kind
-        di.filters = @[(name:"Nimx UI", ext:"*.nimx")]
-        di.extension = "nimx"
-        di.show()
+    #### Hacked out - we need to have our own file dialog
+    # proc fileDialog(title: string, kind: DialogKind): string =
+    #     var di: DialogInfo
+    #     di.title = title
+    #     di.kind = kind
+    #     di.filters = @[(name:"Nimx UI", ext:"*.nimx")]
+    #     di.extension = "nimx"
+    #     di.show()
 
     proc save*(d: UIDocument) =
         if d.path.len == 0:
-            var di: DialogInfo
-            di.extension = "nimx"
-            di.kind = dkSaveFile
-            di.filters = @[(name:"Nimx", ext:"*.nimx")]
-            di.title = "Save document"
-            d.path = di.show()
+            #### Hacked out - we need to have our own file dialog
+            discard
+            # var di: DialogInfo
+            # di.extension = "nimx"
+            # di.kind = dkSaveFile
+            # di.filters = @[(name:"Nimx", ext:"*.nimx")]
+            # di.title = "Save document"
+            # d.path = di.show()
 
         if d.path.len > 0:
             let s = newJsonSerializer()
@@ -63,16 +67,18 @@ when savingAndLoadingEnabled:
             writeFile(d.path, $s.jsonNode())
 
     proc saveAs*(d: UIDocument) =
-        var di: DialogInfo
-        di.extension = "nimx"
-        di.kind = dkSaveFile
-        di.filters = @[(name:"Nimx", ext:"*.nimx")]
-        di.title = "Save document as"
+        #### Hacked out - we need to have our own file dialog
+        discard
+        # var di: DialogInfo
+        # di.extension = "nimx"
+        # di.kind = dkSaveFile
+        # di.filters = @[(name:"Nimx", ext:"*.nimx")]
+        # di.title = "Save document as"
 
-        var path = di.show()
-        if path.len > 0:
-            d.path = path
-            d.save()
+        # var path = di.show()
+        # if path.len > 0:
+        #     d.path = path
+        #     d.save()
 
 
     proc loadViewToEditAsync(path: string): Future[View] =
@@ -105,12 +111,14 @@ when savingAndLoadingEnabled:
                 superview.addSubview(d.view)
 
     proc open*(d: UIDocument) =
-        var di: DialogInfo
-        di.extension = "nimx"
-        di.kind = dkOpenFile
-        di.filters = @[(name:"Nimx", ext:"*.nimx")]
-        di.title = "Open document"
+        #### Hacked out - we need to have our own file dialog
+        discard
+        # var di: DialogInfo
+        # di.extension = "nimx"
+        # di.kind = dkOpenFile
+        # di.filters = @[(name:"Nimx", ext:"*.nimx")]
+        # di.title = "Open document"
 
-        var path = di.show()
-        if path.len > 0:
-            asyncCheck d.loadFromPath(path)
+        # var path = di.show()
+        # if path.len > 0:
+        #     asyncCheck d.loadFromPath(path)

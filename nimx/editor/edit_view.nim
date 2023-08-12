@@ -2,12 +2,12 @@ import times, json, math
 import std/async
 
 import ../ [ view, panel_view, context, undo_manager, toolbar, button, menu, inspector_panel,
-            gesture_detector, window_event_handling, view_event_handling, abstract_window,
+            view_event_handling, abstract_window,
             serializers, key_commands, ui_resource ]
 
-import ../property_editors/[ autoresizing_mask_editor, standard_editors ] # Imported here to be registered in the propedit registry
+import ../property_editors/[ standard_editors ] # Imported here to be registered in the propedit registry
 import ../pasteboard/pasteboard
-import ./ [ ui_document, grid_drawing, editor_types, editor_workspace ]
+import ./ [ ui_document, grid_drawing, editor_types ]
 
 proc `selectedView=`(e: Editor, v: View) =
     e.mSelectedView = v
@@ -51,7 +51,7 @@ method onKeyDown(v: EventCatchingView, e : var Event): bool {.gcsafe.} =
             let s = newJsonSerializer()
             s.serialize(sv)
             let pbi = newPasteboardItem(ViewPboardKind, $s.jsonNode)
-            pasteboardWithName(PboardGeneral).write(pbi)
+            pasteboardWithName(PboardGeneral)[].write(pbi)
             if cmd == kcCut:
                 let svSuperview = sv.superview
                 u.pushAndDo("Cut view") do():
@@ -61,7 +61,7 @@ method onKeyDown(v: EventCatchingView, e : var Event): bool {.gcsafe.} =
                     svSuperview.addSubview(sv)
                     v.selectedView = sv
     of kcPaste:
-        let pbi = pasteboardWithName(PboardGeneral).read(ViewPboardKind)
+        let pbi = pasteboardWithName(PboardGeneral)[].read(ViewPboardKind)
         if not pbi.isNil:
             let jn = parseJson(pbi.data)
             echo jn
@@ -107,7 +107,7 @@ proc setupNewViewButton(e:Editor, b: Button) =
     # let b = Button.new(newRect(0, 30, 120, 20))
     # b.title = "New view"
     b.onAction do():
-        var menu : Menu
+        var menu : MenuItem
         menu.new()
         var items = newSeq[MenuItem]()
         for c in registeredClassesOfType(View):

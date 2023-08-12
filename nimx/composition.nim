@@ -430,7 +430,8 @@ proc compileComposition*(gl: GL, comp: Composition, cchash: Hash, compOptions: i
     result.uniformLocations = newSeq[UniformLocation]()
     programCache[cchash] = result
 
-proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] =
+# Kept in case it's needed someday - if it does get used then remove the .used pragma
+proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
     result = newSeq[GLfloat](a.len * 2)
     var i = 0
     for p in a:

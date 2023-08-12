@@ -1,5 +1,4 @@
 import ../property_visitor
-import ../numeric_text_field
 import ../popup_button
 import ../linear_layout
 

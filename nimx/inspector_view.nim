@@ -1,7 +1,6 @@
 import ./linear_layout
 import ./property_visitor
 import ./property_editors/propedit_registry
-import ./property_editors/standard_editors
 
 import variant
 

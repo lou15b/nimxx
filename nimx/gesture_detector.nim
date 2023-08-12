@@ -49,6 +49,8 @@ type
         flingListener* : OnFlingListener
         prev_ev, this_ev: Event
 
+method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
+
 method onTapDown*(ls: OnScrollListener, e : var Event) {.base.} = discard
 method onScrollProgress*(ls: OnScrollListener, dx, dy : float32, e : var Event) {.base.} = discard
 method onTapUp*(ls: OnScrollListener, dx, dy : float32, e : var Event) {.base.} = discard
