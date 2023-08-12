@@ -68,12 +68,8 @@ proc newCursor*(k: CursorKind): ref Cursor =
     result = new(Cursor)
     when appKit:
         result.c = NSCursorOfKind(k).retain()
-    elif not defined(nimxAvoidSdl):
+    else:
         result.c = createSystemCursor(cursorKindToSdl(k))
-    elif defined(linux):
-        result.c = cursorKindToX(k)
-    elif defined(windows):
-        result.c = LoadCursor(0, cursorKindToWinapi(k))
 
 var gCursor {.threadvar.}: ref Cursor
 proc currentCursor*(): ref Cursor =
