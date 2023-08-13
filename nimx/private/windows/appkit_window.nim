@@ -1,10 +1,10 @@
 import ../../ [ abstract_window, system_logger, view, context, event, app,
-             linkage_details, portable_gl, screen ]
-import ../objc_appkit
-import opengl
-import unicode, times
+              portable_gl, screen ]
 
-enableObjC()
+# import ../../linkage_details
+import darwin/app_kit
+import opengl
+# import unicode, times
 
 {.emit: """
 #include <AppKit/AppKit.h>
@@ -170,7 +170,7 @@ else:
     method `fullscreen=`*(w: AppkitWindow, v: bool) =
         raise newException(OSError, "Not implemented yet")
 
-var animationEnabled = 0
+# var animationEnabled = 0
 
 method animationStateChanged*(w: AppkitWindow, flag: bool) =
     discard
