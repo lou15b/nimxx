@@ -1,13 +1,6 @@
-import tables
-
-import ../nimx/matrixes
-import ../nimx/system_logger
-import ../nimx/animation
-import ../nimx/image
 import ../nimx/window
 import ../nimx/autotest
 import ../nimx/button, ../nimx/text_field
-import ../nimx/all_views
 import ../nimx/editor/edit_view
 
 const isMobile = defined(ios) or defined(android)
