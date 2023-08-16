@@ -1,10 +1,10 @@
-import ./ [ context, types, portable_gl, image ]
+import ./ [ context_base, types, portable_gl, image ]
 import ./private/helper_macros
 import strutils, tables, hashes
 import nimsl/nimsl
 
 export portable_gl
-export context
+export context_base
 
 const commonDefinitions = """
 #define PI 3.14159265359

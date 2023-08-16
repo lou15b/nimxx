@@ -1,3 +1,4 @@
+# NOTE: This file is ***included*** (not imported) into nimx/image.nim
 
 type PVRTextureHeaderV3 {.packed.} = object
     version: uint32
