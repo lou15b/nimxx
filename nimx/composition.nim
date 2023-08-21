@@ -4,7 +4,6 @@ import strutils, tables, hashes
 import nimsl/nimsl
 
 export portable_gl
-export context_base
 
 const commonDefinitions = """
 #define PI 3.14159265359

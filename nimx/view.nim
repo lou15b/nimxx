@@ -626,3 +626,7 @@ proc dump*(v: View): string =
         v.className
 
 registerClass(View)
+
+# Imported/exported for convenient use by view subclasses
+import ./private/text_drawing   
+export text_drawing

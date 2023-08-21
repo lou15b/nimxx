@@ -1,6 +1,6 @@
-import ./ [ view, view_event_handling, table_view_cell, scroll_view ]
+import ./ [ view, view_event_handling, table_view_cell, scroll_view, layout_vars ]
 
-import ./clip_view
+# import ./clip_view
 
 import intsets
 import kiwi
@@ -19,11 +19,11 @@ type SelectionKind* {.pure.} = enum
 
 type TableView* = ref object of View
     numberOfColumns*: int
-    numberOfRows*: proc (): int
-    mCreateCell: proc(column: int): TableViewCell
-    configureCell*: proc (cell: TableViewCell)
-    heightOfRow*: proc (row: int): Coord
-    onSelectionChange*: proc()
+    numberOfRows*: proc (): int {.gcsafe.}
+    mCreateCell: proc(column: int): TableViewCell {.gcsafe.}
+    configureCell*: proc (cell: TableViewCell) {.gcsafe.}
+    heightOfRow*: proc (row: int): Coord {.gcsafe.}
+    onSelectionChange*: proc() {.gcsafe.}
 
     defaultRowHeight*: Coord
     defaultColWidth*: Coord
@@ -34,16 +34,16 @@ type TableView* = ref object of View
     initiallyClickedRow: int
     constraints: seq[Constraint]
 
-proc `createCell=`*(v: TableView, p: proc(): TableViewCell) =
-    v.mCreateCell = proc(c: int): TableViewCell =
+proc `createCell=`*(v: TableView, p: proc(): TableViewCell {.gcsafe.}) =
+    v.mCreateCell = proc(c: int): TableViewCell {.gcsafe.} =
         p()
 
-proc `createCell=`*(v: TableView, p: proc(column: int): TableViewCell) =
+proc `createCell=`*(v: TableView, p: proc(column: int): TableViewCell {.gcsafe.}) =
     v.mCreateCell = p
 
-proc rebuildConstraints(v: TableView)
+proc rebuildConstraints(v: TableView) {.gcsafe.}
 
-method init*(v: TableView, r: Rect) =
+method init*(v: TableView, r: Rect) {.gcsafe.} =
     procCall v.View.init(r)
     v.numberOfColumns = 1
     v.defaultRowHeight = 30
@@ -54,12 +54,12 @@ method init*(v: TableView, r: Rect) =
     v.constraints = @[]
     v.rebuildConstraints()
 
-proc heightOfRowUsingDelegate(v: TableView, row: int): Coord {.inline.} =
+proc heightOfRowUsingDelegate(v: TableView, row: int): Coord {.inline, gcsafe.} =
     result = v.heightOfRow(row)
     if result < 0:
         result = v.defaultRowHeight
 
-proc requiredTotalHeight(v: TableView, rowCount: int): Coord {.inline.} =
+proc requiredTotalHeight(v: TableView, rowCount: int): Coord {.inline, gcsafe.} =
     if v.heightOfRow.isNil:
         result = v.defaultRowHeight * rowCount.Coord
     else:
@@ -95,7 +95,7 @@ proc getRowsAtHeights(v: TableView, heights: openarray[Coord], rows: var openarr
                 if j < rows.len:
                     rows[j] = -1
 
-proc rebuildConstraints(v: TableView) =
+proc rebuildConstraints(v: TableView) {.gcsafe.} =
     for c in v.constraints: v.removeConstraint(c)
     v.constraints.setLen(0)
 
@@ -162,7 +162,7 @@ proc configureRow(r: TableRow, top: Coord) {.inline.} =
     r.topConstraint = r.layout.vars.top == superPHS.top + top
     r.addConstraint(r.topConstraint)
 
-proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int, top, height: Coord): TableRow =
+proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int, top, height: Coord): TableRow {.gcsafe.} =
     var needToAdd = false
     if cells.len > 0:
         result = cells[0]
@@ -174,7 +174,7 @@ proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int, top, h
         result.addConstraint(result.layout.vars.height == height)
         result.addConstraint(result.layout.vars.leading == superPHS.leading)
         result.addConstraint(result.layout.vars.trailing == superPHS.trailing)
-        for i in 0..< v.numberOfColumns:
+        for i in 0 ..< v.numberOfColumns:
             let c = v.mCreateCell(i)
             c.col = i
 
@@ -202,7 +202,7 @@ proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int, top, h
     if needToAdd:
         v.addSubview(result)
 
-proc updateCellsInVisibleRect(v: TableView) {.inline.} =
+proc updateCellsInVisibleRect(v: TableView) {.inline, gcsafe.} =
     let vr = visibleRect(v)
     if vr != v.visibleRect:
         v.visibleRect = vr
@@ -258,7 +258,7 @@ proc updateCellsInVisibleRect(v: TableView) {.inline.} =
         if needsLayout:
             v.setNeedsLayout()
 
-method updateLayout*(v: TableView) =
+method updateLayout*(v: TableView) {.gcsafe.} =
     v.updateCellsInVisibleRect()
 
 proc isRowSelected*(t: TableView, row: int): bool = t.selectedRows.contains(row)
@@ -269,7 +269,7 @@ proc updateSelectedCells*(t: TableView) {.inline.} =
         for c in r.subviews:
             TableViewCell(c).selected = isSelected
 
-proc selectRow*(t: TableView, row: int) =
+proc selectRow*(t: TableView, row: int) {.gcsafe.} =
     t.selectedRows = initIntSet()
     t.selectedRows.incl(row)
     t.updateSelectedCells()
@@ -277,7 +277,7 @@ proc selectRow*(t: TableView, row: int) =
         t.onSelectionChange()
     t.setNeedsDisplay()
 
-method onTouchEv(b: TableView, e: var Event): bool =
+method onTouchEv(b: TableView, e: var Event): bool {.gcsafe.} =
     result = true
     case e.buttonState
     of bsDown:

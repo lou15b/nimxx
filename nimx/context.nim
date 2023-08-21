@@ -384,6 +384,3 @@ template withClippingRect*(c: GraphicsContext, r: Rect, body: typed) =
     c.applyClippingRect(r, true)
     body
     c.applyClippingRect(r, false)
-
-import ./private/text_drawing
-export text_drawing

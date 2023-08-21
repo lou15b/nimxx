@@ -1,7 +1,8 @@
 
 import ./view
 import ./text_field
-import ./tables
+
+import tables
 
 type FormView* = ref object of View
     labelsMap: Table[string, int]
@@ -15,7 +16,7 @@ proc newFormView*(r: Rect, numberOfFields: int, adjustFrameHeight: bool = true):
 
     result.init(fr)
     result.labelsMap = initTable[string, int]()
-    for i in 0 .. < numberOfFields:
+    for i in 0 ..< numberOfFields:
         let label = newLabel(newRect(0, i.Coord * fieldHeight, r.width / 3, fieldHeight))
         result.addSubview(label)
         let value = newTextField(newRect(r.width / 3, i.Coord * fieldHeight, r.width / 3 * 2, fieldHeight))

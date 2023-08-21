@@ -1,7 +1,7 @@
 import unicode, strutils, sequtils
 import ./ [ font, types, unistring ]
 import ./utils/lower_bound
-
+import ./private/text_drawing
 
 type
     FormattedText* = ref object

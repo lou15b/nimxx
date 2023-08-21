@@ -24,17 +24,17 @@ type
         cleared : seq[ViewWrapper]
         dirty : bool
         dirtyBoundsOrigin : Point
-        itemClick: proc(pos : int)
+        itemClick: proc(pos : int) {.gcsafe.}
 
 proc newViewWrapper(view : View, pos: int): ViewWrapper =
     result.new
     result.v = view
     result.pos = pos
 
-method getCount*(a : Adapter): int {.base.} = discard
-method getView*(a: Adapter, position: int, convertView : View): View {.base.} = discard
+method getCount*(a : Adapter): int {.base, gcsafe.} = discard
+method getView*(a: Adapter, position: int, convertView : View): View {.base, gcsafe.} = discard
 
-method setItemClickListener*(v: HorizontalListView, lis : proc(pos : int)) {.base.} =
+method setItemClickListener*(v: HorizontalListView, lis : proc(pos : int) {.gcsafe.}) {.base.} =
     v.itemClick = lis
 
 proc newHorListView*(r: Rect): HorizontalListView =
@@ -42,8 +42,6 @@ proc newHorListView*(r: Rect): HorizontalListView =
     result.items = @[]
     result.cleared = @[]
     result.init(r)
-
-var offs = newPoint(0,0)
 
 proc getMinPos(v : HorizontalListView):ViewWrapper =
     if v.items.len > 0:
@@ -68,7 +66,7 @@ proc getClearedWrapper(v : HorizontalListView):ViewWrapper =
         result = v.cleared[0]
         v.cleared.delete(0)
 
-proc populateLeft(v : HorizontalListView, edgeLeft : ViewWrapper) =
+proc populateLeft(v : HorizontalListView, edgeLeft : ViewWrapper) {.gcsafe.} =
     var sx = v.bounds.origin.x
     var cx = edgeLeft.v.frame.origin.x
     var pos : int = edgeLeft.pos - 1
@@ -91,7 +89,7 @@ proc populateLeft(v : HorizontalListView, edgeLeft : ViewWrapper) =
         v.items.add(wr)
         pos = pos - 1
 
-proc populateRight(v : HorizontalListView, edgeRight : ViewWrapper) =
+proc populateRight(v : HorizontalListView, edgeRight : ViewWrapper) {.gcsafe.} =
     var cx = v.bounds.origin.x
     var fx = v.bounds.origin.x + v.bounds.size.width
     var pos = 0
@@ -138,9 +136,9 @@ proc checkEdges(v : HorizontalListView, orig : Point) : Point =
                         result = newPoint(0,0)
 
 
-proc syncAdapterOnView(v : HorizontalListView) =
-    var sx = v.bounds.origin.x
-    let fx = v.bounds.size.width + sx
+proc syncAdapterOnView(v : HorizontalListView) {.gcsafe.} =
+    # var sx = v.bounds.origin.x
+    # let fx = v.bounds.size.width + sx
     # echo "x port is: ", sx, "  ", fx
     var i : int = 0
     while i < v.items.len:
@@ -163,7 +161,7 @@ method setAdapter*(v : HorizontalListView, a : Adapter) {.base.} =
     v.adapter = a
     v.syncAdapterOnView
 
-method draw*(view: HorizontalListView, rect: Rect) =
+method draw*(view: HorizontalListView, rect: Rect) {.gcsafe.} =
     procCall view.View.draw(rect)
     if view.dirty:
         let bo = view.checkEdges(view.dirtyBoundsOrigin)
@@ -184,7 +182,7 @@ method onScrollProgress*(lis: ListScrollListener, dx, dy : float32, e : var Even
 method onTapUp*(lis: ListScrollListener, dx, dy : float32, e : var Event) =
     discard
 
-proc checkItemClick(v : HorizontalListView, p : Point) =
+proc checkItemClick(v : HorizontalListView, p : Point) {.gcsafe.} =
     let real = v.convertPointFromWindow(p) + v.bounds.origin
     for wrap in v.items:
         if real.inRect(wrap.v.frame):
@@ -198,9 +196,9 @@ method init*(v: HorizontalListView, r: Rect) =
     new(sl)
     sl.view = v
     v.addGestureDetector(newScrollGestureDetector(sl))
-    v.addGestureDetector(newTapGestureDetector do(tapPoint : Point):
+    v.addGestureDetector(newTapGestureDetector(proc(tapPoint : Point) =
         v.checkItemClick(tapPoint)
-        )
+    ))
 
 method name*(v: HorizontalListView): string =
     result = "HorizontalListView"
