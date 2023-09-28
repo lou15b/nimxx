@@ -1,5 +1,5 @@
 import ./sample_registry
-import ../nimx / [ view, outline_view, scroll_view, table_view_cell, text_field ]
+import nimxx / [ view, outline_view, scroll_view, table_view_cell, text_field ]
 import variant
 
 type

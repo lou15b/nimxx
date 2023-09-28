@@ -1,7 +1,7 @@
 import strutils
 import ./sample_registry
-import ../nimx / [ view, context, animation, window, button, progress_indicator, text_field, font, types ]
-import ../nimx/editor/bezier_view
+import nimxx / [ view, context, animation, window, button, progress_indicator, text_field, font, types ]
+import nimxx/editor/bezier_view
 
 
 type AnimationEasing = ref object of View

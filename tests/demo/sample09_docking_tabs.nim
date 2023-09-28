@@ -1,7 +1,7 @@
 import random
 import ./sample_registry
-import ../nimx / [ view, linear_layout, button ]
-import ../nimx/editor/tab_view
+import nimxx / [ view, linear_layout, button ]
+import nimxx/editor/tab_view
 
 type DockingTabsSampleView = ref object of View
     tabNameIndex: int

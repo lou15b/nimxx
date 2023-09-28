@@ -1,7 +1,7 @@
 #!/usr/local/bin/nim c -r --threads:on
 import ./sample_registry
 
-import ../nimx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
+import nimxx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
 import sequtils, intsets
 
 {.warning[UnusedImport]: off.}

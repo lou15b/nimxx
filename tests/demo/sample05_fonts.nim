@@ -1,6 +1,6 @@
 import strutils
 import ./sample_registry
-import ../nimx / [ view, font, context, button, text_field, slider, popup_button ]
+import nimxx / [ view, font, context, button, text_field, slider, popup_button ]
 
 type FontsView = ref object of View
     curFont: Font

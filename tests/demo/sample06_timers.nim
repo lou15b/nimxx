@@ -1,6 +1,6 @@
 import strutils
 import ./sample_registry
-import ../nimx / [ view, timer, text_field, button ]
+import nimxx / [ view, timer, text_field, button ]
 
 type TimersSampleView = ref object of View
     timer: Timer

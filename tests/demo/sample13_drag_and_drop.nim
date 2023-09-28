@@ -1,8 +1,8 @@
 import variant
 import ./sample_registry
-import ../nimx / [ view, view_event_handling, drag_and_drop, text_field, expanding_view,
+import nimxx / [ view, view_event_handling, drag_and_drop, text_field, expanding_view,
                 view_render_to_image ]
-import ../nimx/pasteboard/pasteboard_item
+import nimxx/pasteboard/pasteboard_item
 
 type DragAndDropView = ref object of View
 type MyDropDelegate* = ref object of DragDestinationDelegate

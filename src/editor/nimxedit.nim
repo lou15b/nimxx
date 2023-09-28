@@ -1,7 +1,7 @@
-import ../nimx/window
-import ../nimx/autotest
-import ../nimx/button, ../nimx/text_field
-import ../nimx/editor/edit_view
+import nimxx/window
+import nimxx/autotest
+import nimxx/button, nimxx/text_field
+import nimxx/editor/edit_view
 
 const isMobile = defined(ios) or defined(android)
 

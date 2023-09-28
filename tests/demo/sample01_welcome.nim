@@ -1,6 +1,6 @@
 import ./sample_registry
 
-import ../nimx / [ view, font, context, composition, button, autotest,
+import nimxx / [ view, font, context, composition, button, autotest,
                 gesture_detector, view_event_handling ]
 
 const welcomeMessage = "Welcome to nimX"

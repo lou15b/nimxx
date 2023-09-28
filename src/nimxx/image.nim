@@ -465,6 +465,11 @@ proc loadImageFromURL*(url: string, callback: proc(i: Image) {.gcsafe.}) =
             i.setFilePath(url)
             callback(i)
         else:
+            # Should we make this an exception?
+            echo "---- loadImageFromURL:"
+            echo "----\t Response from ", url, ":"
+            echo "----\t\t statusCode is ", r.statusCode
+            echo "----\t\t status is ", r.status
             callback(nil)
 
 registerAssetLoader(["png", "jpg", "jpeg", "gif", "tif", "tiff", "tga", "pvr", "webp"]) do(url: string, handler: proc(i: Image) {.gcsafe.}):
