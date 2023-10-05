@@ -1,4 +1,4 @@
-import async_http_request
+import ./imported/async_http_request
 export async_http_request
 
 import ./perform_on_main_thread, marshal, streams
@@ -20,7 +20,7 @@ proc readFromSharedBuffer*[T](p: pointer, res: var T) =
     load(s, res)
     s.close()
 
-proc sendRequest*(meth, url, body: string, headers: openarray[(string, string)], handler: Handler) =
+proc sendRequest*(meth: HttpMethod, url, body: string, headers: openarray[(string, string)], handler: Handler) =
     type SdlHandlerContext = ref object
         handler: Handler
         data: pointer

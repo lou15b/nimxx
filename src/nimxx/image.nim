@@ -457,7 +457,7 @@ when asyncResourceLoad:
 
 import ./http_request
 proc loadImageFromURL*(url: string, callback: proc(i: Image) {.gcsafe.}) =
-    sendRequest("GET", url, "", []) do(r: Response):
+    sendRequest(HttpGet, url, "", []) do(r: Response):
         if r.statusCode >= 200 and r.statusCode < 300:
             let s = newStringStream(r.body)
             let i = newSelfContainedImage()
