@@ -24,7 +24,8 @@ else:
     type SSLContext = ref object
 var defaultSslContext {.threadvar.}: SSLContext
 
-proc getDefaultSslContext(): SSLContext =
+# Note: Remove the "used" pragma When this actually gets called
+proc getDefaultSslContext(): SSLContext {.used.} =
     when defined(ssl):
         if defaultSslContext.isNil:
             defaultSslContext =
