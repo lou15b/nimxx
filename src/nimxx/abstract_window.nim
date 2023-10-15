@@ -1,7 +1,8 @@
 
 import ./ [ view, animation, context, font, composition, image, notification_center,
     mini_profiler, portable_gl, drag_and_drop ]
-import times, tables
+import ./utils/lock_utils
+import times, tables, locks
 import kiwi
 export view
 
@@ -20,21 +21,26 @@ method fullscreenAvailable*(w: Window): bool {.base.} = false
 method fullscreen*(w: Window): bool {.base.} = false
 method `fullscreen=`*(w: Window, v: bool) {.base.} = discard
 
-# Bug 2488. Can not use {.global.} for JS target.
-var lastTime = epochTime()
-var lastFrame = 0.0
-var totalAnims = 0
+# Note that the same lock is used to guard both of the following variables
+# because they are used together
+var fpsLock: Lock
+var lastTime {.guard: fpsLock.} = epochTime()
+var lastFrame {.guard: fpsLock.} = 0.0
+
+var animsLock: Lock
+var totalAnims {.guard: animsLock.} = 0
 
 var fps {.threadvar.}: ProfilerDataSource[int]
 
 proc updateFps() {.inline.} =
-    let curTime = epochTime()
-    let deltaTime = curTime - lastTime
-    lastFrame = (lastFrame * 0.9 + deltaTime * 0.1)
-    if fps.isNil:
-        fps = sharedProfiler().newDataSource(int, "FPS")
-    fps.value = (1.0 / lastFrame).int
-    lastTime = curTime
+    withLockGCsafe(fpsLock):
+        let curTime = epochTime()
+        let deltaTime = curTime - lastTime
+        lastFrame = (lastFrame * 0.9 + deltaTime * 0.1)
+        if fps.isNil:
+            fps = sharedProfiler().newDataSource(int, "FPS")
+        fps.value = (1.0 / lastFrame).int
+        lastTime = curTime
 
 when false:
     proc getTextureMemory(): int =
@@ -91,7 +97,8 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
         updateFps()
         profiler["Overdraw"] = GetOverdrawValue()
         profiler["DIPs"] = GetDIPValue()
-        profiler["Animations"] = totalAnims
+        withLockGCsafe(animsLock):
+            profiler["Animations"] = totalAnims
 
         const fontSize = 14
         const profilerWidth = 110
@@ -146,29 +153,30 @@ method startTextInput*(w: Window, r: Rect) {.base, gcsafe.} = discard
 method stopTextInput*(w: Window) {.base, gcsafe.} = discard
 
 proc runAnimations*(w: Window) =
-    # New animations can be added while in the following loop. They will
-    # have to be ticked on the next frame.
-    var prevAnimsCount = totalAnims
-    totalAnims = 0
-    if not w.isNil:
+    withLockGCsafe(animsLock):
+        # New animations can be added while in the following loop. They will
+        # have to be ticked on the next frame.
+        var prevAnimsCount = totalAnims
+        totalAnims = 0
+        if not w.isNil:
 
-        var index = 0
-        let runnersLen = w.animationRunners.len
+            var index = 0
+            let runnersLen = w.animationRunners.len
 
-        while index < runnersLen:
-            if index < w.animationRunners.len:
-                let runner = w.animationRunners[index]
-                totalAnims += runner.animations.len
-                runner.update()
-            inc index
+            while index < runnersLen:
+                if index < w.animationRunners.len:
+                    let runner = w.animationRunners[index]
+                    totalAnims += runner.animations.len
+                    runner.update()
+                inc index
 
-        if totalAnims > 0:
-            w.needsDisplay = true
+            if totalAnims > 0:
+                w.needsDisplay = true
 
-    if prevAnimsCount == 0 and totalAnims >= 1:
-        w.enableAnimation(true)
-    elif prevAnimsCount >= 1 and totalAnims == 0:
-        w.enableAnimation(false)
+        if prevAnimsCount == 0 and totalAnims >= 1:
+            w.enableAnimation(true)
+        elif prevAnimsCount >= 1 and totalAnims == 0:
+            w.enableAnimation(false)
 
 proc addAnimationRunner*(w: Window, ar: AnimationRunner)=
     if not w.isNil:
@@ -203,10 +211,12 @@ proc onFocusChange*(w: Window, inFocus: bool)=
     else:
         sharedNotificationCenter().postNotification(AW_FOCUS_LEAVE)
 
+# Changing these 2 variables to be global causes a compile error
+# because a proc type is by default a closure, which has GC'ed memory.
+# (This can be fixed by specifying the proc to be nimcall)
+# TODO: Remove the need for these 2 variables
 var newWindow* {.threadvar.}: proc(r: Rect): Window {.gcsafe.}
 var newFullscreenWindow* {.threadvar.}: proc(): Window {.gcsafe.}
-var newWindowWithNative* {.threadvar.}: proc(handle: pointer, r: Rect): Window {.gcsafe.}
-var newFullscreenWindowWithNative* {.threadvar.}: proc(handle: pointer): Window {.gcsafe.}
 
 method init*(w: Window, frame: Rect) =
     procCall w.View.init(frame)
