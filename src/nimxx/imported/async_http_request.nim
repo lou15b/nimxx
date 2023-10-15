@@ -24,7 +24,7 @@ else:
     type SSLContext = ref object
 var defaultSslContext {.threadvar.}: SSLContext
 
-# Note: Remove the "used" pragma When this actually gets called
+# TODO: Remove the "used" pragma when this proc actually gets called
 proc getDefaultSslContext(): SSLContext {.used.} =
     when defined(ssl):
         if defaultSslContext.isNil:

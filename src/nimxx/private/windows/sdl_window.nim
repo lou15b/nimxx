@@ -481,10 +481,6 @@ proc animateAndDraw() =
             mainApplication().runAnimations()
             mainApplication().drawWindows()
 
-when defined(useRealtimeGC):
-    var lastFullCollectTime = 0.0
-    const fullCollectThreshold = 128 * 1024 * 1024 # 128 Megabytes
-
 proc nextEvent(evt: var sdl2.Event) =
     when not defined(useRealtimeGC):
         if gcRequested:
@@ -515,18 +511,6 @@ proc nextEvent(evt: var sdl2.Event) =
                     break
 
         animateAndDraw()
-
-    when defined(useRealtimeGC):
-        let t = epochTime()
-        if gcRequested or (t > lastFullCollectTime + 10 and getOccupiedMem() > fullCollectThreshold):
-            GC_enable()
-            GC_setMaxPause(0)
-            GC_fullCollect()
-            GC_disable()
-            lastFullCollectTime = t
-            gcRequested = false
-        else:
-            GC_step(1000, true)
 
 method startTextInput*(w: SdlWindow, r: Rect) =
     startTextInput()
@@ -565,9 +549,6 @@ proc runUntilQuit*() =
             break
 
 template runApplication*(body: typed) =
-    when defined(useRealtimeGC):
-        GC_disable() # We disable the GC to manually call it close to stack bottom.
-
     sdlMain()
 
     body
