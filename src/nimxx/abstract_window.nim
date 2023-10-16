@@ -252,6 +252,9 @@ proc toggleFullscreen*(w: Window) =
     else:
         w.enterFullscreen()
 
-var gcRequested* = false
+var gcRequestLock*: Lock
+var gcRequested* {.guard: gcRequestLock.} = false
+
 template requestGCFullCollect*() =
-    gcRequested = true
+    withLockGCsafe(gcRequestLock):
+        gcRequested = true

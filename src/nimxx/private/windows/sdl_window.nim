@@ -3,6 +3,7 @@ import sdl2 except Event, Rect, Point
 import ../../ [ abstract_window, view, context, event, app, linkage_details,
                 portable_gl ]
 import ../sdl_vk_map
+import ../../utils/lock_utils
 import opengl
 import times, logging
 
@@ -482,7 +483,7 @@ proc animateAndDraw() =
             mainApplication().drawWindows()
 
 proc nextEvent(evt: var sdl2.Event) =
-    when not defined(useRealtimeGC):
+    withLockGCsafe(gcRequestLock):
         if gcRequested:
             info "GC_fullCollect"
             GC_fullCollect()
