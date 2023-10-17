@@ -211,12 +211,10 @@ proc onFocusChange*(w: Window, inFocus: bool)=
     else:
         sharedNotificationCenter().postNotification(AW_FOCUS_LEAVE)
 
-# Changing these 2 variables to be global causes a compile error
-# because a proc type is by default a closure, which has GC'ed memory.
-# (This can be fixed by specifying the proc to be nimcall)
-# TODO: Remove the need for these 2 variables
-var newWindow* {.threadvar.}: proc(r: Rect): Window {.gcsafe.}
-var newFullscreenWindow* {.threadvar.}: proc(): Window {.gcsafe.}
+# TODO: Remove the need for using global variables here
+#       - merge window.nim, abstract_window.nim and sdl_window.nim into a single file
+var newWindow*: proc(r: Rect): Window {.nimcall, gcsafe.}
+var newFullscreenWindow*: proc(): Window {.nimcall, gcsafe.}
 
 method init*(w: Window, frame: Rect) =
     procCall w.View.init(frame)

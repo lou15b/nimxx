@@ -260,11 +260,11 @@ method hide*(w: SdlWindow)=
     w.sdlGlContext = nil
     w.renderingContext = nil
 
-newWindow = proc(r: view.Rect): Window =
+newWindow = proc(r: view.Rect): Window {.nimcall, gcsafe.} =
     result = newSdlWindow(r)
     result.show()
 
-newFullscreenWindow = proc(): Window =
+newFullscreenWindow = proc(): Window {.nimcall, gcsafe.} =
     result = newFullscreenSdlWindow()
     result.show()
 
