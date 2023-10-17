@@ -213,6 +213,7 @@ proc onFocusChange*(w: Window, inFocus: bool)=
 
 # TODO: Remove the need for using global variables here
 #       - merge window.nim, abstract_window.nim and sdl_window.nim into a single file
+# Locks not needed here, because these globals are set at startup and not changed
 var newWindow*: proc(r: Rect): Window {.nimcall, gcsafe.}
 var newFullscreenWindow*: proc(): Window {.nimcall, gcsafe.}
 
