@@ -581,7 +581,7 @@ method tick*(a: MetaAnimation, t: float) =
 
 
 when isMainModule:
-    import locks
+    import rlocks
     import ./utils/lock_utils
 
     proc emulateAnimationRun(a: Animation, startTime, endTime, fps: float): float =
@@ -598,10 +598,11 @@ when isMainModule:
     a.loopDuration = 1.0
     a.numberOfLoops = 1
 
-    var progressesLock: Lock
+    var progressesLock: RLock
+    progressesLock.initRLock()
     var progresses {.guard: progressesLock.} = newSeq[float]()
     a.onAnimate = proc(p: float) {.gcsafe.} =
-        withLockGCsafe(progressesLock):
+        withRLockGCsafe(progressesLock):
             progresses.add(p)
 
     let timeTaken = a.emulateAnimationRun(5.0, 6.0, 60)

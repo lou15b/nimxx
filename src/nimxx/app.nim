@@ -3,7 +3,7 @@ import sequtils
 import ./abstract_window
 import ./event
 import ./window_event_handling
-import logging
+import rlocks, logging
 
 type EventFilterControl* = enum
     efcContinue
@@ -25,12 +25,11 @@ proc newApplication(): Application =
     result.eventFilters = @[]
     result.inputState = {}
 
-var mainApp {.threadvar.}: Application
-
-proc mainApplication*(): Application =
-    if mainApp.isNil:
-        mainApp = newApplication()
-    result = mainApp
+# This global is only set at startup but its contents may be changed, so it needs to be guarded by a lock
+# And that lock needs to be re-entrant
+var mainAppLock*: RLock
+mainAppLock.initRLock()
+var mainApp* {.guard: mainAppLock.} = newApplication()
 
 proc addWindow*(a: Application, w: Window) =
     a.windows.add(w)

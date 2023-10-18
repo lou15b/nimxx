@@ -1,12 +1,13 @@
-import os, locks
+import os, rlocks
 import ./abstract_asset_bundle
 import ../utils/lock_utils
 
-var nativeAssetBasePathLock: Lock
+var nativeAssetBasePathLock: RLock
+nativeAssetBasePathLock.initRLock()
 var nativeAssetBasePath {.guard: nativeAssetBasePathLock.} = getAppDir()
 
 proc setNativeAssetBasePath*(basePath: string) =
-    withLockGCsafe(nativeAssetBasePathLock):
+    withRLockGCsafe(nativeAssetBasePathLock):
         nativeAssetBasePath = basePath
 
 type NativeAssetBundle* = ref object of AssetBundle
@@ -14,7 +15,7 @@ type NativeAssetBundle* = ref object of AssetBundle
 
 proc newNativeAssetBundle*(): NativeAssetBundle =
     result.new()
-    withLockGCsafe(nativeAssetBasePathLock):
+    withRLockGCsafe(nativeAssetBasePathLock):
         when defined(ios):
             result.mBaseUrl = "file://" & nativeAssetBasePath
         elif defined(macosx):

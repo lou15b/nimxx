@@ -314,15 +314,3 @@ method onGestEvent*(d: FlingGestureDetector, e: var Event) : bool =
     if e.buttonState == bsUnknown:
         d.prev_ev = d.this_ev
         d.this_ev = e
-
-
-
-# method handleGesEvent*(d: GestureDetector, e: var Event, c: var EventFilterControl) : bool {.base, deprecated.} = discard
-
-# template registerDetector*(d: GestureDetector, ev: var Event): stmt {.immediate, deprecated.} =
-#     mainApplication().pushEventFilter do(e: var Event, c: var EventFilterControl) -> bool:
-#         if e.kind == etTouch or e.kind == etMouse:
-#             result = d.handleGesEvent(e, c)
-#     var con = efcContinue
-#     result = d.handleGesEvent(ev, con)
-

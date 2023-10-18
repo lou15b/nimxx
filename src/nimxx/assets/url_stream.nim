@@ -1,4 +1,4 @@
-import streams, strutils, tables, locks
+import streams, strutils, tables, rlocks
 import ../utils/lock_utils
 
 export streams
@@ -7,7 +7,8 @@ type Error = string
 type Handler* = proc(s: Stream, error: Error) {.gcsafe.}
 type UrlHandler = proc(url: string, handler: Handler) {.gcsafe.}
 
-var urlHandlersLock: Lock
+var urlHandlersLock: RLock
+urlHandlersLock.initRLock()
 var urlHandlers {.guard: urlHandlersLock.}: TableRef[string, UrlHandler]
 
 template getUrlHandlers(): TableRef[string, UrlHandler] =
@@ -24,14 +25,14 @@ proc openStreamForUrl*(url: string, handler: Handler) {.gcsafe.} =
     if scheme.len == 0:
         raise newException(Exception, "Invalid url: \"" & url & "\"")
     var uh: UrlHandler
-    withLockGCsafe(urlHandlersLock):
+    withRLockGCsafe(urlHandlersLock):
         uh = getUrlHandlers().getOrDefault(scheme)
     if uh.isNil:
         raise newException(Exception, "No url handler for scheme " & scheme)
     uh(url, handler)
 
 proc registerUrlHandler*(scheme: string, handler: UrlHandler) =
-    withLockGCsafe(urlHandlersLock):
+    withRLockGCsafe(urlHandlersLock):
         if urlHandlers.isNil:
             urlHandlers = newTable[string, UrlHandler]()
         assert(scheme notin urlHandlers)

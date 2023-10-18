@@ -1,5 +1,7 @@
 import macros, times
 import ./ [ view, table_view_cell, text_field, context, app, view_event_handling, font ]
+import ./utils/lock_utils
+import rlocks
 
 type MenuItem* = ref object of RootObj
     title*: string
@@ -154,57 +156,58 @@ proc popupAtPoint*(m: MenuItem, v: View, p: Point, size: Size = newSize(150.0, m
 
     let popupTime = epochTime()
 
-    mainApplication().pushEventFilter do(e: var Event, control: var EventFilterControl) -> bool:
-        result = true
-        var localPos: Point
+    withRLockGCsafe(mainAppLock):
+        mainApp.pushEventFilter do(e: var Event, control: var EventFilterControl) -> bool:
+            result = true
+            var localPos: Point
 
-        var curMv = mv
-        while true:
-            localPos = curMv.convertPointFromWindow(e.position)
-            if localPos in curMv.bounds or curMv.submenu.isNil:
-                break
-            curMv = curMv.submenu
+            var curMv = mv
+            while true:
+                localPos = curMv.convertPointFromWindow(e.position)
+                if localPos in curMv.bounds or curMv.submenu.isNil:
+                    break
+                curMv = curMv.submenu
 
-        if e.buttonState == bsDown:
-            if localPos notin curMv.bounds:
-                control = efcBreak
-                mv.removeMenuView()
-        else:
-            var newHighlightedRow = int(localPos.y / menuItemHeight)
-            if localPos notin curMv.bounds or
-                    newHighlightedRow < 0 or newHighlightedRow >= curMv.subviews.len or
-                    curMv.item.children[newHighlightedRow].title == "-":
-                newHighlightedRow = -1
+            if e.buttonState == bsDown:
+                if localPos notin curMv.bounds:
+                    control = efcBreak
+                    mv.removeMenuView()
+            else:
+                var newHighlightedRow = int(localPos.y / menuItemHeight)
+                if localPos notin curMv.bounds or
+                        newHighlightedRow < 0 or newHighlightedRow >= curMv.subviews.len or
+                        curMv.item.children[newHighlightedRow].title == "-":
+                    newHighlightedRow = -1
 
-            if curMv.highlightedRow != newHighlightedRow:
-                curMv.submenu.removeMenuView()
-                curMv.submenu = nil
+                if curMv.highlightedRow != newHighlightedRow:
+                    curMv.submenu.removeMenuView()
+                    curMv.submenu = nil
 
-                if curMv.highlightedRow != -1:
-                    TableViewCell(curMv.subviews[curMv.highlightedRow]).selected = false
+                    if curMv.highlightedRow != -1:
+                        TableViewCell(curMv.subviews[curMv.highlightedRow]).selected = false
 
-                curMv.highlightedRow = newHighlightedRow
+                    curMv.highlightedRow = newHighlightedRow
 
-                if newHighlightedRow != -1:
-                    let selectedCell = TableViewCell(curMv.subviews[newHighlightedRow])
-                    selectedCell.selected = true
-                    let selectedItem = curMv.item.children[newHighlightedRow]
+                    if newHighlightedRow != -1:
+                        let selectedCell = TableViewCell(curMv.subviews[newHighlightedRow])
+                        selectedCell.selected = true
+                        let selectedItem = curMv.item.children[newHighlightedRow]
 
-                    if selectedItem.children.len > 0:
-                        # Create submenu view
-                        let sub = newViewWithMenuItems(selectedItem, size)
-                        var pt = newPoint(selectedCell.bounds.width, selectedCell.bounds.y)
-                        pt = selectedCell.convertPointToWindow(pt)
-                        sub.setFrameOrigin(pt)
-                        v.window.addSubview(sub)
-                        curMv.submenu = sub
+                        if selectedItem.children.len > 0:
+                            # Create submenu view
+                            let sub = newViewWithMenuItems(selectedItem, size)
+                            var pt = newPoint(selectedCell.bounds.width, selectedCell.bounds.y)
+                            pt = selectedCell.convertPointToWindow(pt)
+                            sub.setFrameOrigin(pt)
+                            v.window.addSubview(sub)
+                            curMv.submenu = sub
 
-            v.setNeedsDisplay()
+                v.setNeedsDisplay()
 
-            if e.buttonState == bsUp and (epochTime() - popupTime) > 0.3:
-                if curMv.highlightedRow != -1:
-                    let item = curMv.item.children[curMv.highlightedRow]
-                    if not item.action.isNil:
-                        item.action()
-                control = efcBreak
-                mv.removeMenuView()
+                if e.buttonState == bsUp and (epochTime() - popupTime) > 0.3:
+                    if curMv.highlightedRow != -1:
+                        let item = curMv.item.children[curMv.highlightedRow]
+                        if not item.action.isNil:
+                            item.action()
+                    control = efcBreak
+                    mv.removeMenuView()

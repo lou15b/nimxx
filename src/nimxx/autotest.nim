@@ -1,5 +1,6 @@
 import macros, logging, strutils
 import ./ [ timer, app, event, abstract_window, button ]
+import ./utils/lock_utils
 
 type UITestSuiteStep* = tuple
     code : proc() {.gcsafe.}
@@ -63,7 +64,8 @@ when true:
     proc sendMouseEvent*(wnd: Window, p: Point, bs: ButtonState) =
         var evt = newMouseButtonEvent(p, VirtualKey.MouseButtonPrimary, bs)
         evt.window = wnd
-        discard mainApplication().handleEvent(evt)
+        withRLockGCsafe(mainAppLock):
+            discard mainApp.handleEvent(evt)
 
     proc sendMouseDownEvent*(wnd: Window, p: Point) = sendMouseEvent(wnd, p, bsDown)
     proc sendMouseUpEvent*(wnd: Window, p: Point) = sendMouseEvent(wnd, p, bsUp)

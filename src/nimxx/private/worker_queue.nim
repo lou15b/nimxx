@@ -1,4 +1,5 @@
-import locks
+import locks except Lock, acquire, release, tryAcquire
+import rlocks
 
 type TaskListNode = object
     p: proc(data: pointer) {.cdecl, gcsafe.}
@@ -9,11 +10,12 @@ type
     WorkerQueue* = ref WorkerQueueObj
     WorkerQueueObj = object
         queueCond: Cond
-        queueLock: Lock
+        queueLock: RLock
         taskList: ptr TaskListNode
         lastTask: ptr TaskListNode
         threads: seq[Thread[pointer]]
 
+# TODO: make this into a destructor (`=destroy`)????
 # proc finalize(w: WorkerQueue) =
 #     # This will not work, so it's not used.
 #     # This is a leak! It's used in nimx image because it's global anyway.
@@ -43,7 +45,7 @@ proc threadWorker(qu: pointer) {.thread.} =
 proc newWorkerQueue*(maxThreads : int = 0): WorkerQueue =
     result.new()
     result.queueCond.initCond()
-    result.queueLock.initLock()
+    result.queueLock.initRLock()
     let mt = if maxThreads == 0: 2 else: maxThreads
     result.threads.newSeq(mt)
     for i in 0 ..< mt:

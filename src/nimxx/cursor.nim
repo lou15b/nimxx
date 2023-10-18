@@ -1,6 +1,6 @@
-const appKit = defined(macosx) and not defined(ios)
+const useAppKit = defined(macosx) and not defined(ios)
 
-when appKit:    # ??????
+when useAppKit:
     import darwin/app_kit as apkt
 else:
     import sdl2
@@ -22,12 +22,12 @@ type
         ckHand
 
     Cursor* = object
-        when appKit:
+        when useAppKit:
             c: pointer
         else:
             c: CursorPtr
 
-when appKit:
+when useAppKit:
     proc NSCursorOfKind(c: CursorKind): NSCursor =
         case c
         of ckArrow: arrowCursor()
@@ -66,7 +66,7 @@ else:
 
 proc newCursor*(k: CursorKind): ref Cursor =
     result = new(Cursor)
-    when appKit:
+    when useAppKit:
         result.c = NSCursorOfKind(k).retain()
     else:
         result.c = createSystemCursor(cursorKindToSdl(k))
@@ -79,7 +79,7 @@ proc currentCursor*(): ref Cursor =
 
 proc setCurrent*(c: ref Cursor) =
     gCursor = c
-    when appKit:
+    when useAppKit:
         cast[NSCursor](c.c).setCurrent()
     else:
         setCursor(c.c)

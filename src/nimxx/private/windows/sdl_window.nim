@@ -220,7 +220,8 @@ proc initSdlWindow(w: SdlWindow, r: view.Rect) =
     discard glMakeCurrent(w.impl, w.sdlGlContext)
     w.renderingContext = newGraphicsContext()
 
-    mainApplication().addWindow(w)
+    withRLockGCsafe(mainAppLock):
+        mainApp.addWindow(w)
     discard w.impl.setData("__nimx_wnd", cast[pointer](w))
 
 method init*(w: SdlWindow, r: view.Rect) {.gcsafe.} =
@@ -254,7 +255,8 @@ method hide*(w: SdlWindow)=
     let p = w.getOsWindowPos()
     w.setFrameOrigin(p)
 
-    mainApplication().removeWindow(w)
+    withRLockGCsafe(mainAppLock):
+        mainApp.removeWindow(w)
     w.impl.destroyWindow()
     w.impl = nil
     w.sdlGlContext = nil
@@ -444,7 +446,8 @@ proc handleEvent(event: ptr sdl2.Event): Bool32 =
         # This branch should never execute on a foreign thread!!!
         var e = eventWithSDLEvent(event)
         if (e.kind != etUnknown):
-            discard mainApplication().handleEvent(e)
+            withRLockGCsafe(mainAppLock):
+                discard mainApp.handleEvent(e)
     result = True32
 
 method onResize*(w: SdlWindow, newSize: Size) =
@@ -475,15 +478,17 @@ when false:
 
 proc animateAndDraw() =
     when not defined ios:
-        mainApplication().runAnimations()
-        mainApplication().drawWindows()
+        withRLockGCsafe(mainAppLock):
+            mainApp.runAnimations()
+            mainApp.drawWindows()
     else:
         if not animationEnabled:
-            mainApplication().runAnimations()
-            mainApplication().drawWindows()
+            withRLockGCsafe(mainAppLock):
+                mainApp.runAnimations()
+                mainApp.drawWindows()
 
 proc nextEvent(evt: var sdl2.Event) =
-    withLockGCsafe(gcRequestLock):
+    withRLockGCsafe(gcRequestLock):
         if gcRequested:
             info "GC_fullCollect"
             GC_fullCollect()
@@ -495,7 +500,8 @@ proc nextEvent(evt: var sdl2.Event) =
                 discard handleEvent(addr evt)
 
         if not animationEnabled:
-            mainApplication().drawWindows()
+            withRLockGCsafe(mainAppLock):
+                mainApp.drawWindows()
     else:
         var doPoll = false
         if animationEnabled:

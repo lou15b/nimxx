@@ -2,7 +2,7 @@
 import ./ [ view, animation, context, font, composition, image, notification_center,
     mini_profiler, portable_gl, drag_and_drop ]
 import ./utils/lock_utils
-import times, tables, locks
+import times, tables, rlocks
 import kiwi
 export view
 
@@ -23,17 +23,19 @@ method `fullscreen=`*(w: Window, v: bool) {.base.} = discard
 
 # Note that the same lock is used to guard both of the following variables
 # because they are used together
-var fpsLock: Lock
+var fpsLock: RLock
+fpsLock.initRLock()
 var lastTime {.guard: fpsLock.} = epochTime()
 var lastFrame {.guard: fpsLock.} = 0.0
 
-var animsLock: Lock
+var animsLock: RLock
+animsLock.initRLock()
 var totalAnims {.guard: animsLock.} = 0
 
 var fps {.threadvar.}: ProfilerDataSource[int]
 
 proc updateFps() {.inline.} =
-    withLockGCsafe(fpsLock):
+    withRLockGCsafe(fpsLock):
         let curTime = epochTime()
         let deltaTime = curTime - lastTime
         lastFrame = (lastFrame * 0.9 + deltaTime * 0.1)
@@ -97,7 +99,7 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
         updateFps()
         profiler["Overdraw"] = GetOverdrawValue()
         profiler["DIPs"] = GetDIPValue()
-        withLockGCsafe(animsLock):
+        withRLockGCsafe(animsLock):
             profiler["Animations"] = totalAnims
 
         const fontSize = 14
@@ -153,7 +155,7 @@ method startTextInput*(w: Window, r: Rect) {.base, gcsafe.} = discard
 method stopTextInput*(w: Window) {.base, gcsafe.} = discard
 
 proc runAnimations*(w: Window) =
-    withLockGCsafe(animsLock):
+    withRLockGCsafe(animsLock):
         # New animations can be added while in the following loop. They will
         # have to be ticked on the next frame.
         var prevAnimsCount = totalAnims
@@ -214,6 +216,7 @@ proc onFocusChange*(w: Window, inFocus: bool)=
 # TODO: Remove the need for using global variables here
 #       - merge window.nim, abstract_window.nim and sdl_window.nim into a single file
 # Locks not needed here, because these globals are set at startup and not changed
+# Note that they need to be nimcall - closures aren't gcsafe because they use GC'ed memory
 var newWindow*: proc(r: Rect): Window {.nimcall, gcsafe.}
 var newFullscreenWindow*: proc(): Window {.nimcall, gcsafe.}
 
@@ -251,9 +254,10 @@ proc toggleFullscreen*(w: Window) =
     else:
         w.enterFullscreen()
 
-var gcRequestLock*: Lock
+var gcRequestLock*: RLock
+gcRequestLock.initRLock()
 var gcRequested* {.guard: gcRequestLock.} = false
 
 template requestGCFullCollect*() =
-    withLockGCsafe(gcRequestLock):
+    withRLockGCsafe(gcRequestLock):
         gcRequested = true

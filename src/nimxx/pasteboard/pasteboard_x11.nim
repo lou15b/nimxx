@@ -4,6 +4,7 @@ import ./pasteboard_item
 import x11 / [ xlib, x, xatom ]
 import ../app, ../private/windows/sdl_window
 import sdl2
+import ../utils/lock_utils
 
 type X11Pasteboard = object of Pasteboard
 const XINT_MAX = 32767
@@ -26,23 +27,24 @@ proc nimxCutBuffer(display: PDisplay): Atom =
     result = XInternAtom(display, "SDL_CUTBUFFER", 0)
 
 proc displayConnection(): (PDisplay, x.Window, x.Window) =
-    let keyWnd = mainApplication().keyWindow()
-    if keyWnd.isNil: return
+    withRLockGCsafe(mainAppLock):
+        let keyWnd = mainApp.keyWindow()
+        if keyWnd.isNil: return
 
-    var winInfo: WMinfo
-    getVersion(winInfo.version)
+        var winInfo: WMinfo
+        getVersion(winInfo.version)
 
-    let res = keyWnd.SdlWindow.getSDLWindow().getWMInfo(winInfo)
-    let wi = cast[ptr WMinfoX11](addr winInfo)
-    let display = wi.display
+        let res = keyWnd.SdlWindow.getSDLWindow().getWMInfo(winInfo)
+        let wi = cast[ptr WMinfoX11](addr winInfo)
+        let display = wi.display
 
-    if res == False32 or winInfo.subsystem != SysWM_X11 or display.isNil:
-        return
+        if res == False32 or winInfo.subsystem != SysWM_X11 or display.isNil:
+            return
 
-    var rw: x.Window
-    {.gcsafe.}:
-      rw = DefaultRootWindow(display)
-    (display, wi.window, rw)
+        var rw: x.Window
+        {.gcsafe.}:
+            rw = DefaultRootWindow(display)
+        result = (display, wi.window, rw)
 
 proc pbWrite(p: Pasteboard, pi_ar: varargs[PasteboardItem]) =
     let (display, window, rootWindow) = displayConnection()
