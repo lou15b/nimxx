@@ -16,6 +16,10 @@ type TestRunnerContext = ref object
     curTimeout: float
     waitTries: int
 
+# ***Presumably*** these variables are threadvar because it's possible that different
+# test sets could be executed concurrently in different threads
+# IF NOT, it is most likely because of gcsafe specifications on the callback in the
+# arguments for the setInterval proc in timer.nim
 var testRunnerContext {.threadvar.}: TestRunnerContext
 var registeredTests {.threadvar.}: seq[UITestSuite]
 
