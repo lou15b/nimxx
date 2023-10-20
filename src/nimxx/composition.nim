@@ -2,6 +2,7 @@ import ./ [ context_base, types, portable_gl, image ]
 import ./private/helper_macros
 import strutils, tables, hashes
 import nimsl/nimsl
+import rlocks
 
 export portable_gl
 
@@ -275,7 +276,9 @@ type
         requiresPrequel: bool
         id*: int
 
-var programCache {.threadvar.}: Table[Hash, CompiledComposition]
+var programCacheLock: RLock
+programCacheLock.initRLock()
+var programCache {.guard: programCacheLock.}: Table[Hash, CompiledComposition]
 
 
 const posAttr : GLuint = 0
@@ -359,7 +362,7 @@ proc postEffectUniformName(postEffectIndex, argIndex: int): string =
     result = ""
     getPostEffectUniformName(postEffectIndex, argIndex, result)
 
-proc compileComposition*(gl: GL, comp: Composition, cchash: Hash, compOptions: int): CompiledComposition =
+proc compileComposition(gl: GL, comp: Composition, cchash: Hash, compOptions: int): CompiledComposition =
     var fragmentShaderCode = ""
 
     if (comp.definition.len != 0 and comp.definition.find("GL_OES_standard_derivatives") < 0) or comp.requiresPrequel:
@@ -427,7 +430,8 @@ proc compileComposition*(gl: GL, comp: Composition, cchash: Hash, compOptions: i
             options & comp.vsDefinition
     result.program = gl.newShaderProgram(vsCode, fragmentShaderCode, [(posAttr, "aPosition")])
     result.uniformLocations = newSeq[UniformLocation]()
-    programCache[cchash] = result
+    withRLock(programCacheLock):
+        programCache[cchash] = result
 
 # Kept in case it's needed someday - if it does get used then remove the .used pragma
 proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
@@ -439,9 +443,9 @@ proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
         result[i] = p.y
         inc i
 
-var texQuad : array[4, GLfloat]
-
 template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsContext, gl: GL) =
+    ## This template inserts the following templates into the code where it is invoked
+    # It is invoked when the draw template below is invoked
     template uniformLocation(name: string): UniformLocation =
         inc cc.iUniform
         if cc.uniformLocations.len - 1 < cc.iUniform:
@@ -485,6 +489,8 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         inc cc.iTexIndex
 
     template setUniform(name: string, i: Image) {.hint[XDeclaredButNotUsed]: off.} =
+        ## **** NOTE **** "var texQuad: array[4, GLfloat]" must have been declared previously
+        ## in any code where this template is invoked. 
         gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
         gl.bindTexture(gl.TEXTURE_2D, getTextureQuad(i, gl, texQuad))
         gl.uniform4fv(uniformLocation(name & "_texCoords"), texQuad)
@@ -513,10 +519,12 @@ template popPostEffect*() =
 template hasPostEffect*(): bool =
     postEffectStack.len > 0
 
-template getCompiledComposition*(gl: GL, comp: Composition, options: int = 0): CompiledComposition =
+proc getCompiledComposition*(gl: GL, comp: Composition, options: int = 0): CompiledComposition =
     let pehash = if postEffectIdStack.len > 0: postEffectIdStack[^1] else: 0
     let cchash = !$(pehash !& comp.id !& options)
-    var cc = programCache.getOrDefault(cchash)
+    var cc: CompiledComposition
+    withRLock(programCacheLock):
+        cc = programCache.getOrDefault(cchash)
     if cc.isNil:
         cc = gl.compileComposition(comp, cchash, options)
     cc.iUniform = -1
