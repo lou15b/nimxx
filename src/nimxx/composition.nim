@@ -1,4 +1,5 @@
 import ./ [ context_base, types, portable_gl, image ]
+import ./utils/lock_utils
 import ./private/helper_macros
 import strutils, tables, hashes
 import nimsl/nimsl
@@ -430,7 +431,7 @@ proc compileComposition(gl: GL, comp: Composition, cchash: Hash, compOptions: in
             options & comp.vsDefinition
     result.program = gl.newShaderProgram(vsCode, fragmentShaderCode, [(posAttr, "aPosition")])
     result.uniformLocations = newSeq[UniformLocation]()
-    withRLock(programCacheLock):
+    withRLockGCsafe(programCacheLock):
         programCache[cchash] = result
 
 # Kept in case it's needed someday - if it does get used then remove the .used pragma
@@ -442,6 +443,14 @@ proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
         inc i
         result[i] = p.y
         inc i
+
+# This variable is used in template setUniform below - which means that it gets referenced
+# from elsewhere. It appears to be some kind of working memory.. And it works, despite the fact
+# that it isn't public.
+# I made it a threadvar instead of a global, so that if images are getting drawn concurrently
+# in different threads they won't tramp on each other's feet.
+# I ***really*** don't like this way of doing things. Hopefully we can get rid of it when we use pixie.
+var texQuad {.threadvar.} : array[4, GLfloat]
 
 template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsContext, gl: GL) =
     ## This template inserts the following templates into the code where it is invoked
@@ -489,8 +498,6 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         inc cc.iTexIndex
 
     template setUniform(name: string, i: Image) {.hint[XDeclaredButNotUsed]: off.} =
-        ## **** NOTE **** "var texQuad: array[4, GLfloat]" must have been declared previously
-        ## in any code where this template is invoked. 
         gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
         gl.bindTexture(gl.TEXTURE_2D, getTextureQuad(i, gl, texQuad))
         gl.uniform4fv(uniformLocation(name & "_texCoords"), texQuad)
@@ -523,7 +530,7 @@ proc getCompiledComposition*(gl: GL, comp: Composition, options: int = 0): Compi
     let pehash = if postEffectIdStack.len > 0: postEffectIdStack[^1] else: 0
     let cchash = !$(pehash !& comp.id !& options)
     var cc: CompiledComposition
-    withRLock(programCacheLock):
+    withRLockGCsafe(programCacheLock):
         cc = programCache.getOrDefault(cchash)
     if cc.isNil:
         cc = gl.compileComposition(comp, cchash, options)
