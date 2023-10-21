@@ -135,12 +135,10 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
             c.drawRect(rect)
 
 method draw*(w: Window, rect: Rect) =
-    let c = currentContext()
-    let gl = c.gl
     if w.mActiveBgColor != w.backgroundColor:
-        gl.clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+        clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
         w.mActiveBgColor = w.backgroundColor
-    gl.clear(gl.COLOR_BUFFER_BIT or gl.STENCIL_BUFFER_BIT or gl.DEPTH_BUFFER_BIT)
+    clearGLBuffers(COLOR_BUFFER_BIT or STENCIL_BUFFER_BIT or DEPTH_BUFFER_BIT)
 
 method animationStateChanged*(w: Window, state: bool) {.base.} = discard
 

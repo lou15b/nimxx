@@ -276,14 +276,12 @@ method `title=`*(w: SdlWindow, t: string) =
 method title*(w: SdlWindow): string = $w.impl.getTitle()
 
 method draw*(w: SdlWindow, r: Rect) =
-    let c = currentContext()
-    let gl = c.gl
     if w.mActiveBgColor != w.backgroundColor:
-        gl.clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+        clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
         w.mActiveBgColor = w.backgroundColor
-    gl.stencilMask(0xFF) # Android requires setting stencil mask to clear
-    gl.clear(gl.COLOR_BUFFER_BIT or gl.STENCIL_BUFFER_BIT or gl.DEPTH_BUFFER_BIT)
-    gl.stencilMask(0x00)
+    stencilMask(0xFF) # Android requires setting stencil mask to clear
+    clearGLBuffers(COLOR_BUFFER_BIT or STENCIL_BUFFER_BIT or DEPTH_BUFFER_BIT)
+    stencilMask(0x00)
 
 method drawWindow(w: SdlWindow) =
     discard glMakeCurrent(w.impl, w.sdlGlContext)

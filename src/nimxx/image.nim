@@ -23,14 +23,14 @@ type
     FixedTexCoordSpriteImage* = ref object of Image
         spriteSheet: Image
 
-template setupTexParams(gl: GL) =
+template setupTexParams() =
     when defined(android) or defined(ios):
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
     else:
-        gl.generateMipmap(gl.TEXTURE_2D)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST)
+        generateMipmap(TEXTURE_2D)
+        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST)
 
 include ./private/image_pvr
 
@@ -183,7 +183,7 @@ proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureR
         texCoords[3] = y.Coord / texHeight.Coord
 
     glTexImage2D(GL_TEXTURE_2D, 0, format.cint, texWidth.GLsizei, texHeight.GLsizei, 0, format, GL_UNSIGNED_BYTE, cast[pointer](pixelData))
-    setupTexParams(nil)
+    setupTexParams()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
@@ -246,7 +246,7 @@ method isLoaded*(i: SelfContainedImage): bool =
 
 method isLoaded*(i: FixedTexCoordSpriteImage): bool = i.spriteSheet.isLoaded
 
-method getTextureQuad*(i: Image, gl: GL, texCoords: var array[4, GLfloat]): TextureRef {.base, gcsafe.} =
+method getTextureQuad*(i: Image, texCoords: var array[4, GLfloat]): TextureRef {.base, gcsafe.} =
     raise newException(Exception, "Abstract method called!")
 
 method serialize*(s: Serializer, v: Image) {.base, gcsafe.} =
@@ -261,14 +261,14 @@ method deserialize*(s: Deserializer, v: var Image) {.base, gcsafe.} =
     if imagePath.len > 0:
         v = imageWithContentsOfFile(imagePath)
 
-method getTextureQuad*(i: SelfContainedImage, gl: GL, texCoords: var array[4, GLfloat]): TextureRef =
+method getTextureQuad*(i: SelfContainedImage, texCoords: var array[4, GLfloat]): TextureRef =
     texCoords = i.texCoords
     result = i.texture
 
 proc size*(i: Image): Size {.inline.} = i.mSize
 
-method getTextureQuad*(i: FixedTexCoordSpriteImage, gl: GL, texCoords: var array[4, GLfloat]): TextureRef =
-    result = i.spriteSheet.getTextureQuad(gl, texCoords)
+method getTextureQuad*(i: FixedTexCoordSpriteImage, texCoords: var array[4, GLfloat]): TextureRef =
+    result = i.spriteSheet.getTextureQuad(texCoords)
     texCoords = i.texCoords
 
 proc subimageWithTexCoords*(i: Image, s: Size, texCoords: array[4, GLfloat]): FixedTexCoordSpriteImage =
@@ -293,7 +293,7 @@ proc backingRect*(i: Image): Rect =
     result.origin.y = i.texHeight.float32 * min(i.texCoords[0], i.texCoords[3])
     result.size = i.backingSize
 
-proc resetToSize*(i: SelfContainedImage, size: Size, gl: GL) =
+proc resetToSize*(i: SelfContainedImage, size: Size) =
     i.mSize = size
 
     let flipped = i.flipped
@@ -312,15 +312,15 @@ proc resetToSize*(i: SelfContainedImage, size: Size, gl: GL) =
         i.flipVertically()
 
     if i.texture != invalidTexture:
-        gl.bindTexture(gl.TEXTURE_2D, i.texture)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei, 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+        bindTexture(TEXTURE_2D, i.texture)
+        texImage2D(TEXTURE_2D, 0, RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei, 0, RGBA, UNSIGNED_BYTE, nil)
 
-proc generateMipmap*(i: SelfContainedImage, gl: GL) =
+proc generateMipmap*(i: SelfContainedImage) =
     if i.texture != invalidTexture:
-        gl.bindTexture(gl.TEXTURE_2D, i.texture)
-        gl.generateMipmap(gl.TEXTURE_2D)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST)
+        bindTexture(TEXTURE_2D, i.texture)
+        generateMipmap(TEXTURE_2D)
+        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST)
 
 when not defined(ios):
     type ImageFileFormat = enum tga, hdr, bmp, png
@@ -328,7 +328,7 @@ when not defined(ios):
     proc writeToFile(i: Image, path: string, format: ImageFileFormat) =
         when not defined(android):
             var texCoords : array[4, GLfloat]
-            let texture = i.getTextureQuad(nil, texCoords)
+            let texture = i.getTextureQuad(texCoords)
             glBindTexture(GL_TEXTURE_2D, texture)
             var w, h, fmti: GLint
             glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, addr w)

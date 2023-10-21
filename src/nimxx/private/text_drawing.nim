@@ -195,11 +195,9 @@ void compose()
 """, false, "mediump")
 
 proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
-    let gl = c.gl
-
-    gl.enableVertexAttribArray(saPosition.GLuint)
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, c.quadIndexBuffer)
-    gl.bindBuffer(gl.ARRAY_BUFFER, c.sharedBuffer)
+    enableVertexAttribArray(saPosition.GLuint)
+    bindGLBuffer(ELEMENT_ARRAY_BUFFER, c.quadIndexBuffer)
+    bindGLBuffer(ARRAY_BUFFER, c.sharedBuffer)
 
     var texture: TextureRef
     var newTexture: TextureRef
@@ -207,9 +205,9 @@ proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) 
 
     template flush() =
         const componentCount = 4
-        gl.bufferData(gl.ARRAY_BUFFER, c.vertexes, componentCount * n * 4, gl.DYNAMIC_DRAW)
-        gl.vertexAttribPointer(saPosition.GLuint, componentCount, gl.FLOAT, false, 0, 0)
-        gl.drawElements(gl.TRIANGLES, n * 6, gl.UNSIGNED_SHORT)
+        copyDataToGLBuffer(ARRAY_BUFFER, c.vertexes, componentCount * n * 4, DYNAMIC_DRAW)
+        vertexAttribPointer(saPosition.GLuint, componentCount, FLOAT, false, 0, 0)
+        drawElements(TRIANGLES, n * 6, UNSIGNED_SHORT)
 
     for ch in text.runes:
         if n > 127:
@@ -225,7 +223,7 @@ proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) 
                 n = 0
 
             texture = newTexture
-            gl.bindTexture(gl.TEXTURE_2D, texture)
+            bindTexture(TEXTURE_2D, texture)
         inc n
         pt.x += font.horizontalSpacing
 
@@ -233,7 +231,6 @@ proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) 
 
 proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
     # assume orthographic projection with units = screen pixels, origin at top left
-    let gl = c.gl
     var cc : CompiledComposition
     var subpixelDraw = textSubpixelDrawing
 
@@ -246,32 +243,32 @@ proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
     let preScale = 1.0 / 320.0 # magic constant...
 
     if subpixelDraw:
-        if gl.getParami(gl.BLEND_SRC_ALPHA) != gl.SRC_ALPHA.GLint or gl.getParami(gl.BLEND_DST_ALPHA) != gl.ONE_MINUS_SRC_ALPHA.GLint:
+        if getParami(BLEND_SRC_ALPHA) != SRC_ALPHA.GLint or getParami(BLEND_DST_ALPHA) != ONE_MINUS_SRC_ALPHA.GLint:
             subpixelDraw = false
 
     if subpixelDraw:
-        cc = gl.getCompiledComposition(fontSubpixelCompositionWithDynamicBase)
-        gl.blendColor(c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a)
-        gl.blendFunc(gl.CONSTANT_COLOR, gl.ONE_MINUS_SRC_COLOR)
+        cc = getCompiledComposition(fontSubpixelCompositionWithDynamicBase)
+        blendColor(c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a)
+        blendFunc(CONSTANT_COLOR, ONE_MINUS_SRC_COLOR)
     else:
-        cc = gl.getCompiledComposition(fontComposition)
+        cc = getCompiledComposition(fontComposition)
 
-    gl.useProgram(cc.program)
+    useProgram(cc.program)
 
-    compositionDrawingDefinitions(cc, c, gl)
+    compositionDrawingDefinitions(cc, c)
     setUniform("fillColor", c.fillColor)
     setUniform("preScale", preScale)
 
-    gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+    uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
     setupPosteffectUniforms(cc)
 
-    gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
-    gl.uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+    activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
+    uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
 
     c.drawTextBase(font, pt, text)
 
     if subpixelDraw:
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+        blendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA)
 
 proc drawText*(c: GraphicsContext, font: Font, pt: Point, text: string) {.gcsafe.}=
     var p = pt

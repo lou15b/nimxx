@@ -78,9 +78,8 @@ void compose() {
 """)
 
 proc bindVertexData*(c: GraphicsContext, length: int) =
-    let gl = c.gl
-    gl.bindBuffer(gl.ARRAY_BUFFER, c.sharedBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, c.vertexes, length, gl.DYNAMIC_DRAW)
+    bindGLBuffer(ARRAY_BUFFER, c.sharedBuffer)
+    copyDataToGLBuffer(ARRAY_BUFFER, c.vertexes, length, DYNAMIC_DRAW)
 
 proc drawImage*(c: GraphicsContext, i: Image, toRect: Rect, fromRect: Rect = zeroRect, alpha: ColorComponent = 1.0) =
     if i.isLoaded:
@@ -116,13 +115,13 @@ void compose() {
 }
 """, false)
 
-proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, mb: Coord, fromRect: Rect = zeroRect, alpha: ColorComponent = 1.0) =
+proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, mb: Coord, fromRect: Rect = zeroRect,
+        alpha: ColorComponent = 1.0) =
     if i.isLoaded:
-        let gl = c.gl
-        var cc = gl.getCompiledComposition(ninePartImageComposition)
+        var cc = getCompiledComposition(ninePartImageComposition)
 
         var fuv : array[4, GLfloat]
-        let tex = getTextureQuad(i, gl, fuv)
+        let tex = getTextureQuad(i, fuv)
 
         let sz = i.size
         if fromRect != zeroRect:
@@ -165,26 +164,26 @@ proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, 
         14.setVertex(toRect.maxX - mr, toRect.maxY, fuv[2] - tmr, fuv[3])
         15.setVertex(toRect.maxX, toRect.maxY, fuv[2], fuv[3])
 
-        gl.useProgram(cc.program)
-        compositionDrawingDefinitions(cc, c, gl)
+        useProgram(cc.program)
+        compositionDrawingDefinitions(cc, c)
 
         setUniform("uAlpha", alpha * c.alpha)
 
-        gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+        uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
         setupPosteffectUniforms(cc)
 
-        gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
-        gl.uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
-        gl.bindTexture(gl.TEXTURE_2D, tex)
+        activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
+        uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+        bindTexture(TEXTURE_2D, tex)
 
-        gl.enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, c.gridIndexBuffer4x4)
+        enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
+        bindGLBuffer(ELEMENT_ARRAY_BUFFER, c.gridIndexBuffer4x4)
 
         const componentsCount = 4
         const vertexCount = (4 - 1) * 4 * 2
         c.bindVertexData(componentsCount * vertexCount)
-        gl.vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, gl.FLOAT, false, 0, 0)
-        gl.drawElements(gl.TRIANGLE_STRIP, vertexCount, gl.UNSIGNED_SHORT)
+        vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, FLOAT, false, 0, 0)
+        drawElements(TRIANGLE_STRIP, vertexCount, UNSIGNED_SHORT)
 
 
 const simpleComposition = newComposition("""
@@ -214,8 +213,7 @@ proc bezierPoint(p0, p1, p2, p3, t: float32): float32 =
     (pow(t, 3) * p3)
 
 proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
-    let gl = c.gl
-    var cc = gl.getCompiledComposition(simpleComposition)
+    var cc = getCompiledComposition(simpleComposition)
 
     template setVertex(index: int, p: Point) =
         c.vertexes[index * 2 + 0] = p.x.GLfloat
@@ -227,24 +225,24 @@ proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
         let p = newPoint(bezierPoint(p0.x, p1.x, p2.x, p3.x, t), bezierPoint(p0.y, p1.y, p2.y, p3.y, t))
         setVertex(i, p)
 
-    gl.useProgram(cc.program)
-    compositionDrawingDefinitions(cc, c, gl)
+    useProgram(cc.program)
+    compositionDrawingDefinitions(cc, c)
 
-    gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+    uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
     setUniform("uStrokeColor", c.strokeColor)
     setupPosteffectUniforms(cc)
 
     const componentsCount = 2
-    gl.enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
+    enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
     c.bindVertexData(componentsCount * vertexCount)
-    gl.vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, gl.FLOAT, false, 0, 0)
+    vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, FLOAT, false, 0, 0)
 
-    gl.enable(GL_LINE_SMOOTH)
+    enableCapability(GL_LINE_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
     glLineWidth(c.strokeWidth)
 
-    gl.drawArrays(GL_LINE_STRIP, 0.GLint, vertexCount.GLsizei)
+    drawArrays(GL_LINE_STRIP, 0.GLint, vertexCount.GLsizei)
     glLineWidth(1.0)
 
 
@@ -357,28 +355,28 @@ var clippingDepth: GLint = 0
 
 # Clipping
 proc applyClippingRect*(c: GraphicsContext, r: Rect, on: bool) =
-    c.gl.enable(c.gl.STENCIL_TEST)
-    c.gl.colorMask(false, false, false, false)
-    c.gl.depthMask(false)
-    c.gl.stencilMask(0xFF)
+    enableCapability(STENCIL_TEST)
+    colorMask(false, false, false, false)
+    depthMask(false)
+    stencilMask(0xFF)
     if on:
         inc clippingDepth
-        c.gl.stencilOp(c.gl.INCR, c.gl.KEEP, c.gl.KEEP)
+        stencilOp(INCR, KEEP, KEEP)
     else:
         dec clippingDepth
-        c.gl.stencilOp(c.gl.DECR, c.gl.KEEP, c.gl.KEEP)
+        stencilOp(DECR, KEEP, KEEP)
 
-    c.gl.stencilFunc(c.gl.NEVER, 1, 0xFF)
+    stencilFunc(NEVER, 1, 0xFF)
     c.drawRect(r)
 
-    c.gl.colorMask(true, true, true, true)
-    c.gl.depthMask(true)
-    c.gl.stencilMask(0x00)
+    colorMask(true, true, true, true)
+    depthMask(true)
+    stencilMask(0x00)
 
-    c.gl.stencilOp(c.gl.KEEP, c.gl.KEEP, c.gl.KEEP)
-    c.gl.stencilFunc(c.gl.EQUAL, clippingDepth, 0xFF)
+    stencilOp(KEEP, KEEP, KEEP)
+    stencilFunc(EQUAL, clippingDepth, 0xFF)
     if clippingDepth == 0:
-        c.gl.disable(c.gl.STENCIL_TEST)
+        disableCapability(STENCIL_TEST)
 
 template withClippingRect*(c: GraphicsContext, r: Rect, body: typed) =
     c.applyClippingRect(r, true)

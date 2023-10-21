@@ -744,12 +744,11 @@ proc drawShadow(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
         if t.mAttributes[curAttrIndex].shadowRadius > 0.0 or t.mAttributes[curAttrIndex].shadowSpread > 0.0:
             var options = SOFT_SHADOW_ENABLED
             # gradientAndStrokeComposition.options = options
-            let gl = c.gl
-            var cc = gl.getCompiledComposition(gradientAndStrokeComposition, options)
+            var cc = getCompiledComposition(gradientAndStrokeComposition, options)
 
-            gl.useProgram(cc.program)
+            useProgram(cc.program)
 
-            compositionDrawingDefinitions(cc, c, gl)
+            compositionDrawingDefinitions(cc, c)
 
             const minShadowSpread = 0.17 # make shadow border smooth and great again
 
@@ -757,11 +756,11 @@ proc drawShadow(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
             setUniform("shadowSpread", t.mAttributes[curAttrIndex].shadowSpread + minShadowSpread)
             setUniform("fillColor", c.fillColor)
 
-            gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+            uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
             setupPosteffectUniforms(cc)
 
-            gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
-            gl.uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+            activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
+            uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
 
             c.drawTextBase(font, pp, str)
         else:
@@ -782,12 +781,11 @@ proc drawStroke(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
                 options = options or GRADIENT_ENABLED
 
             # gradientAndStrokeComposition.options = options
-            let gl = c.gl
-            var cc = gl.getCompiledComposition(gradientAndStrokeComposition, options)
+            var cc = getCompiledComposition(gradientAndStrokeComposition, options)
 
-            gl.useProgram(cc.program)
+            useProgram(cc.program)
 
-            compositionDrawingDefinitions(cc, c, gl)
+            compositionDrawingDefinitions(cc, c)
 
             setUniform("strokeSize", min(t.mAttributes[curAttrIndex].strokeSize / 15, magicStrokeMaxSizeCoof))
 
@@ -799,11 +797,11 @@ proc drawStroke(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
             else:
                 setUniform("fillColor", t.mAttributes[curAttrIndex].strokeColor1)
 
-            gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+            uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
             setupPosteffectUniforms(cc)
 
-            gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
-            gl.uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+            activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
+            uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
 
             let oldBaseline = font.baseline
             font.baseline = bAlphabetic
@@ -826,23 +824,22 @@ proc drawText*(c: GraphicsContext, origP: Point, t: FormattedText, inRect: Rect 
         let oldBaseline = font.baseline
         font.baseline = bAlphabetic
         if t.mAttributes[curAttrIndex].isTextGradient:
-            let gl = c.gl
-            var cc = gl.getCompiledComposition(gradientAndStrokeComposition, options = GRADIENT_ENABLED)
+            var cc = getCompiledComposition(gradientAndStrokeComposition, options = GRADIENT_ENABLED)
 
-            gl.useProgram(cc.program)
+            useProgram(cc.program)
 
-            compositionDrawingDefinitions(cc, c, gl)
+            compositionDrawingDefinitions(cc, c)
 
             setUniform("point_y", p.y - t.lines[curLine].baseline)
             setUniform("size_y", t.lines[curLine].height)
             setUniform("colorFrom", t.mAttributes[curAttrIndex].textColor)
             setUniform("colorTo", t.mAttributes[curAttrIndex].textColor2)
 
-            gl.uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+            uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
             setupPosteffectUniforms(cc)
 
-            gl.activeTexture(GLenum(int(gl.TEXTURE0) + cc.iTexIndex))
-            gl.uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+            activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
+            uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
 
             c.drawTextBase(font, p, str)
         else:
