@@ -350,9 +350,6 @@ proc drawTriangle*(c: GraphicsContext, rect: Rect, angleRad: Coord) =
         setUniform("uAngle", angleRad)
         setUniform("uColor", color)
 
-# TODO: This should probaly be a property of current context!
-var clippingDepth: GLint = 0
-
 # Clipping
 proc applyClippingRect*(c: GraphicsContext, r: Rect, on: bool) =
     enableCapability(STENCIL_TEST)
@@ -360,10 +357,10 @@ proc applyClippingRect*(c: GraphicsContext, r: Rect, on: bool) =
     depthMask(false)
     stencilMask(0xFF)
     if on:
-        inc clippingDepth
+        inc c.clippingDepth
         stencilOp(INCR, KEEP, KEEP)
     else:
-        dec clippingDepth
+        dec c.clippingDepth
         stencilOp(DECR, KEEP, KEEP)
 
     stencilFunc(NEVER, 1, 0xFF)
@@ -374,8 +371,8 @@ proc applyClippingRect*(c: GraphicsContext, r: Rect, on: bool) =
     stencilMask(0x00)
 
     stencilOp(KEEP, KEEP, KEEP)
-    stencilFunc(EQUAL, clippingDepth, 0xFF)
-    if clippingDepth == 0:
+    stencilFunc(EQUAL, c.clippingDepth, 0xFF)
+    if c.clippingDepth == 0:
         disableCapability(STENCIL_TEST)
 
 template withClippingRect*(c: GraphicsContext, r: Rect, body: typed) =

@@ -72,6 +72,7 @@ type GraphicsContext* = ref object of RootObj
     fillColor*: Color
     strokeColor*: Color
     strokeWidth*: Coord
+    clippingDepth*: GLint
     debugClipColor: Color
     alpha*: Coord
     quadIndexBuffer*: BufferRef
