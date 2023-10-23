@@ -7,6 +7,8 @@ import ./private/font/stb_ttf_glyph_provider
 type GlyphProvider = StbTtfGlyphProvider
 
 import os
+import rlocks
+import utils/lock_utils
 
 import ttf/edtaa3func
 import ./private/simple_table
@@ -42,22 +44,25 @@ type FontImpl = ref object
     ascent: float32
     descent: float32
 
-var fontCache {.threadvar.}: SimpleTable[FastString, FontImpl]
+var fontCacheLock: RLock
+fontCacheLock.initRLock()
+var fontCache {.guard: fontCacheLock.}: SimpleTable[FastString, FontImpl]
 
 proc cachedImplForFont(face: string, sz: float): FontImpl =
-    if fontCache.isNil:
-        fontCache = newSimpleTable(FastString, FontImpl)
-    var key : FastString = face & "_" & $charHeightForSize(sz).int
-    if fontCache.hasKey(key):
-        result = fontCache[key]
-    else:
-        result.new()
-        result.chars = newSimpleTable(int32, CharInfo)
-        result.glyphProvider.new()
-        result.glyphProvider.setPath(face)
-        result.glyphProvider.setSize(charHeightForSize(sz))
-        result.glyphProvider.glyphMargin = 8
-        fontCache[key] = result
+    withRLockGCSafe(fontCacheLock):
+        if fontCache.isNil:
+            fontCache = newSimpleTable(FastString, FontImpl)
+        var key : FastString = face & "_" & $charHeightForSize(sz).int
+        if fontCache.hasKey(key):
+            result = fontCache[key]
+        else:
+            result.new()
+            result.chars = newSimpleTable(int32, CharInfo)
+            result.glyphProvider.new()
+            result.glyphProvider.setPath(face)
+            result.glyphProvider.setSize(charHeightForSize(sz))
+            result.glyphProvider.glyphMargin = 8
+            fontCache[key] = result
 
 type Font* = ref object
     impl: FontImpl
@@ -114,8 +119,6 @@ proc newFontWithFile*(pathToTTFile: string, size: float): Font =
     result.face = splitFile(pathToTTFile).name
     result.size = size
     result.glyphMargin = 8
-
-var sysFont {.threadvar.}: Font
 
 const preferredFonts = when defined(windows):
         [
@@ -186,6 +189,8 @@ proc systemFontOfSize*(size: float): Font =
     for face in preferredFonts:
         for f in potentialFontFilesForFace(face):
             error "Tried path '", f, "'"
+
+var sysFont {.threadvar.}: Font
 
 proc systemFont*(): Font =
     if sysFont == nil:
