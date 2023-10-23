@@ -1,6 +1,7 @@
 import ./types
 import unicode
 import ./abstract_window
+import atomics
 
 import ./keyboard
 export keyboard
@@ -83,19 +84,21 @@ proc isButtonUpEvent*(e: Event): bool = e.buttonState == bsUp
 
 proc isMouseMoveEvent*(e: Event): bool = e.buttonState == bsUnknown and e.kind == etMouse
 
-var activeTouches = 0
+var activeTouches: Atomic[int]
+activeTouches.store(0)
 
-template numberOfActiveTouches*(): int = activeTouches
+proc numberOfActiveTouches*(): int =
+    result = activeTouches.load
 
 proc incrementActiveTouchesIfNeeded(e: Event) =
     if e.buttonState == bsDown:
-        inc activeTouches
-        assert(activeTouches > 0)
+        activeTouches.atomicInc()
+        assert(activeTouches.load > 0)
 
 proc decrementActiveTouchesIfNeeded(e: Event) =
     if e.buttonState == bsUp:
-        assert(activeTouches > 0)
-        dec activeTouches
+        assert(activeTouches.load > 0)
+        activeTouches.atomicDec()
 
 # Private proc. Should be called from application.handleEvent()
 proc beginTouchProcessing*(e: var Event)=
