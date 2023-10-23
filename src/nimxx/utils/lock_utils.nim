@@ -6,9 +6,11 @@
 
 import rlocks
 
-template withRLockGCsafe*(lock: RLock, body: untyped) =
-  ## Wraps withRLock in a gcsafe block.
-  ## Based on https://gist.github.com/treeform/3e8c3be53b2999d709dadc2bc2b4e097, with thanks.
-  {.gcsafe.}:
-    withRLock lock:
-      body
+template withRLockGCsafe*(lock: RLock, code: untyped) =
+  ## A version of "withRLock" that adds gcsafe to the locks pragma. Inspired by Mastering Nim 2nd ed (p.269)
+  acquire(lock)
+  {.locks: [lock], gcsafe.}:
+    try:
+      code
+    finally:
+      release(lock)
