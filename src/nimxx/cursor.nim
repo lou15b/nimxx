@@ -1,3 +1,6 @@
+import rlocks
+import utils/lock_utils
+
 const useAppKit = defined(macosx) and not defined(ios)
 
 when useAppKit:
@@ -71,15 +74,20 @@ proc newCursor*(k: CursorKind): ref Cursor =
     else:
         result.c = createSystemCursor(cursorKindToSdl(k))
 
-var gCursor {.threadvar.}: ref Cursor
-proc currentCursor*(): ref Cursor =
-    if gCursor.isNil:
-        gCursor = newCursor(ckArrow)
-    result = gCursor
-
-proc setCurrent*(c: ref Cursor) =
-    gCursor = c
+proc updateScreenCursor(c: ref Cursor) =
     when useAppKit:
         cast[NSCursor](c.c).setCurrent()
     else:
         setCursor(c.c)
+
+# There is only one cursor for the entire display, and it only has one shape at a time.
+# So it is a guarded global here
+var currentCursorLock: RLock
+currentCursorLock.initRLock()
+var currentCursor* {.guard: currentCursorLock.}: ref Cursor = newCursor(ckArrow)
+updateScreenCursor(currentCursor)
+
+proc setCurrent*(c: ref Cursor) =
+    withRLockGCsafe(currentCursorLock):
+        currentCursor = c
+        updateScreenCursor(c)
