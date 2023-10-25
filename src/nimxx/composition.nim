@@ -541,6 +541,7 @@ template setupPosteffectUniforms*(cc: CompiledComposition) =
     for pe in postEffectStack:
         pe.setupProc(cc)
 
+# It is ***assumed*** that store and retrieve operations for 32-bit float are atomic
 var overdrawValue = 0'f32
 template GetOverdrawValue*() : float32 = overdrawValue / 1000
 

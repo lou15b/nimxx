@@ -1,5 +1,6 @@
 
 template sdlMain*() =
+    ## Redefines the C main() function on iOS and android so that it is called by SDL
     when defined(ios) or defined(android):
         when not compileOption("noMain"):
             {.error: "Please run Nim with --noMain flag.".}

@@ -41,6 +41,7 @@ method setFilePath*(i: SelfContainedImage, path: string) =
 method filePath*(i: Image): string {.base, gcsafe.} = discard
 method filePath*(i: SelfContainedImage): string = i.mFilePath
 
+# ???? What is this used for ????
 var totalImages {.threadvar.}: ProfilerDataSource[int]
 
 proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
