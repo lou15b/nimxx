@@ -252,10 +252,8 @@ proc toggleFullscreen*(w: Window) =
     else:
         w.enterFullscreen()
 
-var gcRequestLock*: RLock
-gcRequestLock.initRLock()
-var gcRequested* {.guard: gcRequestLock.} = false
+# Setting a boolean is atomic, so a lock isn't needed to ensure an uncorrupted value
+var gcRequested* = false
 
 template requestGCFullCollect*() =
-    withRLockGCsafe(gcRequestLock):
-        gcRequested = true
+    gcRequested = true

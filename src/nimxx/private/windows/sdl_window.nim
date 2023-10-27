@@ -486,11 +486,13 @@ proc animateAndDraw() =
                 mainApp.drawWindows()
 
 proc nextEvent(evt: var sdl2.Event) =
-    withRLockGCsafe(gcRequestLock):
-        if gcRequested:
-            info "GC_fullCollect"
-            GC_fullCollect()
-            gcRequested = false
+    if gcRequested:
+        # We set gcRequested to false here so that if a request for a GC collection
+        # is made (i.e. gcRequested is set to true) from another thread while a GC
+        # collection is still in progress, the request won't be missed
+        gcRequested = false
+        info "GC_fullCollect"
+        GC_fullCollect()
 
     when defined(ios):
         while pollEvent(evt):
