@@ -1,4 +1,5 @@
 import sequtils
+import fusion/smartptrs
 
 import ./abstract_window
 import ./event
@@ -11,15 +12,16 @@ type EventFilterControl* = enum
 
 type EventFilter* = proc(evt: var Event, control: var EventFilterControl): bool {.gcsafe.}
 
-type Application* = ref object of RootObj
+type ApplicationRef* = ref object of RootObj
     windows : seq[Window]
     eventFilters: seq[EventFilter]
     inputState: set[VirtualKey]
     modifiers: ModifiersSet
+type Application = SharedPtr[ApplicationRef]
 
-proc pushEventFilter*(a: Application, f: EventFilter) = a.eventFilters.add(f)
+proc pushEventFilter*(a: Application, f: EventFilter) = a[].eventFilters.add(f)
 
-proc newApplication(): Application =
+proc newApplicationRef(): ApplicationRef =
     result.new()
     result.windows = @[]
     result.eventFilters = @[]
@@ -29,16 +31,17 @@ proc newApplication(): Application =
 # And that lock needs to be re-entrant
 var mainAppLock*: RLock
 mainAppLock.initRLock()
-var mainApp* {.guard: mainAppLock.} = newApplication()
+var mainApp* {.guard: mainAppLock.} = newSharedPtr(newApplicationRef())
 
 proc addWindow*(a: Application, w: Window) =
-    a.windows.add(w)
+    a[].windows.add(w)
 
-proc removeWindow*(a: Application, w: Window) =
-    let i = a.windows.find(w)
-    if i >= 0: a.windows.delete(i)
+proc removeWindow*(app: Application, w: Window) =
+    var a = app[]
+    let i = a[].windows.find(w)
+    if i >= 0: a[].windows.delete(i)
 
-proc handleEvent*(a: Application, e: var Event): bool =
+proc handleEvent*(app: Application, e: var Event): bool =
     if numberOfActiveTouches() == 0 and e.kind == etMouse and e.buttonState == bsUp:
         # There may be cases when mouse up is not paired with mouse down.
         # This behavior may be observed in Web and native platforms, when clicking on canvas in menu-modal
@@ -46,6 +49,7 @@ proc handleEvent*(a: Application, e: var Event): bool =
         warn "Mouse up event ignored"
         return false
 
+    var a = app[]
     if e.kind == etMouse and e.buttonState == bsDown and e.keyCode in a.inputState:
         # There may be cases when mouse down is not paired with mouse up.
         # This behavior may be observed in Web and native platforms
@@ -53,7 +57,7 @@ proc handleEvent*(a: Application, e: var Event): bool =
 
         var fakeEvent = newMouseButtonEvent(e.position, e.keyCode, bsUp, e.timestamp)
         fakeEvent.window = e.window
-        discard a.handleEvent(fakeEvent)
+        discard app.handleEvent(fakeEvent)
 
     beginTouchProcessing(e)
 
@@ -95,17 +99,18 @@ proc handleEvent*(a: Application, e: var Event): bool =
 
     endTouchProcessing(e)
 
-proc drawWindows*(a: Application) =
-    for w in a.windows:
+proc drawWindows*(app: Application) =
+    for w in app[].windows:
         if w.needsLayout:
             w.updateWindowLayout()
 
         if w.needsDisplay:
             w.drawWindow()
 
-proc runAnimations*(a: Application) =
-    for w in a.windows: w.runAnimations()
+proc runAnimations*(app: Application) =
+    for w in app[].windows: w.runAnimations()
 
-proc keyWindow*(a: Application): Window =
+proc keyWindow*(app: Application): Window =
+    var a = app[]
     if a.windows.len > 0:
         result = a.windows[^1]
