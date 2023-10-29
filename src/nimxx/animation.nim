@@ -5,6 +5,14 @@ import algorithm
 import logging
 import times
 
+##[
+    An Animation provides the timing/progress infrastructure that controls the "animated" portion of a view. Note that
+    an animated drawing isn't necessarily tied to time. For example, the animated portion of a ProgressIndicator View
+    is a pie chart or bar that is tied to a "progress" value.
+    Note that the Animation ***does not draw*** the animated portion - it simple controls the state of whatever is to be
+    drawn. That includes time/progress interpolation so that the behavior appears to happen smoothly.
+]##
+
 type LoopPattern* = enum
     lpStartToEndToStart
     lpStartToEnd

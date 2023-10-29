@@ -2,6 +2,11 @@ import ./animation
 import times
 import logging
 
+##[
+    Provides pause/resume/update control for a collection of Animations. AnimationRunner  objects are
+    owned by Windows.
+]##
+
 type AnimationRunner* = ref object
     animations*: seq[Animation]
     onAnimationAdded*: proc() {.gcsafe.}
