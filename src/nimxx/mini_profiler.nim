@@ -1,4 +1,11 @@
-import tables
+import tables, rlocks
+
+#[
+    This code gathers user-defined global statistics.
+    Currently there is code gathering data in abstract_window.nim, image.nim, timer.nim, and the data is displayed
+    (in an overlay) by abstract_window.nim.
+    Running the demo with "-d:miniProfiler" shows a set of profile data displayed in the upper right corner of each window.
+]#
 
 type
     ProfilerDataSourceBase {.inheritable, pure.} = ref object
@@ -18,13 +25,15 @@ proc updateDataSource[T](ds: ProfilerDataSourceBase) {.nimcall.} =
     ds.stringifiedValue = $ds.mValue
     ds.isDirty = false
 
-var gProfiler {.threadvar.}: Profiler
-
 proc newProfiler*(): Profiler =
     result.new()
     result.values = initTable[string, ProfilerDataSourceBase]()
     when defined(miniProfiler):
         result.enabled = true
+
+var sharedProfilerLock*: RLock
+sharedProfilerLock.initRLock()
+var sharedProfiler* {.guard: sharedProfilerLock.} = newProfiler()
 
 proc newDataSource*(p: Profiler, typ: typedesc, name: string): ProfilerDataSource[typ] =
     result.new()
@@ -32,11 +41,6 @@ proc newDataSource*(p: Profiler, typ: typedesc, name: string): ProfilerDataSourc
     type TT = typ
     result.updateImpl = updateDataSource[TT]
     p.values[name] = result
-
-proc sharedProfiler*(): Profiler =
-    if gProfiler.isNil:
-        gProfiler = newProfiler()
-    result = gProfiler
 
 proc setValueForKey*(p: Profiler, key, value: string) =
     var ds = p.values.getOrDefault(key)

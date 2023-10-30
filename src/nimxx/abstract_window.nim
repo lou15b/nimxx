@@ -1,8 +1,12 @@
 
-import ./ [ view, animation, context, font, composition, image, notification_center,
-    mini_profiler, portable_gl, drag_and_drop ]
+import ./ [ view, animation, context, composition, image, notification_center,
+    portable_gl, drag_and_drop ]
 import ./utils/lock_utils
-import times, tables, rlocks
+# ################### mini_profiler related code
+import ./ [ mini_profiler, font ]
+import times
+# ################### 
+import tables, rlocks
 import kiwi
 export view
 
@@ -21,28 +25,32 @@ method fullscreenAvailable*(w: Window): bool {.base.} = false
 method fullscreen*(w: Window): bool {.base.} = false
 method `fullscreen=`*(w: Window, v: bool) {.base.} = discard
 
-# Note that the same lock is used to guard both of the following variables
+# ################### mini_profiler related code
+# Note that the same lock is used to guard all of the following variables
 # because they are used together
+# They are used to track Frames Per Second in the Application
 var fpsLock: RLock
 fpsLock.initRLock()
 var lastTime {.guard: fpsLock.} = epochTime()
 var lastFrame {.guard: fpsLock.} = 0.0
-
-var animsLock: RLock
-animsLock.initRLock()
-var totalAnims {.guard: animsLock.} = 0
-
-var fps {.threadvar.}: ProfilerDataSource[int]
+var fps {.guard: fpsLock.} = sharedProfiler.newDataSource(int, "FPS")
 
 proc updateFps() {.inline.} =
     withRLockGCsafe(fpsLock):
         let curTime = epochTime()
         let deltaTime = curTime - lastTime
         lastFrame = (lastFrame * 0.9 + deltaTime * 0.1)
-        if fps.isNil:
-            fps = sharedProfiler().newDataSource(int, "FPS")
+        # if fps.isNil:
+        #     fps = sharedProfiler().newDataSource(int, "FPS")
         fps.value = (1.0 / lastFrame).int
         lastTime = curTime
+# ################### 
+
+# Counts the total number of animations in the Application
+# Note that totalAnims is also tracked by the mini_profiler
+var animsLock: RLock
+animsLock.initRLock()
+var totalAnims {.guard: animsLock.} = 0
 
 when false:
     proc getTextureMemory(): int =
@@ -94,31 +102,34 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
     w.recursiveDrawSubviews()
     let c = currentContext()
 
-    let profiler = sharedProfiler()
-    if profiler.enabled:
-        updateFps()
-        profiler["Overdraw"] = GetOverdrawValue()
-        profiler["DIPs"] = GetDIPValue()
-        withRLockGCsafe(animsLock):
-            profiler["Animations"] = totalAnims
+    # ################### mini_profiler related code
+    withRLockGCsafe(sharedProfilerLock):
+        let profiler = sharedProfiler
+        if profiler.enabled:
+            updateFps()
+            profiler["Overdraw"] = GetOverdrawValue()
+            profiler["DIPs"] = GetDIPValue()
+            withRLockGCsafe(animsLock):
+                profiler["Animations"] = totalAnims
 
-        const fontSize = 14
-        const profilerWidth = 110
-        var font = systemFont()
-        let old_size = font.size
-        font.size = fontSize
-        var rect = newRect(w.frame.width - profilerWidth, 5, profilerWidth - 5, Coord(profiler.len) * font.height)
-        c.fillColor = newGrayColor(1, 0.8)
-        c.strokeWidth = 0
-        c.drawRect(rect)
+            const fontSize = 14
+            const profilerWidth = 110
+            var font = systemFont()
+            let old_size = font.size
+            font.size = fontSize
+            var rect = newRect(w.frame.width - profilerWidth, 5, profilerWidth - 5, Coord(profiler.len) * font.height)
+            c.fillColor = newGrayColor(1, 0.8)
+            c.strokeWidth = 0
+            c.drawRect(rect)
 
-        var pt = newPoint(0, rect.y)
-        c.fillColor = blackColor()
-        for k, v in profiler:
-            pt.x = w.frame.width - profilerWidth
-            c.drawText(font, pt, k & ": " & v)
-            pt.y = pt.y + fontSize
-        font.size = old_size
+            var pt = newPoint(0, rect.y)
+            c.fillColor = blackColor()
+            for k, v in profiler:
+                pt.x = w.frame.width - profilerWidth
+                c.drawText(font, pt, k & ": " & v)
+                pt.y = pt.y + fontSize
+            font.size = old_size
+    # ################### 
     ResetOverdrawValue()
     ResetDIPValue()
 

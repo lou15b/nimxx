@@ -1,5 +1,6 @@
-import math, tables, streams, logging
+import math, tables, streams, logging, rlocks
 import ./ [ types, portable_gl, mini_profiler ]
+import ./utils/lock_utils
 import opengl
 
 import ./assets / [ asset_loading, url_stream, asset_manager ]
@@ -41,18 +42,20 @@ method setFilePath*(i: SelfContainedImage, path: string) =
 method filePath*(i: Image): string {.base, gcsafe.} = discard
 method filePath*(i: SelfContainedImage): string = i.mFilePath
 
-# ???? What is this used for ????
-var totalImages {.threadvar.}: ProfilerDataSource[int]
+# This counts the total number of SelfContainedImage objects in the application
+var totalImagesLock: RLock
+totalImagesLock.initRLock()
+var totalImages {.guard: totalImagesLock.} = sharedProfiler.newDataSource(int, "Images")
 
 proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
     if i.texture != invalidTexture:
         glDeleteTextures(1, addr i.texture)
-    dec totalImages
+    withRLockGCsafe(totalImagesLock):
+        dec totalImages
 
 proc newSelfContainedImage(): SelfContainedImage {.inline.} =
-    if totalImages.isNil:
-        totalImages = sharedProfiler().newDataSource(int, "Images")
-    inc totalImages
+    withRLockGCsafe(totalImagesLock):
+        inc totalImages
     result = SelfContainedImage()
 
 type DecodedImageData = object

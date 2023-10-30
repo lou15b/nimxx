@@ -1,4 +1,6 @@
-import times, ./mini_profiler
+import times, rlocks
+import ./mini_profiler
+import ./utils/lock_utils
 
 when defined(macosx):
     type TimerID = pointer
@@ -31,10 +33,14 @@ type
 const profileTimers = not defined(release)
 
 when profileTimers or defined(debugLeaks):
-    var totalTimers {.threadvar.}: ProfilerDataSource[int]
+    # This counts the total number of Timer objects in the Application
+    var totalTimersLock: RLock
+    totalTimersLock.initRLock()
+    var totalTimers {.guard: totalTimersLock.} = sharedProfiler.newDataSource(int, "Timers")
 
     proc `=destroy`(t: TimerObj) =
-        dec totalTimers
+        withRLockGCsafe(totalTimersLock):
+            dec totalTimers
         when defined(debugLeaks):
             let p = cast[pointer](addr t)
             let i = allTimers.find(p)
@@ -139,9 +145,8 @@ proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Time
     assert(not callback.isNil)
     when profileTimers:
         result.new()
-        if totalTimers.isNil:
-            totalTimers = sharedProfiler().newDataSource(int, "Timers")
-        inc totalTimers
+        withRLockGCsafe(totalTimersLock):
+            inc totalTimers
     else:
         result.new()
 
