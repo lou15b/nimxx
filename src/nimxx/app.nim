@@ -1,5 +1,6 @@
 import sequtils
-import fusion/smartptrs
+import threading/smartptrs
+import std/isolation
 
 import ./abstract_window
 import ./event
@@ -12,16 +13,20 @@ type EventFilterControl* = enum
 
 type EventFilter* = proc(evt: var Event, control: var EventFilterControl): bool {.gcsafe.}
 
-type ApplicationRef* = ref object of RootObj
+type ApplicationObj* = object of RootObj
     windows : seq[Window]
     eventFilters: seq[EventFilter]
     inputState: set[VirtualKey]
     modifiers: ModifiersSet
-type Application = SharedPtr[ApplicationRef]
+type Application* = SharedPtr[ApplicationObj]
+
+proc `=destroy`(x: ApplicationObj) =
+    `=destroy`(x.windows)
+    `=destroy`(x.eventFilters)
 
 proc pushEventFilter*(a: Application, f: EventFilter) = a[].eventFilters.add(f)
 
-proc newApplicationRef(): ApplicationRef =
+proc newApplication(): ref ApplicationObj =
     result.new()
     result.windows = @[]
     result.eventFilters = @[]
@@ -31,15 +36,15 @@ proc newApplicationRef(): ApplicationRef =
 # And that lock needs to be re-entrant
 var mainAppLock*: RLock
 mainAppLock.initRLock()
-var mainApp* {.guard: mainAppLock.} = newSharedPtr(newApplicationRef())
+var mainApp* {.guard: mainAppLock.} =
+         newSharedPtr(ApplicationObj(windows: @[], eventFilters: @[], inputState: {}))
 
 proc addWindow*(a: Application, w: Window) =
     a[].windows.add(w)
 
 proc removeWindow*(app: Application, w: Window) =
-    var a = app[]
-    let i = a[].windows.find(w)
-    if i >= 0: a[].windows.delete(i)
+    let i = app[].windows.find(w)
+    if i >= 0: app[].windows.delete(i)
 
 proc handleEvent*(app: Application, e: var Event): bool =
     if numberOfActiveTouches() == 0 and e.kind == etMouse and e.buttonState == bsUp:
@@ -49,8 +54,7 @@ proc handleEvent*(app: Application, e: var Event): bool =
         warn "Mouse up event ignored"
         return false
 
-    var a = app[]
-    if e.kind == etMouse and e.buttonState == bsDown and e.keyCode in a.inputState:
+    if e.kind == etMouse and e.buttonState == bsDown and e.keyCode in app[].inputState:
         # There may be cases when mouse down is not paired with mouse up.
         # This behavior may be observed in Web and native platforms
         # We just send mouse bsUp fake event
@@ -66,36 +70,36 @@ proc handleEvent*(app: Application, e: var Event): bool =
         let isModifier = kc.isModifier
         if e.buttonState == bsDown:
             if isModifier:
-                a.modifiers.incl(kc)
-            a.inputState.incl(kc)
+                app[].modifiers.incl(kc)
+            app[].inputState.incl(kc)
         else:
             if isModifier:
-                a.modifiers.excl(kc)
-            a.inputState.excl(kc)
+                app[].modifiers.excl(kc)
+            app[].inputState.excl(kc)
 
-    e.modifiers = a.modifiers
+    e.modifiers = app[].modifiers
 
     var control = efcContinue
     var cleanupEventFilters = false
-    for i in 0 ..< a.eventFilters.len:
-        result = a.eventFilters[i](e, control)
+    for i in 0 ..< app[].eventFilters.len:
+        result = app[].eventFilters[i](e, control)
         if control == efcBreak:
-            a.eventFilters[i] = nil
+            app[].eventFilters[i] = nil
             cleanupEventFilters = true
             control = efcContinue
         if result:
             break
 
     if cleanupEventFilters:
-        a.eventFilters.keepItIf(not it.isNil)
+        app[].eventFilters.keepItIf(not it.isNil)
 
     if not result:
         if not e.window.isNil:
             result = e.window.handleEvent(e)
         elif e.kind in { etAppWillEnterBackground, etAppDidEnterBackground }:
-            for w in a.windows: w.enableAnimation(false)
+            for w in app[].windows: w.enableAnimation(false)
         elif e.kind in { etAppWillEnterForeground, etAppDidEnterForeground }:
-            for w in a.windows: w.enableAnimation(true)
+            for w in app[].windows: w.enableAnimation(true)
 
     endTouchProcessing(e)
 
@@ -111,6 +115,5 @@ proc runAnimations*(app: Application) =
     for w in app[].windows: w.runAnimations()
 
 proc keyWindow*(app: Application): Window =
-    var a = app[]
-    if a.windows.len > 0:
-        result = a.windows[^1]
+    if app[].windows.len > 0:
+        result = app[].windows[^1]
