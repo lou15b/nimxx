@@ -34,13 +34,15 @@ const profileTimers = not defined(release)
 
 when profileTimers or defined(debugLeaks):
     # This counts the total number of Timer objects in the Application
-    var totalTimersLock: RLock
-    totalTimersLock.initRLock()
-    var totalTimers {.guard: totalTimersLock.} = sharedProfiler.newDataSource(int, "Timers")
+    const TIMERS = "Timers"
+    sharedProfiler[TIMERS] = 0
 
     proc `=destroy`(t: TimerObj) =
-        withRLockGCsafe(totalTimersLock):
-            dec totalTimers
+        withRLockGCsafe(sharedProfilerLock):
+            try:
+                dec sharedProfiler[TIMERS]
+            except Exception as e:
+                echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
         when defined(debugLeaks):
             let p = cast[pointer](addr t)
             let i = allTimers.find(p)
@@ -145,8 +147,8 @@ proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Time
     assert(not callback.isNil)
     when profileTimers:
         result.new()
-        withRLockGCsafe(totalTimersLock):
-            inc totalTimers
+        withRLockGCsafe(sharedProfilerLock):
+            inc sharedProfiler[TIMERS]
     else:
         result.new()
 

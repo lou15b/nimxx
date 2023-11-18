@@ -6,7 +6,7 @@ import ./utils/lock_utils
 import ./ [ mini_profiler, font ]
 import times
 # ################### 
-import tables, rlocks
+import tables, rlocks, threading/smartptrs
 import kiwi
 export view
 
@@ -29,21 +29,25 @@ method `fullscreen=`*(w: Window, v: bool) {.base.} = discard
 # Note that the same lock is used to guard all of the following variables
 # because they are used together
 # They are used to track Frames Per Second in the Application
+const FPS = "FPS"
 var fpsLock: RLock
 fpsLock.initRLock()
 var lastTime {.guard: fpsLock.} = epochTime()
 var lastFrame {.guard: fpsLock.} = 0.0
-var fps {.guard: fpsLock.} = sharedProfiler.newDataSource(int, "FPS")
+sharedProfiler[FPS] = 0
 
 proc updateFps() {.inline.} =
+    var fpsValue: int
     withRLockGCsafe(fpsLock):
         let curTime = epochTime()
         let deltaTime = curTime - lastTime
         lastFrame = (lastFrame * 0.9 + deltaTime * 0.1)
         # if fps.isNil:
         #     fps = sharedProfiler().newDataSource(int, "FPS")
-        fps.value = (1.0 / lastFrame).int
+        fpsValue = (1.0 / lastFrame).int
         lastTime = curTime
+    withRLockGCsafe(sharedProfilerLock):
+        sharedProfiler[FPS] = fpsValue
 # ################### 
 
 # Counts the total number of animations in the Application

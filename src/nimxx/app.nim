@@ -26,11 +26,11 @@ proc `=destroy`(x: ApplicationObj) =
 
 proc pushEventFilter*(a: Application, f: EventFilter) = a[].eventFilters.add(f)
 
-proc newApplication(): ref ApplicationObj =
-    result.new()
-    result.windows = @[]
-    result.eventFilters = @[]
-    result.inputState = {}
+# proc newApplication(): ref ApplicationObj =
+#     result.new()
+#     result.windows = @[]
+#     result.eventFilters = @[]
+#     result.inputState = {}
 
 # This global is only set at startup but its contents may be changed, so it needs to be guarded by a lock
 # And that lock needs to be re-entrant

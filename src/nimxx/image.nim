@@ -43,19 +43,21 @@ method filePath*(i: Image): string {.base, gcsafe.} = discard
 method filePath*(i: SelfContainedImage): string = i.mFilePath
 
 # This counts the total number of SelfContainedImage objects in the application
-var totalImagesLock: RLock
-totalImagesLock.initRLock()
-var totalImages {.guard: totalImagesLock.} = sharedProfiler.newDataSource(int, "Images")
+const IMAGES = "Images"
+sharedProfiler[IMAGES] = 0
 
 proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
     if i.texture != invalidTexture:
         glDeleteTextures(1, addr i.texture)
-    withRLockGCsafe(totalImagesLock):
-        dec totalImages
+    withRLockGCsafe(sharedProfilerLock):
+        try:
+            dec sharedProfiler[IMAGES]
+        except Exception as e:
+            echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
 
 proc newSelfContainedImage(): SelfContainedImage {.inline.} =
-    withRLockGCsafe(totalImagesLock):
-        inc totalImages
+    withRLockGCsafe(sharedProfilerLock):
+        inc sharedProfiler[IMAGES]
     result = SelfContainedImage()
 
 type DecodedImageData = object
