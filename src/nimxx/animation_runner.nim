@@ -3,8 +3,8 @@ import times
 import logging
 
 ##[
-    Provides pause/resume/update control for a collection of Animations. AnimationRunner  objects are
-    owned by Windows.
+    Provides pause/resume/update control for a collection of Animations. AnimationRunner objects are
+    owned by Window objects.
 ]##
 
 type AnimationRunner* = ref object
