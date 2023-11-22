@@ -3,16 +3,21 @@ import nimxx/autotest
 import nimxx/button, nimxx/text_field
 import nimxx/editor/edit_view
 
+import malebolgia/lockers
+
 const isMobile = defined(ios) or defined(android)
+
+var testRunner* = initLocker(newTestRunner())
 
 proc runAutoTestsIfNeeded() =
     uiTest generalUITest:
         discard
         quitApplication()
 
-    registerTest(generalUITest)
-    when defined(runAutoTests):
-        startRegisteredTests()
+    lock testRunner as runner:
+        runner.registerTest(generalUITest)
+        when defined(runAutoTests):
+            runner.startRegisteredTests()
 
 proc startApplication() =
     when isMobile:

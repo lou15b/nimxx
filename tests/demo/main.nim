@@ -1,8 +1,9 @@
 #!/usr/local/bin/nim c -r --threads:on
-import ./sample_registry
+import ./ [ sample_registry, autotest_runner ]
 
 import nimxx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
 import sequtils, intsets
+import malebolgia/lockers
 
 {.warning[UnusedImport]: off.}
 
@@ -86,9 +87,10 @@ proc startApplication() =
 
         quitApplication()
 
-    registerTest(generalUITest)
-    when defined(runAutoTests):
-        startRegisteredTests()
+    lock testRunner as runner:
+        runner.registerTest(generalUITest)
+        when defined(runAutoTests):
+            runner.startRegisteredTests()
 
 runApplication:
     startApplication()

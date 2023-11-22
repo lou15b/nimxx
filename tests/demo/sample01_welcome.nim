@@ -1,7 +1,9 @@
-import ./sample_registry
+import ./ [ sample_registry, autotest_runner ]
 
 import nimxx / [ view, font, context, composition, button, autotest,
                 gesture_detector, view_event_handling ]
+
+import malebolgia/lockers
 
 const welcomeMessage = "Welcome to nimX"
 
@@ -24,8 +26,10 @@ method init(v: WelcomeView, r: Rect) =
         echo "tap on second button"
         discard
     secondTestButton.addGestureDetector(tapd)
-    autoTestButton.onAction do():
-        startRegisteredTests()
+    autoTestButton.onAction do() {.gcsafe.}:
+        echo "Autotest clicked"
+        lock testRunner as runner:
+            runner.startRegisteredTests()
     secondTestButton.onAction do():
         echo "second click"
     v.addSubview(autoTestButton)

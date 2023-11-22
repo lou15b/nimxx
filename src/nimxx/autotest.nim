@@ -2,26 +2,49 @@ import macros, logging, strutils
 import ./ [ timer, app, event, abstract_window, button ]
 import ./utils/lock_utils
 
-type UITestSuiteStep* = tuple
+type UITestSuiteStep* = object
     code : proc() {.gcsafe.}
     astrepr: string
     lineinfo: string
 
-type UITestSuite* = ref object
+type UITestSuiteObj* = object
     name: string
     steps: seq[UITestSuiteStep]
 
-type TestRunnerContext = ref object
+type UITestSuite* = ref UITestSuiteObj
+
+type TestRunnerContext = object
     curStep: int
     curTimeout: float
     waitTries: int
 
-# ***Presumably*** these variables are threadvar because it's possible that different
-# test sets could be executed concurrently in different threads
-# IF NOT, it is most likely because of gcsafe specifications on the callback in the
-# arguments for the setInterval proc in timer.nim
-var testRunnerContext {.threadvar.}: TestRunnerContext
-var registeredTests {.threadvar.}: seq[UITestSuite]
+type TestRunnerObj = object
+    context: TestRunnerContext
+    registeredTests: seq[UITestSuite]
+
+type TestRunner* = ref TestRunnerObj
+
+proc `=destroy`(x: UITestSuiteStep) =
+    `=destroy`(x.astrepr)
+    `=destroy`(x.lineinfo)
+
+proc `=destroy`(x: UITestSuiteObj) =
+    `=destroy`(x.name)
+    `=destroy`(x.steps)
+
+proc `=destroy`(x: TestRunnerObj) =
+    # No destructor call needed for x.context, its fields are numbers
+    `=destroy`(x.registeredTests)
+
+proc init(context: var TestRunnerContext, curTimeout: float = 0.5, waitTries: int = -1) =
+    context.curStep = 0
+    context.curTimeout = curTimeout
+    context.waitTries = waitTries
+
+proc newTestRunner*(): TestRunner =
+    result = TestRunnerObj.new()
+    result.context.init()
+    result.registeredTests = @[]
 
 proc newTestSuite(name: string, steps: openarray[UITestSuiteStep]): UITestSuite =
     result.new()
@@ -33,11 +56,11 @@ proc makeStep(code: proc() {.gcsafe.}, astrepr, lineinfo: string): UITestSuiteSt
     result.astrepr = astrepr
     result.lineinfo = lineinfo
 
-proc registerTest*(ts: UITestSuite) =
-    registeredTests.add(ts)
+proc registerTest*(runner: TestRunner, ts: UITestSuite) =
+    runner.registeredTests.add(ts)
 
-proc registeredTest*(name: string): UITestSuite =
-    for t in registeredTests:
+proc registeredTest*(runner: TestRunner, name: string): UITestSuite =
+    for t in runner.registeredTests:
         if t.name == name: return t
 
 proc collectAutotestSteps(result, body: NimNode) =
@@ -91,24 +114,24 @@ when true:
         else:
             quit()
 
-    proc waitUntil*(e: bool) =
+    proc waitUntil*(runner: TestRunner, e: bool) =
         if not e:
-            dec testRunnerContext.curStep
+            dec runner.context.curStep
 
-    proc waitUntil*(e: bool, maxTries: int) =
+    proc waitUntil*(runner: TestRunner, e: bool, maxTries: int) =
         if e:
-            testRunnerContext.waitTries = -1
+            runner.context.waitTries = -1
         else:
-            dec testRunnerContext.curStep
+            dec runner.context.curStep
             if maxTries != -1:
-                if testRunnerContext.waitTries + 2 > maxTries:
-                    testRunnerContext.waitTries = -1
+                if runner.context.waitTries + 2 > maxTries:
+                    runner.context.waitTries = -1
                     when defined(android):
                         info "---AUTO-TEST-FAIL---"
                     else:
                         raise newException(Exception, "Wait tries exceeded!")
                 else:
-                    inc testRunnerContext.waitTries
+                    inc runner.context.waitTries
 
 when false:
     macro tdump(b: typed): typed =
@@ -125,8 +148,10 @@ when false:
     uiTest myTest:
         echo "hi"
         echo "bye"
+    
+    var trunner = newTestRunner()
 
-    registerTest(myTest)
+    trunner.registerTest(myTest)
 
 when defined(android):
     import jnim
@@ -134,11 +159,11 @@ when defined(android):
 else:
     import os
 
-proc getAllTestNames(): seq[string] =
-    result = newSeq[string](registeredTests.len)
-    for i, t in registeredTests: result[i] = t.name
+proc getAllTestNames(runner: TestRunner): seq[string] =
+    result = newSeq[string](runner.registeredTests.len)
+    for i, t in runner.registeredTests: result[i] = t.name
 
-proc getTestsToRun*(): seq[string] =
+proc getTestsToRun*(runner: TestRunner): seq[string] =
     when defined(android):
         let act = currentActivity()
         assert(not act.isNil)
@@ -155,50 +180,45 @@ proc getTestsToRun*(): seq[string] =
                 result.add(paramStr(i).split(','))
             inc i
     if "all" in result:
-        result = getAllTestNames()
+        result = getAllTestNames(runner)
 
-proc haveTestsToRun*(): bool =
-    getTestsToRun().len != 0
+proc hasTestsToRun*(runner: TestRunner): bool =
+    runner.registeredTests.len != 0
 
-proc startTest*(t: UITestSuite, onComplete: proc() {.gcsafe.} = nil) =
-    testRunnerContext.new()
-    testRunnerContext.curTimeout = 0.5
-    testRunnerContext.waitTries = -1
+proc prep(runner: TestRunner) = runner.context.curStep = 0
+
+proc startTest*(runner: TestRunner, t: UITestSuite, onComplete: proc() {.gcsafe.} = nil) =
+    runner.prep()
 
     var tim : Timer
     tim = setInterval(0.5) do():
-        info t.steps[testRunnerContext.curStep].lineinfo, ": RUNNING ", t.steps[testRunnerContext.curStep].astrepr
-        t.steps[testRunnerContext.curStep].code()
-        inc testRunnerContext.curStep
-        if testRunnerContext.curStep == t.steps.len:
+        info t.steps[runner.context.curStep].lineinfo, ": RUNNING ", t.steps[runner.context.curStep].astrepr
+        t.steps[runner.context.curStep].code()
+        inc runner.context.curStep
+        if runner.context.curStep == t.steps.len:
             tim.clear()
-            testRunnerContext = nil
             if not onComplete.isNil: onComplete()
 
-proc testWithName(name: string): UITestSuite =
-    for t in registeredTests:
+proc testWithName(runner: TestRunner, name: string): UITestSuite =
+    for t in runner.registeredTests:
         if t.name == name: return t
 
-proc startTests(tests: seq[UITestSuite], onComplete: proc() {.gcsafe.}) =
-    var curTestSuite = 0
-    proc startNextSuite() {.gcsafe.} =
-        if curTestSuite < tests.len:
-            startTest(tests[curTestSuite], startNextSuite)
-            inc curTestSuite
-        elif not onComplete.isNil:
-            onComplete()
-    startNextSuite()
+proc startTests(runner: TestRunner, tests: seq[UITestSuite], onComplete: proc() {.gcsafe.}) =
+    for test in tests:
+        runner.startTest(test)
+    if not onComplete.isNil:
+        onComplete()
 
-proc startRequestedTests*(onComplete: proc() {.gcsafe.} = nil) =
-    let testsToRun = getTestsToRun()
+proc startRequestedTests*(runner: TestRunner, onComplete: proc() {.gcsafe.} = nil) =
+    let testsToRun = getTestsToRun(runner)
     var tests = newSeq[UITestSuite](testsToRun.len)
     for i, n in testsToRun:
-        let t = testWithName(n)
+        let t = runner.testWithName(n)
         if t.isNil:
             raise newException(Exception, "Test " & n & " not registered")
         tests[i] = t
 
-    startTests(tests, onComplete)
+    runner.startTests(tests, onComplete)
 
-proc startRegisteredTests*(onComplete: proc() {.gcsafe.} = nil) {.inline.} =
-    startTests(registeredTests, onComplete)
+proc startRegisteredTests*(runner: TestRunner, onComplete: proc() {.gcsafe.} = nil) {.inline.} =
+    runner.startTests(runner.registeredTests, onComplete)
