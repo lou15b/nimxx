@@ -57,10 +57,10 @@ type ClassInfo = tuple
     creatorProc: proc(): RootRef {.nimcall.}
     typ: TypeId
 
-var classFactory {.threadvar.}: Table[string, ClassInfo]
-var superTypeRelations {.threadvar.}: Table[TypeId, TypeId]
-classFactory = initTable[string, ClassInfo]()
-superTypeRelations = initTable[TypeId, TypeId]()
+# Locks aren't needed for these, because they are initialized at compile-time/start-up
+# and are not changed afterward
+var classFactory: Table[string, ClassInfo]
+var superTypeRelations: Table[TypeId, TypeId]
 
 {.push, stackTrace: off.}
 
