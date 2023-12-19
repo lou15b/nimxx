@@ -1,9 +1,8 @@
 import ./ [ context_base, types, portable_gl, image ]
-import ./utils/lock_utils
 import ./private/helper_macros
 import strutils, tables, hashes
 import nimsl/nimsl
-import rlocks
+import malebolgia/lockers
 
 export portable_gl
 
@@ -256,7 +255,7 @@ proc vertexShader(aPosition: Vec2, uModelViewProjectionMatrix: Mat4, uBounds: Ve
 const vertexShaderCode = getGLSLVertexShader(vertexShader)
 
 type
-    PostEffect* = ref object
+    PostEffectObj* = object
         source*: string
         setupProc*: proc(cc: CompiledComposition) {.gcsafe.}
         mainProcName*: string
@@ -264,11 +263,15 @@ type
         id*: int
         argTypes*: seq[string]
 
-    CompiledComposition* = ref object
+    PostEffect* = ref PostEffectObj
+
+    CompiledCompositionObj* = object
         program*: ProgramRef
         uniformLocations*: seq[UniformLocation]
         iTexIndex*: GLint
         iUniform*: int
+
+    CompiledComposition* = ref CompiledCompositionObj
 
     Composition* = object
         definition: string
@@ -276,10 +279,28 @@ type
         precision: string
         requiresPrequel: bool
         id*: int
+    
+    # "Table" doesn't currently have a destructor, so we wrap it in an object to ensure proper cleanup
+    ProgramCache = object
+        entries: Table[Hash, CompiledComposition]
 
-var programCacheLock: RLock
-programCacheLock.initRLock()
-var programCache {.guard: programCacheLock.}: Table[Hash, CompiledComposition]
+proc `=destroy`(x: PostEffectObj) =
+    `=destroy`(x.source)
+    `=destroy`(x.mainProcName)
+    `=destroy`(x.argTypes)
+
+proc `=destroy`(x: CompiledCompositionObj) =
+    `=destroy`(x.uniformLocations)
+
+proc `=destroy`(x: Composition) =
+    `=destroy`(x.definition)
+    `=destroy`(x.vsDefinition)
+    `=destroy`(x.precision)
+
+proc `=destroy`(x:ProgramCache) =
+    `=destroy`(x.entries.addr[])
+
+var programCache = initLocker(ProgramCache.new())
 
 
 const posAttr : GLuint = 0
@@ -350,8 +371,19 @@ type PostEffectStackElem = object
     postEffect: PostEffect
     setupProc*: proc(cc: CompiledComposition) {.gcsafe.}
 
-var postEffectStack {.threadvar.}: seq[PostEffectStackElem]
-var postEffectIdStack {.threadvar.}: seq[Hash]
+# var postEffectStack {.threadvar.}: seq[PostEffectStackElem]
+# var postEffectIdStack {.threadvar.}: seq[Hash]
+type PostEffectStack = object
+    postEffects: seq[PostEffectStackElem]
+    postEffectIds: seq[Hash]
+
+proc `=destroy`(x:PostEffectStack) =
+    echo "Entered destructor for PostEffectStack"
+    `=destroy`(x.postEffects)
+    `=destroy`(x.postEffectIds)
+
+# var pestack: PostEffectStack
+var postEffectStack = initLocker(PostEffectStack.new())
 
 proc getPostEffectUniformName(postEffectIndex, argIndex: int, output: var string) =
     output &= "uPE_"
@@ -394,34 +426,37 @@ proc compileComposition(comp: Composition, cchash: Hash, compOptions: int): Comp
 
     fragmentShaderCode &= comp.definition
 
-    let ln = postEffectStack.len
-    var i = 0
-    while i < ln:
-        let pe = postEffectStack[i].postEffect
-        if not pe.seenFlag:
-            fragmentShaderCode &= pe.source
-            pe.seenFlag = true
-        for j, argType in pe.argTypes:
-            fragmentShaderCode &= "uniform " & argType & " "
-            getPostEffectUniformName(i, j, fragmentShaderCode)
-            fragmentShaderCode &= ";";
-        inc i
+    lock postEffectStack as pest:
+        let pes = pest.postEffects
+        let ln = pes.len
+        var i = 0
+        while i < ln:
+            let pe = pes[i].postEffect
+            if not pe.seenFlag:
+                fragmentShaderCode &= pe.source
+                pe.seenFlag = true
+            for j, argType in pe.argTypes:
+                fragmentShaderCode &= "uniform " & argType & " "
+                getPostEffectUniformName(i, j, fragmentShaderCode)
+                fragmentShaderCode &= ";";
+            inc i
 
-    i = 0
-    while i < ln:
-        postEffectStack[i].postEffect.seenFlag = false
-        inc i
+        i = 0
+        while i < ln:
+            pes[i].postEffect.seenFlag = false
+            inc i
 
-    fragmentShaderCode &= """void main() { gl_FragColor = vec4(0.0); compose(); """
-    i = postEffectStack.len - 1
-    while i >= 0:
-        fragmentShaderCode &= postEffectStack[i].postEffect.mainProcName & "("
-        for j in 0 ..< postEffectStack[i].postEffect.argTypes.len:
-            if j != 0:
-                fragmentShaderCode &= ","
-            getPostEffectUniformName(i, j, fragmentShaderCode)
-        fragmentShaderCode &= ");"
-        dec i
+        fragmentShaderCode &= """void main() { gl_FragColor = vec4(0.0); compose(); """
+        i = pes.len - 1
+        while i >= 0:
+            fragmentShaderCode &= pes[i].postEffect.mainProcName & "("
+            for j in 0 ..< pes[i].postEffect.argTypes.len:
+                if j != 0:
+                    fragmentShaderCode &= ","
+                getPostEffectUniformName(i, j, fragmentShaderCode)
+            fragmentShaderCode &= ");"
+            dec i
+
     fragmentShaderCode &= "}"
 
     result.new()
@@ -431,8 +466,10 @@ proc compileComposition(comp: Composition, cchash: Hash, compOptions: int): Comp
             options & comp.vsDefinition
     result.program = newShaderProgram(vsCode, fragmentShaderCode, [(posAttr, "aPosition")])
     result.uniformLocations = newSeq[UniformLocation]()
-    withRLockGCsafe(programCacheLock):
-        programCache[cchash] = result
+    # withRLockGCsafe(programCacheLock):
+    #     programCache[cchash] = result
+    lock programCache as pc:
+        pc.entries[cchash] = result
 
 # Kept in case it's needed someday - if it does get used then remove the .used pragma
 proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
@@ -449,7 +486,7 @@ proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
 # that it isn't public.
 # I made it a threadvar instead of a global, so that if images are getting drawn concurrently
 # in different threads they won't tramp on each other's feet.
-# I ***really*** don't like this way of doing things. Hopefully we can get rid of it when we use pixie.
+# I ***really*** don't like this way of doing things. Need to figure out how we can get rid of it.
 var texQuad {.threadvar.} : array[4, GLfloat]
 
 template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsContext) =
@@ -505,32 +542,40 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         inc cc.iTexIndex
 
 template pushPostEffect*(pe: PostEffect, args: varargs[untyped]) =
-    let stackLen = postEffectIdStack.len
-    postEffectStack.add(PostEffectStackElem(postEffect: pe, setupProc: proc(cc: CompiledComposition) =
-        let ctx = currentContext()
-        compositionDrawingDefinitions(cc, ctx)
-        var j = 0
-        staticFor uni in args:
-            setUniform(postEffectUniformName(stackLen, j), uni)
-            inc j
-    ))
+    lock postEffectStack as pest:
+        var peids = pest.postEffectIds
+        let stackLen = peids.len
+        pest.postEffects.add(PostEffectStackElem(postEffect: pe, setupProc: proc(cc: CompiledComposition) =
+            let ctx = currentContext()
+            compositionDrawingDefinitions(cc, ctx)
+            var j = 0
+            staticFor uni in args:
+                setUniform(postEffectUniformName(stackLen, j), uni)
+                inc j
+        ))
 
-    let oh = if stackLen > 0: postEffectIdStack[^1] else: 0
-    postEffectIdStack.add(oh !& pe.id)
+        let oh = if stackLen > 0: peids[^1] else: 0
+        peids.add(oh !& pe.id)
 
 template popPostEffect*() =
-    postEffectStack.setLen(postEffectStack.len - 1)
-    postEffectIdStack.setLen(postEffectIdStack.len - 1)
+    lock postEffectStack as pest:
+        pest.postEffects.setLen(pest.postEffects.len - 1)
+        pest.postEffectIds.setLen(pest.postEffectIds.len - 1)
 
-template hasPostEffect*(): bool =
-    postEffectStack.len > 0
+proc hasPostEffect*(): bool =
+    lock postEffectStack as pest:
+        result = pest.postEffects.len > 0
 
 proc getCompiledComposition*(comp: Composition, options: int = 0): CompiledComposition =
-    let pehash = if postEffectIdStack.len > 0: postEffectIdStack[^1] else: 0
+    var pehash: Hash
+    lock postEffectStack as pest:
+        pehash = if pest.postEffectIds.len > 0: pest.postEffectIds[^1] else: 0
     let cchash = !$(pehash !& comp.id !& options)
     var cc: CompiledComposition
-    withRLockGCsafe(programCacheLock):
-        cc = programCache.getOrDefault(cchash)
+    # withRLockGCsafe(programCacheLock):
+    #     cc = programCache.getOrDefault(cchash)
+    lock programCache as pc:
+        cc = pc.entries.getOrDefault(cchash)
     if cc.isNil:
         cc = compileComposition(comp, cchash, options)
     cc.iUniform = -1
@@ -538,22 +583,30 @@ proc getCompiledComposition*(comp: Composition, options: int = 0): CompiledCompo
     cc
 
 template setupPosteffectUniforms*(cc: CompiledComposition) =
-    for pe in postEffectStack:
-        pe.setupProc(cc)
+    lock postEffectStack as pest:
+        for pe in pest.postEffects:
+            pe.setupProc(cc)
+
+# ******************************************
+# The following 2 globals (overdrawValue and DIPValue) should actually be attributes of Window
+# They are only used for mini-profiler display, so it's not worth the bother to rationalize
+# them until we decide whether to keep the mini-prfiler at all.
 
 # It is ***assumed*** that store and retrieve operations for 32-bit float are atomic
-var overdrawValue = 0'f32
+var overdrawValue = 0'f32       # Total number of pixels overdrawn when the window gets drawn
 template GetOverdrawValue*() : float32 = overdrawValue / 1000
 
 template ResetOverdrawValue*() =
     overdrawValue = 0
 
-var DIPValue = 0
+# It is ***assumed*** that store and retrieve operations for int are atomic
+var DIPValue = 0        # Total number of images processed when the window gets drawn
 template GetDIPValue*() : int =
     DIPValue
 
 template ResetDIPValue*() =
     DIPValue = 0
+# ******************************************
 
 template draw*(comp: Composition, r: Rect, code: untyped) =
     block:
