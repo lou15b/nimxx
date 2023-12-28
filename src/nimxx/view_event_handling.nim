@@ -68,7 +68,7 @@ proc processDragEvent*(b: DragSystem, e: var Event) =
     if e.buttonState == bsUp:
         if not dropDelegate.isNil:
             dropDelegate.onDrop(target, b.pItem)
-        stopDrag()
+        stopDrag(b)
         return
 
     if b.prevTarget != target:

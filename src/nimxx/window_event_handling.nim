@@ -3,6 +3,8 @@ import ./abstract_window
 import ./view_event_handling
 import ./drag_and_drop
 
+import malebolgia/lockers
+
 proc propagateEventThroughResponderChain(w: Window, e: var Event): bool =
     var r = w.firstResponder
     while not result and not r.isNil and r != w:
@@ -66,7 +68,8 @@ method handleEvent*(w: Window, e: var Event): bool {.base, gcsafe.} =
         of etScroll:
             result = w.processMouseWheelEvent(e)
         of etMouse, etTouch:
-            currentDragSystem().processDragEvent(e)
+            lock dragSystem as ds:
+                ds.processDragEvent(e)
             w.handleMouseOverEvent(e)
             result = w.processTouchEvent(e)
         of etKeyboard:

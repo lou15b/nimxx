@@ -4,6 +4,8 @@ import nimxx / [ view, view_event_handling, drag_and_drop, text_field, expanding
                 view_render_to_image ]
 import nimxx/pasteboard/pasteboard_item
 
+import malebolgia/lockers
+
 type DragAndDropView = ref object of View
 type MyDropDelegate* = ref object of DragDestinationDelegate
 type DraggedView* = ref object of View
@@ -14,7 +16,8 @@ method onTouchEv*(v: DraggedView, e: var Event): bool =
     if e.buttonState == bsDown:
         let dpi = newPasteboardItem(PboardSampleDrag, v.name)
         let image = v.screenShot()
-        startDrag(dpi, image)
+        lock dragSystem as ds:
+            startDrag(dpi, ds, image)
 
 #============= MyDropDelegate ==============
 

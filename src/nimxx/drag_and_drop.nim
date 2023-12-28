@@ -4,31 +4,25 @@ import ./types
 import ./image
 import ./pasteboard/pasteboard_item
 
+import malebolgia/lockers
+
 type DragSystem* = ref object
-    rect*: Rect
     itemPosition*: Point
     pItem*: PasteboardItem
     prevTarget*: View
     image*: Image
 
-var gDragSystem {.threadvar.}: DragSystem
+# Only one object is being dragged at any one time, so only one DragSystem object is ever needed
+var dragSystem* = initLocker(new(DragSystem))
 
-proc currentDragSystem*(): DragSystem =
-    if gDragSystem.isNil:
-        gDragSystem = new(DragSystem)
-        gDragSystem.rect = newRect(0, 0, 30, 30)
+proc startDrag*(item: PasteboardItem, ds: DragSystem, image: Image = nil) =
+    ds.pItem = item
+    ds.image = image
+    ds.prevTarget = nil
 
-    result = gDragSystem
-
-
-proc startDrag*(item: PasteboardItem, image: Image = nil) =
-    currentDragSystem().pItem = item
-    currentDragSystem().image = image
-    currentDragSystem().prevTarget = nil
-
-proc stopDrag*() =
-    currentDragSystem().pItem = nil
-    currentDragSystem().prevTarget = nil
+proc stopDrag*(ds: DragSystem) =
+    ds.pItem = nil
+    ds.prevTarget = nil
 
 proc newDragDestinationDelegate*(): DragDestinationDelegate =
     result.new()

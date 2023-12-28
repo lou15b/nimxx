@@ -7,6 +7,7 @@ import ./ [ mini_profiler, font ]
 import times
 # ################### 
 import tables, rlocks, threading/smartptrs
+import malebolgia/lockers
 import kiwi
 export view
 
@@ -137,17 +138,17 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
     ResetOverdrawValue()
     ResetDIPValue()
 
-    let dc = currentDragSystem()
-    if not dc.pItem.isNil:
-        var rect = newRect(0, 0, 20, 20)
-        rect.origin += currentDragSystem().itemPosition
+    lock dragSystem as dc:
+        if not dc.pItem.isNil:
+            var rect = newRect(0, 0, 20, 20)
+            rect.origin += dc.itemPosition
 
-        if not dc.image.isNil:
-            rect.size = dc.image.size
-            c.drawImage(dc.image, rect)
-        else:
-            c.fillColor = newColor(0.0, 1.0, 0.0, 0.8)
-            c.drawRect(rect)
+            if not dc.image.isNil:
+                rect.size = dc.image.size
+                c.drawImage(dc.image, rect)
+            else:
+                c.fillColor = newColor(0.0, 1.0, 0.0, 0.8)
+                c.drawRect(rect)
 
 method draw*(w: Window, rect: Rect) =
     if w.mActiveBgColor != w.backgroundColor:
