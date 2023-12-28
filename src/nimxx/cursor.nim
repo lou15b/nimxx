@@ -82,6 +82,9 @@ proc updateScreenCursor(c: ref Cursor) =
 
 # There is only one cursor for the entire display, and it only has one shape at a time.
 # So it is a guarded global here
+# Note that the variable in question is a *reference*, whose internal pointer is being used
+# by a foreign library. So I don't think it is suitable for a malebolgia Locker in its
+# current form.
 var currentCursorLock: RLock
 currentCursorLock.initRLock()
 var currentCursor* {.guard: currentCursorLock.}: ref Cursor = newCursor(ckArrow)
