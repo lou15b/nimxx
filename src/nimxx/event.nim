@@ -84,6 +84,7 @@ proc isButtonUpEvent*(e: Event): bool = e.buttonState == bsUp
 
 proc isMouseMoveEvent*(e: Event): bool = e.buttonState == bsUnknown and e.kind == etMouse
 
+# Operations are atomic, so no lock needed
 var activeTouches: Atomic[int]
 activeTouches.store(0)
 
