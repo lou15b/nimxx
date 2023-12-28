@@ -7,8 +7,7 @@ import ./private/font/stb_ttf_glyph_provider
 type GlyphProvider = StbTtfGlyphProvider
 
 import os
-import rlocks
-import utils/lock_utils
+import malebolgia/lockers
 
 import ttf/edtaa3func
 import ./private/simple_table
@@ -44,17 +43,13 @@ type FontImpl = ref object
     ascent: float32
     descent: float32
 
-var fontCacheLock: RLock
-fontCacheLock.initRLock()
-var fontCache {.guard: fontCacheLock.}: SimpleTable[FastString, FontImpl]
+var fontCache = initLocker(newSimpleTable(FastString, FontImpl))
 
 proc cachedImplForFont(face: string, sz: float): FontImpl =
-    withRLockGCSafe(fontCacheLock):
-        if fontCache.isNil:
-            fontCache = newSimpleTable(FastString, FontImpl)
+    lock fontCache as fc:
         var key : FastString = face & "_" & $charHeightForSize(sz).int
-        if fontCache.hasKey(key):
-            result = fontCache[key]
+        if fc.hasKey(key):
+            result = fc[key]
         else:
             result.new()
             result.chars = newSimpleTable(int32, CharInfo)
@@ -62,7 +57,7 @@ proc cachedImplForFont(face: string, sz: float): FontImpl =
             result.glyphProvider.setPath(face)
             result.glyphProvider.setSize(charHeightForSize(sz))
             result.glyphProvider.glyphMargin = 8
-            fontCache[key] = result
+            fc[key] = result
 
 type Font* = ref object
     impl: FontImpl

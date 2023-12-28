@@ -424,6 +424,8 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
                 defaultWindow.setNeedsDisplay()
         of KeymapChanged:
             discard # What should we do with it?
+        of QuitEvent:
+            discard     # Used directly, doesn't need conversion
         else:
             info "Unknown event: ", event.kind
             discard

@@ -371,18 +371,14 @@ type PostEffectStackElem = object
     postEffect: PostEffect
     setupProc*: proc(cc: CompiledComposition) {.gcsafe.}
 
-# var postEffectStack {.threadvar.}: seq[PostEffectStackElem]
-# var postEffectIdStack {.threadvar.}: seq[Hash]
 type PostEffectStack = object
     postEffects: seq[PostEffectStackElem]
     postEffectIds: seq[Hash]
 
 proc `=destroy`(x:PostEffectStack) =
-    echo "Entered destructor for PostEffectStack"
     `=destroy`(x.postEffects)
     `=destroy`(x.postEffectIds)
 
-# var pestack: PostEffectStack
 var postEffectStack = initLocker(PostEffectStack.new())
 
 proc getPostEffectUniformName(postEffectIndex, argIndex: int, output: var string) =
@@ -466,8 +462,6 @@ proc compileComposition(comp: Composition, cchash: Hash, compOptions: int): Comp
             options & comp.vsDefinition
     result.program = newShaderProgram(vsCode, fragmentShaderCode, [(posAttr, "aPosition")])
     result.uniformLocations = newSeq[UniformLocation]()
-    # withRLockGCsafe(programCacheLock):
-    #     programCache[cchash] = result
     lock programCache as pc:
         pc.entries[cchash] = result
 
