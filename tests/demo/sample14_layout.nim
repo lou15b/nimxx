@@ -8,7 +8,7 @@ type LayoutSampleView = ref object of View
 type TestView = ref object of View
 method draw*(v: TestView, r: Rect) =
   procCall v.View.draw(r)
-  let c = currentContext()
+  let c = v.window.renderingContext
   c.strokeWidth = 2
   c.strokeColor = blackColor()
   let b = v.bounds

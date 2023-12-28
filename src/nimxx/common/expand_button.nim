@@ -23,6 +23,6 @@ proc newExpandButton*(v: View, r: Rect): ExpandButton =
     v.addSubview(result)
 
 method draw*(b: ExpandButton, r: Rect) =
-    let c = currentContext()
+    let c = b.window.renderingContext
     c.fillColor = newColor(0.9, 0.9, 0.9)
     c.drawTriangle(r, if b.expanded: Coord(PI / 2.0) else: Coord(0))

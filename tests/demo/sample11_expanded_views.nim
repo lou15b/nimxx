@@ -1,6 +1,6 @@
 import random
 import ./sample_registry
-import nimxx / [ view, font, context, button, expanding_view, stack_view ]
+import nimxx / [ view, font, button, expanding_view, stack_view ]
 
 type ExpandingSampleView = ref object of View
     welcomeFont: Font
@@ -29,7 +29,7 @@ method init(v: ExpandingSampleView, r: Rect) =
             discard newButton(testView, newPoint(10, 10), newSize(16, 16), "X")
 
 method draw(v: ExpandingSampleView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     if v.welcomeFont.isNil:
         v.welcomeFont = systemFontOfSize(20)
     c.fillColor = blackColor()

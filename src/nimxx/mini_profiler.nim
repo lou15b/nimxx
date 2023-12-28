@@ -40,7 +40,6 @@ proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
     `=destroy`(x.ProfilerDataSourceBaseObj)
 
 proc `=destroy`(x: ProfilerObj) =
-    echo "Destroying Profiler"
     `=destroy`(x.values.addr[])
 
 proc setStringifiedValue(ds: ProfilerDataSourceBase, stringVal: string) =

@@ -54,9 +54,10 @@ void compose() {
 
 proc drawArrows(v: NumericTextField) =
     const arrowMargin = 10
-    arrowComposition.draw newRect(0, 0, arrowMargin, v.bounds.height):
+    let c = v.window.renderingContext
+    arrowComposition.draw(c, newRect(0, 0, arrowMargin, v.bounds.height)):
         setUniform("uAngle", Coord(PI))
-    arrowComposition.draw newRect(v.bounds.width - arrowMargin, 0, arrowMargin, v.bounds.height):
+    arrowComposition.draw(c, newRect(v.bounds.width - arrowMargin, 0, arrowMargin, v.bounds.height)):
         setUniform("uAngle", Coord(0))
 
 method draw*(t: NumericTextField, r: Rect) =

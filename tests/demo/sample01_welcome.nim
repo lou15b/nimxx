@@ -72,10 +72,10 @@ void compose() {
 """
 
 method draw(v: WelcomeView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     if v.welcomeFont.isNil:
         v.welcomeFont = systemFontOfSize(64)
-    gradientComposition.draw(v.bounds)
+    gradientComposition.draw(c, v.bounds)
     let s = v.welcomeFont.sizeOfString(welcomeMessage)
     c.fillColor = whiteColor()
     c.drawText(v.welcomeFont, s.centerInRect(v.bounds), welcomeMessage)

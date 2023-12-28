@@ -57,8 +57,11 @@ type ClassInfo = tuple
     creatorProc: proc(): RootRef {.nimcall.}
     typ: TypeId
 
-# Locks aren't needed for these, because they are initialized at compile-time/start-up
+# Locks aren't needed for these, because they are initialized at start-up
 # and are not changed afterward
+# ***But note*** that any code referring to them in a proc, etc. that is called from
+#   outside code that is not top level must be inside a "{.gcsafe.}:" block.
+#   See proc newObjectOfClass and the registeredX iterators
 var classFactory: Table[string, ClassInfo]
 var superTypeRelations: Table[TypeId, TypeId]
 
@@ -110,16 +113,18 @@ iterator registeredClasses*(): string =
     for k in classFactory.keys: yield k
 
 iterator registeredClassesOfType*(T: typedesc): string =
-    const typ = getTypeId(T)
-    for k, v in pairs(classFactory):
-        if isTypeOf(v.typ, typ):
-            yield k
+    {.gcsafe.}:
+        const typ = getTypeId(T)
+        for k, v in pairs(classFactory):
+            if isTypeOf(v.typ, typ):
+                yield k
 
 iterator registeredSubclassesOfType*(T: typedesc): string =
-    const typ = getTypeId(T)
-    for k, v in pairs(classFactory):
-        if isSubtypeOf(v.typ, typ):
-            yield k
+    {.gcsafe.}:
+        const typ = getTypeId(T)
+        for k, v in pairs(classFactory):
+            if isSubtypeOf(v.typ, typ):
+                yield k
 
 when isMainModule:
     type A = ref object of RootRef

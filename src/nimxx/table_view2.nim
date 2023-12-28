@@ -132,7 +132,7 @@ proc visibleRect(v: View): Rect = # TODO: This can be more generic. Move to view
         result = v.bounds
 
 # method draw*(v: TableView, r: Rect) =
-#     let c = currentContext()
+#     let c = v.window.renderingContext
 #     c.fillColor = blackColor()
 #     let r = inset(visibleRect(v), 5, 5)
 #     c.drawRect(r)

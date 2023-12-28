@@ -58,7 +58,7 @@ method init*(v: BezierView, r: Rect)=
 method draw*(v: BezierView, r: Rect) =
     procCall v.View.draw(r)
 
-    let c = currentContext()
+    let c = v.window.renderingContext
 
     let botLeft = newPoint(0, v.bounds.height)
     let topRight = newPoint(v.bounds.width, 0.0)

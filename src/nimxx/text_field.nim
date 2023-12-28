@@ -140,9 +140,8 @@ proc font*(t: TextField): Font =
 proc isEditing*(t: TextField): bool =
     t.editable and t.isFirstResponder
 
-proc drawCursorWithRect(r: Rect) =
+proc drawCursorWithRect(c: GraphicsContext, r: Rect) =
     if cursorVisible:
-        let c = currentContext()
         c.fillColor = newGrayColor(0.28)
         c.strokeWidth = 0
         c.drawRect(r)
@@ -214,7 +213,7 @@ proc selectedText*(t: TextField): string =
             result = t.mText.text.runeSubStr(s.a, s.b - s.a)
 
 proc drawSelection(t: TextField) {.inline.} =
-    let c = currentContext()
+    let c = t.window.renderingContext
     c.fillColor = newColor(0.0, 0.0, 1.0, 0.5)
     let startLine = t.mText.lineOfRuneAtPos(t.textSelection.a)
     let endLine = t.mText.lineOfRuneAtPos(t.textSelection.b)
@@ -257,7 +256,7 @@ proc visibleRect(t: TextField): Rect =
 method draw*(t: TextField, r: Rect) =
     procCall t.View.draw(r)
 
-    let c = currentContext()
+    let c = t.window.renderingContext
     if t.editable and t.hasBezel:
         c.fillColor = t.backgroundColor
         c.strokeColor = newGrayColor(0.74)
@@ -284,7 +283,7 @@ method draw*(t: TextField, r: Rect) =
     if t.isEditing:
         if t.hasBezel:
             t.drawFocusRing()
-        drawCursorWithRect(t.cursorRect())
+        drawCursorWithRect(c, t.cursorRect())
 
 method acceptsFirstResponder*(t: TextField): bool = t.editable
 

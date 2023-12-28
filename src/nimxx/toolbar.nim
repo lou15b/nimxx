@@ -16,7 +16,7 @@ method init*(v: Toolbar, r: Rect) =
     v.enableDraggingByBackground()
 
 method draw*(view: Toolbar, rect: Rect) =
-    let c = currentContext()
+    let c = view.window.renderingContext
     c.strokeWidth = 2
     c.strokeColor = newGrayColor(0.6, 0.7)
     c.fillColor = newGrayColor(0.3, 0.7)

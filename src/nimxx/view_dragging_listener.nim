@@ -33,7 +33,7 @@ method onScrollProgress(ls: ResizingScrollListener, dx, dy : float32, e : var Ev
     v.setFrameSize(ls.originalSize + newSize(dx, dy))
 
 method draw(k: ResizingKnob, r: Rect) =
-    let c = currentContext()
+    let c = k.window.renderingContext
     c.strokeWidth = 2
     c.strokeColor = newGrayColor(0.2, 0.7)
     let b = k.bounds

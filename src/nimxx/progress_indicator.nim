@@ -75,11 +75,12 @@ method init(v: ProgressIndicator, r: Rect) =
         v.setNeedsDisplay()
 
 method draw*(v: ProgressIndicator, r: Rect) =
+    let c = v.window.renderingContext
     if v.mIndeterminate:
-        indeterminateComposition.draw v.bounds:
+        indeterminateComposition.draw(c, v.bounds):
             setUniform("uPosition", float32(epochTime() mod 1.0))
     else:
-        piComposition.draw v.bounds:
+        piComposition.draw(c, v.bounds):
             setUniform("uPosition", v.mValue)
 
 proc `value=`*(v: ProgressIndicator, p: Coord) =

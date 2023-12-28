@@ -104,7 +104,7 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
     w.needsDisplay = false
 
     w.recursiveDrawSubviews()
-    let c = currentContext()
+    let c = w.renderingContext
 
     # ################### mini_profiler related code
     withRLockGCsafe(sharedProfilerLock):
@@ -256,6 +256,8 @@ method init*(w: Window, frame: Rect) =
 
     #default animation runner for window
     w.addAnimationRunner(newAnimationRunner())
+    
+    w.renderingContext = newGraphicsContext()
 
 method enterFullscreen*(w: Window) {.base.} = discard
 method exitFullscreen*(w: Window) {.base.} = discard

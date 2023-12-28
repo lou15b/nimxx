@@ -66,7 +66,7 @@ method init(v: FontsView, r: Rect) =
     v.addSubview(baselineSelector)
 
 method draw(v: FontsView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
 
     if v.curFont.isNil:
         v.curFont = systemFontOfSize(v.curFontSize)

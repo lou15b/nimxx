@@ -78,7 +78,9 @@ method draw*(s: SegmentedControl, r: Rect) {.gcsafe.} =
     if not s.widthsValid:
         s.recalculateSegmentWidths()
 
-    scComposition.draw s.bounds:
+    let c = s.window.renderingContext
+
+    scComposition.draw(c, s.bounds):
         if s.mSelectedSegment < s.widths.len and s.mSelectedSegment >= 0:
             setUniform("uSelectedRect",
                 newRect(s.selectedSegmentOffset, 0, s.widths[s.mSelectedSegment] + s.padding, s.bounds.height))
@@ -89,7 +91,6 @@ method draw*(s: SegmentedControl, r: Rect) {.gcsafe.} =
             setUniform("uTrackedRect", zeroRect)
 
     let font = systemFont()
-    let c = currentContext()
     var r = newRect(0, 0, 0, s.bounds.height)
     var strSize = newSize(0, font.height)
     c.strokeWidth = 0

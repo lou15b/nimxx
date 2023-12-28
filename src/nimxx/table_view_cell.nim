@@ -31,7 +31,7 @@ proc enclosingTableViewCell*(v: View): TableViewCell {.inline.} =
 
 method draw*(c: TableViewCell, r: Rect) =
     if c.selected:
-        let ctx = currentContext()
+        let ctx = c.window.renderingContext
         ctx.fillColor = c.selectionColor()
         ctx.strokeWidth = 0
         ctx.drawRect(c.bounds)

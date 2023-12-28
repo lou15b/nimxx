@@ -163,10 +163,10 @@ const cpHComposition = newComposition """
 
 method draw(cph: ColorPickerH, r: Rect) =
     ## Drawing Hue picker
-    let c = currentContext()
+    let c = cph.window.renderingContext
     let h = cph.enclosingColorPickerView().currentColor.h
 
-    cpHComposition.draw r:
+    cpHComposition.draw(c, r):
         setUniform("uChosenH", h)
 
 proc colorHasChanged(cpv: ColorPickerView) =
@@ -239,11 +239,11 @@ const cpSComposition = newComposition """
 """
 
 method draw(cps: ColorPickerS, r: Rect) =
-    ## Drawing Hue picker
-    let c = currentContext()
+    ## Drawing Saturation picker
+    let c = cps.window.renderingContext
     let cc = cps.enclosingColorPickerView().currentColor
 
-    cpSComposition.draw r:
+    cpSComposition.draw(c, r):
         setUniform("uHcps", cc.h)
         setUniform("uChosenS", cc.s)
 
@@ -288,11 +288,11 @@ const cpVComposition = newComposition """
 """
 
 method draw(cpv: ColorPickerV, r: Rect) =
-    ## Drawing Hue picker
-    let c = currentContext()
+    ## Drawing Value picker
+    let c = cpv.window.renderingContext
     let cc = cpv.enclosingColorPickerView().currentColor
 
-    cpVComposition.draw r:
+    cpVComposition.draw(c, r):
         setUniform("uHcpv", cc.h)
         setUniform("uChosenV", cc.v)
 
@@ -348,14 +348,14 @@ const hsvCircleComposition = newComposition """
 
 method draw*(cpc: ColorPickerCircle, r: Rect) =
     ## Custom palette drawing
-    let c = currentContext()
+    let c = cpc.window.renderingContext
     let cpv = cpc.enclosingColorPickerView()
 
     # Draw hsv circle
     c.fillColor = newGrayColor(0.0, 0.0)
     c.strokeColor = newGrayColor(0.0, 0.0)
 
-    hsvCircleComposition.draw cpc.bounds:
+    hsvCircleComposition.draw(c, cpc.bounds):
         setUniform("uHsvValue", 1.0)
         setUniform("uChosenH", cpv.currentColor.h)
 

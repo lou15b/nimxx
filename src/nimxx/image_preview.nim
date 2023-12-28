@@ -58,7 +58,7 @@ proc newImagePreview*(r: Rect, img: Image): ImagePreview =
 
 method draw*(v: ImagePreview, r: Rect) =
     procCall v.PanelView.draw(r)
-    let c = currentContext()
+    let c = v.window.renderingContext
     let f = systemFontOfSize(14.0)
     var titleRect: Rect
     titleRect.size.width = r.width

@@ -57,7 +57,7 @@ void compose() {
 
 method draw(v: PanelView, r: Rect) =
     # Draws Panel View
-    let c = currentContext()
+    let c = v.window.renderingContext
 
     # Top label
     c.fillColor = newGrayColor(0.05, 0.8)

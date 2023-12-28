@@ -2,8 +2,7 @@
 import ../context
 import ../types
 
-proc drawGrid*(bounds: Rect, gridSize: Size, shift = zeroSize) =
-    let c = currentContext()
+proc drawGrid*(c: GraphicsContext, bounds: Rect, gridSize: Size, shift = zeroSize) =
     c.strokeWidth = 0
     c.strokeColor = blackColor()
 

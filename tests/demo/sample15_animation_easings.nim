@@ -96,7 +96,7 @@ method init*(v: AnimationEasing, r: Rect) =
     v.addSubview(v.progress)
 
 method draw(v: AnimationEasing, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.strokeWidth = 2
 
     let offsetX = 50.0

@@ -171,12 +171,12 @@ proc endDraw*(t: ImageRenderTarget, state: var RTIContext) =
     viewport(state.viewportSize)
     bindFramebuffer(FRAMEBUFFER, state.framebuffer)
 
-template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, drawBody: untyped) =
+template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, c: GraphicsContext, drawBody: untyped) =
     var gfs: RTIContext
     rt.setImage(sci)
     rt.beginDraw(gfs)
 
-    currentContext().withTransform ortho(0, sci.size.width, sci.size.height, 0, -1, 1):
+    c.withTransform ortho(0, sci.size.width, sci.size.height, 0, -1, 1):
         drawBody
 
     rt.endDraw(gfs)
@@ -186,6 +186,6 @@ template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, drawBody: untyped
     if not sci.flipped:
         sci.flipVertically()
 
-template draw*(sci: SelfContainedImage, drawBody: untyped) =
+template draw*(sci: SelfContainedImage, c: GraphicsContext, drawBody: untyped) =
     let rt = newImageRenderTarget()
-    rt.draw(sci, drawBody)
+    rt.draw(sci, c, drawBody)

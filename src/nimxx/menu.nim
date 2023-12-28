@@ -106,21 +106,21 @@ proc newViewWithMenuItems(item: MenuItem, size: Size): MenuView =
         yOff += menuItemHeight
 
 method draw(v: MenuView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = newGrayColor(0.7)
     c.strokeWidth = 0
     c.drawRoundedRect(v.bounds, 5)
 
 method draw(v: TriangleView, r: Rect) =
     let cell = v.enclosingTableViewCell()
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = blackColor()
     if not cell.isNil and cell.selected:
         c.fillColor = whiteColor()
     c.drawTriangle(v.bounds, 0)
 
 method draw(v: SeparatorView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = newGrayColor(0.2)
     c.strokeWidth = 0
     var r = v.bounds

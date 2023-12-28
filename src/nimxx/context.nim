@@ -23,7 +23,7 @@ void compose() {
 """
 
 proc drawRoundedRect*(c: GraphicsContext, r: Rect, radius: Coord) =
-    roundedRectComposition.draw r:
+    roundedRectComposition.draw(c, r):
         setUniform("uFillColor", c.fillColor)
         setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
         setUniform("uStrokeWidth", c.strokeWidth)
@@ -38,7 +38,7 @@ proc drawRect(bounds, uFillColor, uStrokeColor: Vec4,
 const rectComposition = newCompositionWithNimsl(drawRect)
 
 proc drawRect*(c: GraphicsContext, r: Rect) =
-    rectComposition.draw r:
+    rectComposition.draw(c, r):
         setUniform("uFillColor", c.fillColor)
         setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
         setUniform("uStrokeWidth", c.strokeWidth)
@@ -52,7 +52,7 @@ proc drawEllipse(bounds, uFillColor, uStrokeColor: Vec4,
 const ellipseComposition = newCompositionWithNimsl(drawEllipse)
 
 proc drawEllipseInRect*(c: GraphicsContext, r: Rect) =
-    ellipseComposition.draw r:
+    ellipseComposition.draw(c, r):
         setUniform("uFillColor", c.fillColor)
         setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
         setUniform("uStrokeWidth", c.strokeWidth)
@@ -87,7 +87,7 @@ proc drawImage*(c: GraphicsContext, i: Image, toRect: Rect, fromRect: Rect = zer
         if fromRect != zeroRect:
             let s = i.size
             fr = newRect(fromRect.x / s.width, fromRect.y / s.height, fromRect.maxX / s.width, fromRect.maxY / s.height)
-        imageComposition.draw toRect:
+        imageComposition.draw(c, toRect):
             setUniform("uImage", i)
             setUniform("uAlpha", alpha * c.alpha)
             setUniform("uFromRect", fr)
@@ -281,7 +281,7 @@ proc drawLine*(c: GraphicsContext, pointFrom: Point, pointTo: Point) =
     let ysize = max(pointFrom.y, pointTo.y) - yfrom
     let r = newRect(xfrom - c.strokeWidth, yfrom - c.strokeWidth, xsize + 2 * c.strokeWidth, ysize + 2 * c.strokeWidth)
 
-    lineComposition.draw r:
+    lineComposition.draw(c, r):
         setUniform("uStrokeWidth", c.strokeWidth)
         setUniform("uStrokeColor", c.strokeColor)
         setUniform("A", pointFrom)
@@ -325,7 +325,7 @@ proc drawArc*(c: GraphicsContext, center: Point, radius: Coord, fromAngle, toAng
 
     let rad = radius + 1
     let r = newRect(center.x - rad, center.y - rad, rad * 2, rad * 2)
-    arcComposition.draw r:
+    arcComposition.draw(c, r):
         setUniform("uStrokeWidth", c.strokeWidth)
         setUniform("uFillColor", c.fillColor)
         setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
@@ -346,7 +346,7 @@ proc drawTriangle*(c: GraphicsContext, rect: Rect, angleRad: Coord) =
     ## Draws equilateral triangle with current `fillColor`, pointing at `angleRad`
     var color = c.fillColor
     color.a *= c.alpha
-    triangleComposition.draw rect:
+    triangleComposition.draw(c, rect):
         setUniform("uAngle", angleRad)
         setUniform("uColor", color)
 

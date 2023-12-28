@@ -254,7 +254,7 @@ template updateTabFramesIfNeeded(v: TabView) =
 method draw*(v: TabView, r: Rect) =
     procCall v.View.draw(r)
     v.updateTabFramesIfNeeded()
-    let c = currentContext()
+    let c = v.window.renderingContext
     let f = systemFont()
     for i in 0 .. v.tabs.high:
         let t = v.tabs[i].title
@@ -318,7 +318,7 @@ proc newDraggingView(tab: Tab): TabDraggingView =
 
 method draw(v: TabDraggingView, r: Rect) =
     procCall v.View.draw(r)
-    let c = currentContext()
+    let c = v.window.renderingContext
     let f = systemFont()
     var titleRect: Rect
     titleRect.size.width = f.sizeOfString(v.title).width + 10

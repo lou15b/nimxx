@@ -541,12 +541,11 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         uniform1i(uniformLocation(name & "_tex"), cc.iTexIndex)
         inc cc.iTexIndex
 
-template pushPostEffect*(pe: PostEffect, args: varargs[untyped]) =
+template pushPostEffect*(pe: PostEffect, ctx: GraphicsContext, args: varargs[untyped]) =
     lock postEffectStack as pest:
         var peids = pest.postEffectIds
         let stackLen = peids.len
         pest.postEffects.add(PostEffectStackElem(postEffect: pe, setupProc: proc(cc: CompiledComposition) =
-            let ctx = currentContext()
             compositionDrawingDefinitions(cc, ctx)
             var j = 0
             staticFor uni in args:
@@ -572,8 +571,6 @@ proc getCompiledComposition*(comp: Composition, options: int = 0): CompiledCompo
         pehash = if pest.postEffectIds.len > 0: pest.postEffectIds[^1] else: 0
     let cchash = !$(pehash !& comp.id !& options)
     var cc: CompiledComposition
-    # withRLockGCsafe(programCacheLock):
-    #     cc = programCache.getOrDefault(cchash)
     lock programCache as pc:
         cc = pc.entries.getOrDefault(cchash)
     if cc.isNil:
@@ -608,9 +605,8 @@ template ResetDIPValue*() =
     DIPValue = 0
 # ******************************************
 
-template draw*(comp: Composition, r: Rect, code: untyped) =
+template draw*(comp: Composition, ctx: GraphicsContext, r: Rect, code: untyped) =
     block:
-        let ctx = currentContext()
         let cc = getCompiledComposition(comp)
         useProgram(cc.program)
 
@@ -636,6 +632,6 @@ template draw*(comp: Composition, r: Rect, code: untyped) =
         drawArrays(TRIANGLE_FAN, 0, vertexCount)
         bindGLBuffer(ARRAY_BUFFER, invalidBuffer)
 
-template draw*(comp: Composition, r: Rect) =
-    comp.draw r:
+template draw*(comp: Composition, ctx: GraphicsContext, r: Rect) =
+    comp.draw(ctx, r):
         discard

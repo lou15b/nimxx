@@ -17,10 +17,9 @@ method init*(v: ImageSampleView, r: Rect) =
         v.image = i
         v.setNeedsDisplay()
 
-proc renderToImage(): Image =
+proc renderToImage(c: GraphicsContext): Image =
     let r = imageWithSize(newSize(200, 80))
-    r.draw:
-        let c = currentContext()
+    r.draw(c):
         c.fillColor = newColor(0.5, 0.5, 1)
         c.strokeColor = newColor(1, 0, 0)
         c.strokeWidth = 3
@@ -31,10 +30,10 @@ proc renderToImage(): Image =
     result = r
 
 method draw(v: ImageSampleView, r: Rect) =
-    if v.generatedImage.isNil:
-        v.generatedImage = renderToImage()
+    let c = v.window.renderingContext
 
-    let c = currentContext()
+    if v.generatedImage.isNil:
+        v.generatedImage = renderToImage(c)
 
     # Draw cat
     var imageSize = zeroSize

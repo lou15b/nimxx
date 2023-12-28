@@ -1,7 +1,8 @@
 import ./ [ view, render_to_image, image, types, context ]
 
 proc renderToImage*(v: View, image: SelfContainedImage)=
-    image.draw:
+    let c = v.window.renderingContext
+    image.draw(c):
         v.recursiveDrawSubviews()
 
 proc screenShot*(v: View):SelfContainedImage=

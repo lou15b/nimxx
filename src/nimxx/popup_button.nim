@@ -83,11 +83,11 @@ void compose() {
 """
 
 method draw(b: PopupButton, r: Rect) =
-    pbComposition.draw b.bounds:
+    let c = b.window.renderingContext
+    pbComposition.draw(c, b.bounds):
         setUniform("uFillColorStart", newColor(0.31, 0.60, 0.98))
         setUniform("uFillColorEnd", newColor(0.09, 0.42, 0.88))
     if b.mSelectedIndex >= 0 and b.mSelectedIndex < b.mItems.len:
-        let c = currentContext()
         c.fillColor = blackColor()
         let font = systemFont()
         c.drawText(font, newPoint(4, b.bounds.y + (b.bounds.height - font.height) / 2), b.mItems[b.mSelectedIndex].title)

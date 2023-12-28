@@ -53,7 +53,6 @@ proc initSDLIfNeeded() =
 type SdlWindow* = ref object of Window
     impl: WindowPtr
     sdlGlContext: GlContextPtr
-    renderingContext: GraphicsContext
     isFullscreen: bool
 
 when defined(ios) or defined(android):
@@ -218,7 +217,6 @@ proc initSdlWindow(w: SdlWindow, r: view.Rect) =
     if w.sdlGlContext == nil:
         error "Could not create context!"
     discard glMakeCurrent(w.impl, w.sdlGlContext)
-    w.renderingContext = newGraphicsContext()
 
     withRLockGCsafe(mainAppLock):
         mainApp.addWindow(w)
@@ -286,11 +284,9 @@ method draw*(w: SdlWindow, r: Rect) =
 method drawWindow(w: SdlWindow) =
     discard glMakeCurrent(w.impl, w.sdlGlContext)
     let c = w.renderingContext
-    let oldContext = setCurrentContext(c)
     c.withTransform ortho(0, w.frame.width, w.frame.height, 0, -1, 1):
         procCall w.Window.drawWindow()
     w.impl.glSwapWindow() # Swap the front and back frame buffers (double buffering)
-    setCurrentContext(oldContext)
 
 proc windowFromSDLEvent[T](event: T): SdlWindow =
     let sdlWndId = event.windowID

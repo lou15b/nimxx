@@ -1,6 +1,6 @@
 import strutils
 import ./sample_registry
-import nimxx / [ view, font, context, button, text_field, slider, popup_button,
+import nimxx / [ view, font, button, text_field, slider, popup_button,
                 formatted_text, segmented_control, scroll_view ]
 
 type TextView = ref object of View
@@ -70,7 +70,7 @@ method init(v: TextSampleView, r: Rect) =
 
 method draw(v: TextView, r: Rect) =
     procCall v.View.draw(r)
-    let c = currentContext()
+    let c = v.window.renderingContext
     v.text.boundingSize = v.bounds.size
     c.drawText(newPoint(0, 0), v.text)
 

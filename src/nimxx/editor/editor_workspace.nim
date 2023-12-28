@@ -6,6 +6,7 @@ method draw*(v: EditorWorkspace, r: Rect)=
     procCall v.View.draw(r)
 
     if v.gridSize != zeroSize:
-        drawGrid(v.bounds, v.gridSize)
+        let c = v.window.renderingContext
+        drawGrid(c, v.bounds, v.gridSize)
 
 

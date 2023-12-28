@@ -49,7 +49,8 @@ void compose() {
 """
 
 method draw*(s: Slider, r: Rect) =
-    sliderComposition.draw s.bounds:
+    let c = s.window.renderingContext
+    sliderComposition.draw(c, s.bounds):
         setUniform("uPosition", s.mValue)
 
 proc `value=`*(s: Slider, p: Coord) =

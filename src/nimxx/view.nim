@@ -68,6 +68,7 @@ type
         onClose*: proc()
         mCurrentTouches*: TableRef[int, View]
         mAnimationEnabled*: bool
+        renderingContext*: GraphicsContext
 
 proc init(i: var LayoutInfo) =
     i.vars.init()
@@ -392,7 +393,7 @@ proc drawWithinSuperview*(v: View) =
     # Assume current coordinate system is superview
     if v.hidden: return
 
-    let c = currentContext()
+    let c = v.window.renderingContext
     var tmpTransform = c.transform
     if v.bounds.size == v.frame.size:
         # Common case: bounds scale is 1.0
@@ -411,7 +412,7 @@ proc drawWithinSuperview*(v: View) =
             v.recursiveDrawSubviews()
 
 method draw*(view: View, rect: Rect) {.base, gcsafe.} =
-    let c = currentContext()
+    let c = view.window.renderingContext
     if view.backgroundColor.a > 0.001:
         c.fillColor = view.backgroundColor
         c.strokeWidth = 0
@@ -428,7 +429,7 @@ proc recursiveDrawSubviews*(view: View) =
     view.drawSubviews()
 
 proc drawFocusRing*(v: View) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = clearColor()
     c.strokeColor = newColor(0.59, 0.76, 0.95, 0.9)
     c.strokeWidth = 3

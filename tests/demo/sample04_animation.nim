@@ -54,7 +54,7 @@ method init*(v: AnimationSampleView, r: Rect) =
     v.animation.continueUntilEndOfLoopOnCancel = true
 
 method draw(v: AnimationSampleView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = newGrayColor(0.5)
     var tmpTransform = c.transform
     tmpTransform.translate(newVector3(v.bounds.width/2, v.bounds.height/3, 0))

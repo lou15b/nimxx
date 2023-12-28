@@ -81,8 +81,6 @@ type GraphicsContext* = ref object of RootObj
     sharedBuffer*: BufferRef
     vertexes*: array[4 * 4 * 128, Coord]
 
-var gCurrentContext {.threadvar.}: GraphicsContext
-
 proc transformToRef(t: Transform3D): Transform3DRef =
     {.emit: "`result` = `t`;".}
 
@@ -171,15 +169,6 @@ proc newGraphicsContext*(canvas: ref RootObj = nil): GraphicsContext =
     result.gridIndexBuffer4x4 = createGridIndexBuffer(4, 4)
     result.singleQuadBuffer = createQuadBuffer()
     result.sharedBuffer = createGLBuffer()
-
-    if gCurrentContext.isNil:
-        gCurrentContext = result
-
-proc setCurrentContext*(c: GraphicsContext): GraphicsContext {.discardable.} =
-    result = gCurrentContext
-    gCurrentContext = c
-
-template currentContext*(): GraphicsContext = gCurrentContext
 
 proc setTransformUniform*(c: GraphicsContext, program: ProgramRef) =
     uniformMatrix4fv(getUniformLocation(program, "modelViewProjectionMatrix"), false, c.transform)

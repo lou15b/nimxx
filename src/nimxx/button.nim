@@ -104,7 +104,7 @@ method init*(b: Radiobox, frame: Rect) =
 
 proc drawTitle(b: Button, xOffset: Coord) =
     if b.title.len != 0:
-        let c = currentContext()
+        let c = b.window.renderingContext
         c.fillColor = if b.state == bsDown and b.style == bsRegular:
                 whiteColor()
             else:
@@ -133,7 +133,8 @@ void compose() {
 """
 
 proc drawRegularBezel(b: Button) =
-    regularButtonComposition.draw b.bounds:
+    let ctx = b.window.renderingContext
+    regularButtonComposition.draw(ctx, b.bounds):
         if b.state == bsUp:
             setUniform("uStrokeColor", newGrayColor(0.78))
             setUniform("uFillColorStart", if b.enabled: b.backgroundColor else: grayColor())
@@ -161,10 +162,10 @@ proc drawCheckboxStyle(b: Button, r: Rect) =
     let
         size = b.bounds.height
         bezelRect = newRect(0, 0, size, size)
-        c = currentContext()
+        c = b.window.renderingContext
 
     if b.value != 0:
-        checkButtonComposition.draw bezelRect:
+        checkButtonComposition.draw(c, bezelRect):
             setUniform("uStrokeColor", selectionColor)
             setUniform("uFillColor", selectionColor)
             setUniform("uRadius", 4.0)
@@ -181,7 +182,7 @@ proc drawCheckboxStyle(b: Button, r: Rect) =
         c.drawLine(newPoint(size / 4.0, size * 1.0 / 2.0), newPoint(size / 4.0 * 2.0, size * 1.0 / 2.0 + size / 5.0 - c.strokeWidth / 2.0))
         c.drawLine(newPoint(size / 4.0 * 2.0 - c.strokeWidth / 2.0, size * 1.0 / 2.0 + size / 5.0), newPoint(size / 4.0 * 3.0 - c.strokeWidth / 2.0, size / 4.0))
     else:
-        checkButtonComposition.draw bezelRect:
+        checkButtonComposition.draw(c, bezelRect):
             setUniform("uStrokeColor", newGrayColor(0.78))
             setUniform("uFillColor", whiteColor())
             setUniform("uRadius", 4.0)
@@ -205,16 +206,17 @@ void compose() {
 
 proc drawRadioboxStyle(b: Button, r: Rect) =
     let bezelRect = newRect(0, 0, b.bounds.height, b.bounds.height)
+    let c = b.window.renderingContext
 
     # Selected
     if b.value != 0:
-        radioButtonComposition.draw bezelRect:
+        radioButtonComposition.draw(c, bezelRect):
             setUniform("uStrokeColor", selectionColor)
             setUniform("uFillColor", selectionColor)
             setUniform("uRadioValue", bezelRect.height * 0.3)
             setUniform("uStrokeWidth", 0.0)
     else:
-        radioButtonComposition.draw bezelRect:
+        radioButtonComposition.draw(c, bezelRect):
             setUniform("uStrokeColor", newGrayColor(0.78))
             setUniform("uFillColor", whiteColor())
             setUniform("uRadioValue", 1.0)
@@ -223,7 +225,7 @@ proc drawRadioboxStyle(b: Button, r: Rect) =
     b.drawTitle(bezelRect.width + 1)
 
 proc drawImage(b: Button) =
-    let c = currentContext()
+    let c = b.window.renderingContext
     let r = b.bounds
     if b.imageMarginLeft != 0 or b.imageMarginRight != 0 or
             b.imageMarginTop != 0 or b.imageMarginBottom != 0:

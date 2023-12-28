@@ -23,8 +23,6 @@ type ExpandingView* = ref object of View
     titleBarColor*: Color
     titleTextColor*: Color
 
-    # initRect: Rect
-
 proc updateFrame(v: ExpandingView) =
     var expandRect = v.contentView.frame
     if v.hasOffset:
@@ -84,7 +82,7 @@ method draw(v: ExpandingView, r: Rect) =
     procCall v.View.draw(r)
 
     # title
-    let c = currentContext()
+    let c = v.window.renderingContext
     var titleRect: Rect
     titleRect.size.width = r.width
     titleRect.size.height = titleSize

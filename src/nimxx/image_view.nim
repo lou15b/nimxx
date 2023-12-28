@@ -44,7 +44,7 @@ method clipType*(v: ImageView): ClipType = ctDefaultClip
 
 method draw*(v: ImageView, r: Rect) =
     procCall v.View.draw(r)
-    let c = currentContext()
+    let c = v.window.renderingContext
 
     if v.image.isNil():
         c.drawRect(r)

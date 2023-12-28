@@ -1,5 +1,5 @@
 import ./sample_registry
-import nimxx / [ view, font, context, button, gesture_detector, view_event_handling ]
+import nimxx / [ view, font, button, gesture_detector, view_event_handling ]
 
 var bttnMesage {.threadvar.}: string
 bttnMesage = "Press or drag buttons"
@@ -144,7 +144,7 @@ method init(v: EventsPriorityView, r: Rect) =
 
 
 method draw*(v: EventsPriorityView, r: Rect) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     if v.welcomeFont.isNil:
         v.welcomeFont = systemFontOfSize(20)
     c.fillColor = blackColor()

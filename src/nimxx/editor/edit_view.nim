@@ -1,7 +1,7 @@
 import times, json, math
 import std/async
 
-import ../ [ view, panel_view, context, undo_manager, toolbar, button, menu, inspector_panel,
+import ../ [ view, context, undo_manager, toolbar, button, menu, inspector_panel,
             view_event_handling, abstract_window,
             serializers, key_commands, ui_resource ]
 
@@ -324,7 +324,7 @@ method onTouchEv*(v: EventCatchingView, e: var Event): bool =
     result = true
 
 proc drawSelectionRect(v: EventCatchingView) =
-    let c = currentContext()
+    let c = v.window.renderingContext
     c.fillColor = clearColor()
     c.strokeColor = newGrayColor(0.3)
     c.strokeWidth = 1
