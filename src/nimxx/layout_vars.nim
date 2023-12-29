@@ -1,8 +1,15 @@
 import kiwi
+import threading/smartptrs
 
 type
   LayoutVars* = object
     x*, y*, width*, height*: Variable
+
+proc init*(phs: var LayoutVars) =
+  phs.x = newVariable("x", 0)
+  phs.y = newVariable("y", 0)
+  phs.width = newVariable("width", 0)
+  phs.height = newVariable("height", 0)
 
 proc centerX*(phs: LayoutVars): Expression = phs.x + phs.width / 2
 proc centerY*(phs: LayoutVars): Expression = phs.y + phs.height / 2
@@ -38,7 +45,28 @@ proc inset*(fr: array[4, Expression], byX, byY: float32): array[4, Expression] {
 
 proc inset*(fr: array[4, Expression], by: float32): array[4, Expression] {.inline.} = inset(fr, by, by)
 
-var prevPHS* {.threadvar.}, nextPHS* {.threadvar.}, superPHS* {.threadvar.}, selfPHS* {.threadvar}: LayoutVars
+# ***********************
+# What is the role of the LayoutVars objects represented by prevPHS, nextPHS, superPHS, selfPHS???
+# They are global objects - in the original code they were threadvars, but their initialization
+# was at top level, so only the ones in the main thread were valid.
+# As far as I can tell they are never mutated after initialization, so locks aren't needed even
+# in a multi-threaded situation. The following code is intended to allow their use without
+# complaints about GC safety.
+let prevPHSPtr = newConstPtr(new LayoutVars)
+let nextPHSPtr = newConstPtr(new LayoutVars)
+let superPHSPtr = newConstPtr(new LayoutVars)
+let selfPHSPtr = newConstPtr(new LayoutVars)
+
+template prevPHS*(): LayoutVars = prevPHSPtr[][]
+template nextPHS*(): LayoutVars = nextPHSPtr[][]
+template superPHS*(): LayoutVars = superPHSPtr[][]
+template selfPHS*(): LayoutVars = selfPHSPtr[][]
+
+init(prevPHS)
+init(nextPHS)
+init(superPHS)
+init(selfPHS)
+# ***********************
 
 proc isNan(f: float32): bool {.inline.} = f != f
 
@@ -74,13 +102,3 @@ proc autoresizingFrame*(leading, width, trailing, top, height, bottom: float32):
     result[1] = superPHS.top + top
     result[3] = newExpression(height)
 
-proc init*(phs: var LayoutVars) =
-  phs.x = newVariable("x", 0)
-  phs.y = newVariable("y", 0)
-  phs.width = newVariable("width", 0)
-  phs.height = newVariable("height", 0)
-
-init(prevPHS)
-init(nextPHS)
-init(superPHS)
-init(selfPHS)
