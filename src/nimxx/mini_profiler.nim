@@ -73,6 +73,8 @@ proc newProfiler*(): Profiler =
         prof.enabled = true
     result = newSharedPtr(prof[])
 
+# This global currently requires a recursive lock, which Malebogia Locker doesn't provide.
+# So we need to use a conventional recursive lock here
 var sharedProfilerLock*: RLock
 sharedProfilerLock.initRLock()
 var sharedProfiler* {.guard: sharedProfilerLock.} = newProfiler()
