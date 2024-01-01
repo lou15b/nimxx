@@ -1,4 +1,4 @@
-
+import malebolgia/lockers
 
 type
     UndoManager* = ref object
@@ -10,16 +10,13 @@ type
         undo: proc() {.gcsafe.}
         description: string
 
-var gUndoManager : UndoManager
-
 proc newUndoManager*(): UndoManager =
     result.new()
     result.actions = @[]
 
-proc sharedUndoManager*(): UndoManager =
-    if gUndoManager.isNil:
-        gUndoManager = newUndoManager()
-    result = gUndoManager
+# What is the use case for a globally shared undo manager???
+# Anyway, it's here in case there is a need somewhere / sometime
+var sharedUndoManager* = initLocker(newUndoManager())
 
 proc push*(u: UndoManager, description: string, redo: proc() {.gcsafe.}, undo: proc() {.gcsafe.}) {.inline.} =
     assert(not undo.isNil)
@@ -55,7 +52,7 @@ proc clear*(u: UndoManager) =
     u.cursor = 0
 
 when isMainModule:
-    let u = sharedUndoManager()
+    let u = newUndoManager()
     u.pushAndDo("Move window") do():
         echo "do1"
     do():
