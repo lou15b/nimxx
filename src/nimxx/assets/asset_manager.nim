@@ -3,6 +3,8 @@ import variant
 import ./ [ abstract_asset_bundle, asset_cache, url_stream, asset_loading, asset_loader ]
 import ../pathutils
 
+import malebolgia/lockers
+
 type
     MountEntry = tuple
         ab: AssetBundle
@@ -208,10 +210,11 @@ proc dump*(am: AssetManager): string =
 registerUrlHandler("res") do(url: string, handler: Handler) {.gcsafe.}:
     openStreamForUrl(sharedAssetManager().resolveUrl(url), handler)
 
-hackyResUrlLoader = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
-    const prefix = "res://"
-    assert(url.startsWith(prefix))
-    let p = url.substr(prefix.len)
-    sharedAssetManager().getAssetAtPathAux(p, false) do(res: Variant, err: string):
-        cache[path] = res
-        handler(err)
+lock hackyResUrlLoader as hrl:
+    hrl = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
+        const prefix = "res://"
+        assert(url.startsWith(prefix))
+        let p = url.substr(prefix.len)
+        sharedAssetManager().getAssetAtPathAux(p, false) do(res: Variant, err: string):
+            cache[path] = res
+            handler(err)

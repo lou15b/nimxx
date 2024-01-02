@@ -1,6 +1,8 @@
 import os, streams, variant, logging
 import ./asset_cache, ./url_stream
 
+import malebolgia/lockers
+
 type UrlLoaderProc* = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
 type SimpleUrlLoaderProc*[T] = proc(url: string, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}
 type StreamLoaderProc* = proc(s: Stream, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
@@ -9,12 +11,22 @@ type SimpleStreamLoaderProc*[T] = proc(s: Stream, handler: proc(v: T) {.gcsafe.}
 
 const anyUrlScheme = "_"
 
-var assetLoaders {.threadvar.}: seq[tuple[urlSchemes: seq[string], extensions: seq[string], loader: UrlLoaderProc]]
+var assetLoaders =
+    initLocker(newSeq[tuple[urlSchemes: seq[string], extensions: seq[string], loader: UrlLoaderProc]]())
 
-var hackyResUrlLoader* {.threadvar.}: proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.}
+# Apparently initLocker requires a variable with a formally defined type
+# And defining a proc variable, even with a pre-defined type, which includes the proc signature,
+# *still* requires the proc signature to be included in the variable's instantiation
+# Redundant and verbose, but I guess the instantiation needs the parameter names
+# ??? And the type needs the parameter names for a possible parameterized call ???
+type HackyResUrlLoader = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.}
+var hrul: HackyResUrlLoader = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
+    discard
+var hackyResUrlLoader* = initLocker(hrul)
 
 proc registerAssetLoader*(urlSchemes: openarray[string], fileExtensions: openarray[string], loader: UrlLoaderProc) =
-    assetLoaders.add((@urlSchemes, @fileExtensions, loader))
+    lock assetLoaders as als:
+        als.add((@urlSchemes, @fileExtensions, loader))
 
 proc registerAssetLoader*[T](urlSchemes: openarray[string], fileExtensions: openarray[string], simpleLoader: SimpleUrlLoaderProc[T]) =
     let loader = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
@@ -63,24 +75,26 @@ proc getExt(path: string): string =
 proc loadAsset*(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
     let scheme = url.urlScheme()
     if scheme == "res":
-        hackyResUrlLoader(url, path, cache) do(err: string):
-            if err.len != 0:
-                error "loading asset ", url, ": ", err
-            handler()
+        lock hackyResUrlLoader as hrl:
+            hrl(url, path, cache) do(err: string):
+                if err.len != 0:
+                    error "loading asset ", url, ": ", err
+                handler()
         return
 
     var genericLoader = -1
-    for i in 0 ..< assetLoaders.len:
-        if getExt(url) in assetLoaders[i].extensions:
-            if scheme in assetLoaders[i].urlSchemes: # Perfect match:
-                assetLoaders[i].loader(url, path, cache, handler)
-                return
-            elif anyUrlScheme in assetLoaders[i].urlSchemes: # Generic match
-                genericLoader = i
+    lock assetLoaders as als:
+        for i in 0 ..< als.len:
+            if getExt(url) in als[i].extensions:
+                if scheme in als[i].urlSchemes: # Perfect match:
+                    als[i].loader(url, path, cache, handler)
+                    return
+                elif anyUrlScheme in als[i].urlSchemes: # Generic match
+                    genericLoader = i
 
-    if genericLoader != -1:
-        assetLoaders[genericLoader].loader(url, path, cache, handler)
-        return
+        if genericLoader != -1:
+            als[genericLoader].loader(url, path, cache, handler)
+            return
 
     raise newException(Exception, "No asset loader found for url: " & url)
 
