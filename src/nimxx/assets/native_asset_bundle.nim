@@ -1,27 +1,26 @@
-import os, rlocks
+import os
 import ./abstract_asset_bundle
-import ../utils/lock_utils
 
-var nativeAssetBasePathLock: RLock
-nativeAssetBasePathLock.initRLock()
-var nativeAssetBasePath {.guard: nativeAssetBasePathLock.} = getAppDir()
+import malebolgia/lockers
+
+var nativeAssetBasePath = initLocker(getAppDir())
 
 proc setNativeAssetBasePath*(basePath: string) =
-    withRLockGCsafe(nativeAssetBasePathLock):
-        nativeAssetBasePath = basePath
+    lock nativeAssetBasePath as nabp:
+        nabp = basePath
 
 type NativeAssetBundle* = ref object of AssetBundle
     mBaseUrl: string
 
 proc newNativeAssetBundle*(): NativeAssetBundle =
     result.new()
-    withRLockGCsafe(nativeAssetBasePathLock):
+    lock nativeAssetBasePath as nabp:
         when defined(ios):
-            result.mBaseUrl = "file://" & nativeAssetBasePath
+            result.mBaseUrl = "file://" & nabp
         elif defined(macosx):
-            result.mBaseUrl = "file://" & nativeAssetBasePath & "/../Resources"
+            result.mBaseUrl = "file://" & nabp & "/../Resources"
         else:
-            result.mBaseUrl = "file://" & nativeAssetBasePath & "/res"
+            result.mBaseUrl = "file://" & nabp & "/res"
 
 method urlForPath*(ab: NativeAssetBundle, path: string): string =
     return ab.mBaseUrl & "/" & path
