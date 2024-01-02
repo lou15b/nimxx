@@ -2,6 +2,8 @@ import ./sample_registry
 import nimxx / [ view, image, context, render_to_image, font ]
 import nimxx/assets/asset_manager
 
+import malebolgia/lockers
+
 type ImageSampleView = ref object of View
     image: Image
     generatedImage: Image
@@ -13,9 +15,10 @@ method init*(v: ImageSampleView, r: Rect) =
         v.httpImage = i
         v.setNeedsDisplay()
 
-    sharedAssetManager().getAssetAtPath("cat.jpg") do(i: Image, err: string):
-        v.image = i
-        v.setNeedsDisplay()
+    lock sharedAssetManager as sam:
+        sam.getAssetAtPath("cat.jpg") do(i: Image, err: string):
+            v.image = i
+            v.setNeedsDisplay()
 
 proc renderToImage(c: GraphicsContext): Image =
     let r = imageWithSize(newSize(200, 80))

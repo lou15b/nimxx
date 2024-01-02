@@ -10,6 +10,8 @@ import nimwebp / decoder
 import ./load_image_impl
 import ./write_image_impl
 
+import malebolgia/lockers
+
 type
     Image* = ref object of RootObj
         texCoords*: array[4, GLfloat]
@@ -235,7 +237,8 @@ proc imageWithContentsOfFile*(path: string): SelfContainedImage =
     result.initWithContentsOfFile(path)
 
 proc imageWithResource*(name: string): Image =
-    result = sharedAssetManager().cachedAsset(Image, name)
+    lock sharedAssetManager as sam:
+        result = sam.cachedAsset(Image, name)
 
 proc imageWithSize*(size: Size): SelfContainedImage =
     result = newSelfContainedImage()

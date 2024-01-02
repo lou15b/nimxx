@@ -4,6 +4,8 @@ import nimxx / [ view, segmented_control, color_picker, button, image, image_vie
                 text_field, slider, popup_button, progress_indicator ]
 import nimxx/assets/asset_manager
 
+import malebolgia/lockers
+
 type ControlsSampleView = ref object of View
 
 method init(v: ControlsSampleView, r: Rect) =
@@ -63,8 +65,9 @@ method init(v: ControlsSampleView, r: Rect) =
     pb.items = @["Popup button", "Item 1", "Item 2"]
     v.addSubview(pb)
 
-    sharedAssetManager().getAssetAtPath("cat.jpg") do(i: Image, err: string):
-        discard newImageButton(v, newPoint(260, 90), newSize(32, 32), i)
+    lock sharedAssetManager as sam:
+        sam.getAssetAtPath("cat.jpg") do(i: Image, err: string):
+            discard newImageButton(v, newPoint(260, 90), newSize(32, 32), i)
 
     let tfLabel = newLabel(newRect(330, 150, 150, 20))
     tfLabel.text = "<-- Enter some text"
@@ -85,12 +88,13 @@ method init(v: ControlsSampleView, r: Rect) =
         discard
     v.addSubview(cp)
 
-    sharedAssetManager().getAssetAtPath("tile.png") do(i: Image, err: string):
-        let imageView = newImageView(newRect(0, 400, 300, 150), i)
-        v.addSubview(imageView)
+    lock sharedAssetManager as sam:
+        sam.getAssetAtPath("tile.png") do(i: Image, err: string):
+            let imageView = newImageView(newRect(0, 400, 300, 150), i)
+            v.addSubview(imageView)
 
-        let popupFillRule = newPopupButton(v, newPoint(420, 400), newSize(100, 20), ["NoFill", "Stretch", "Tile", "FitWidth", "FitHeight"])
-        popupFillRule.onAction do():
-            imageView.fillRule = popupFillRule.selectedIndex().ImageFillRule
+            let popupFillRule = newPopupButton(v, newPoint(420, 400), newSize(100, 20), ["NoFill", "Stretch", "Tile", "FitWidth", "FitHeight"])
+            popupFillRule.onAction do():
+                imageView.fillRule = popupFillRule.selectedIndex().ImageFillRule
 
 registerSample(ControlsSampleView, "Controls")

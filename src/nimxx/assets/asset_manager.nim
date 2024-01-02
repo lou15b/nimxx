@@ -25,16 +25,7 @@ proc newAssetManager(): AssetManager =
     result.mounts = @[]
     result.defaultCache = newAssetCache()
 
-var gAssetManager = newAssetManager()
-
-when compileOption("threads"):
-    let gAssetManagerPtr = cast[pointer](gAssetManager)
-
-template sharedAssetManager*(): AssetManager =
-    when compileOption("threads"):
-        cast[AssetManager](gAssetManagerPtr)
-    else:
-        gAssetManager
+var sharedAssetManager* = initLocker(newAssetManager())
 
 proc setDefaultAssetBundle*(am: AssetManager, ab: AssetBundle) =
     assert(am.mDefaultAssetBundle.isNil, "Default asset bundle is already set")
@@ -208,13 +199,17 @@ proc dump*(am: AssetManager): string =
         result &= "\n" & m.path & ": " & $m.refCount
 
 registerUrlHandler("res") do(url: string, handler: Handler) {.gcsafe.}:
-    openStreamForUrl(sharedAssetManager().resolveUrl(url), handler)
+    var  resurl: string
+    lock sharedAssetManager as sam:
+        resurl = sam.resolveUrl(url)
+    openStreamForUrl(resurl, handler)
 
 lock hackyResUrlLoader as hrl:
     hrl = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
         const prefix = "res://"
         assert(url.startsWith(prefix))
         let p = url.substr(prefix.len)
-        sharedAssetManager().getAssetAtPathAux(p, false) do(res: Variant, err: string):
-            cache[path] = res
-            handler(err)
+        lock sharedAssetManager as sam:
+            sam.getAssetAtPathAux(p, false) do(res: Variant, err: string):
+                cache[path] = res
+                handler(err)
