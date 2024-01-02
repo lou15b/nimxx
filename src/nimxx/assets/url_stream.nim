@@ -1,5 +1,5 @@
-import streams, strutils, tables, rlocks
-import ../utils/lock_utils
+import streams, strutils, tables
+import malebolgia/lockers
 
 export streams
 
@@ -7,12 +7,7 @@ type Error = string
 type Handler* = proc(s: Stream, error: Error) {.gcsafe.}
 type UrlHandler = proc(url: string, handler: Handler) {.gcsafe.}
 
-var urlHandlersLock: RLock
-urlHandlersLock.initRLock()
-var urlHandlers {.guard: urlHandlersLock.}: TableRef[string, UrlHandler]
-
-template getUrlHandlers(): TableRef[string, UrlHandler] =
-    urlHandlers
+var urlHandlers = initLocker(newTable[string, UrlHandler]())
 
 proc urlScheme(s: string): string =
     let i = s.find(':') - 1
@@ -25,18 +20,16 @@ proc openStreamForUrl*(url: string, handler: Handler) {.gcsafe.} =
     if scheme.len == 0:
         raise newException(Exception, "Invalid url: \"" & url & "\"")
     var uh: UrlHandler
-    withRLockGCsafe(urlHandlersLock):
-        uh = getUrlHandlers().getOrDefault(scheme)
+    lock urlHandlers as uhs:
+        uh = uhs.getOrDefault(scheme)
     if uh.isNil:
         raise newException(Exception, "No url handler for scheme " & scheme)
     uh(url, handler)
 
 proc registerUrlHandler*(scheme: string, handler: UrlHandler) =
-    withRLockGCsafe(urlHandlersLock):
-        if urlHandlers.isNil:
-            urlHandlers = newTable[string, UrlHandler]()
-        assert(scheme notin urlHandlers)
-        urlHandlers[scheme] = handler
+    lock urlHandlers as uhs:
+        assert(scheme notin uhs)
+        uhs[scheme] = handler
 
 proc getPathFromFileUrl(url: string): string =
     const prefixLen = len("file://")
