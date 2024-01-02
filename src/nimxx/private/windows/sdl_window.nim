@@ -6,6 +6,7 @@ import ../sdl_vk_map
 import ../../utils/lock_utils
 import opengl
 import times, logging
+import malebolgia/lockers
 
 export abstract_window
 
@@ -73,6 +74,7 @@ else:
 
 proc getSDLWindow*(wnd: SdlWindow): WindowPtr = wnd.impl
 
+# The value for this global is fetched/updated atomically, so it doesn't need a lock
 var animationEnabled = false
 
 proc checkImpl(wnd: SdlWindow) = assert(not wnd.impl.isNil) # internal error
@@ -119,7 +121,8 @@ method animationStateChanged*(w: SdlWindow, state: bool) =
 
 # SDL does not provide window id in touch event info, so we add this workaround
 # assuming that touch devices may have only one window.
-var defaultWindow {.threadvar.}: SdlWindow
+var twx: SdlWindow
+var touchWindow = initLocker(twx)
 
 proc flags(w: SdlWindow): cuint=
     result = SDL_WINDOW_OPENGL or SDL_WINDOW_RESIZABLE or SDL_WINDOW_ALLOW_HIGHDPI or SDL_WINDOW_HIDDEN
@@ -204,8 +207,11 @@ proc initSdlWindow(w: SdlWindow, r: view.Rect) =
     if w.impl == nil:
         error "Could not create window!"
         quit 1
-    if defaultWindow.isNil:
-        defaultWindow = w
+    # The first window created is deemed to be the only "touch" window
+    # On tablets there is no other window
+    lock touchWindow as tw:
+        if tw.isNil:
+            tw = w
 
     w.updatePixelRatio()
     if w.pixelRatio != 1.0:
@@ -312,11 +318,12 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
                 else: bsUnknown
 
             let touchEv = cast[TouchFingerEventPtr](event)
-            result = newTouchEvent(
-                                   newPoint(touchEv.x * defaultWindow.frame.width, touchEv.y * defaultWindow.frame.height),
-                                   bs, int(touchEv.fingerID), touchEv.timestamp
-                                   )
-            result.window = defaultWindow
+            lock touchWindow as tw:
+                result = newTouchEvent(
+                                    newPoint(touchEv.x * tw.frame.width, touchEv.y * tw.frame.height),
+                                    bs, int(touchEv.fingerID), touchEv.timestamp
+                                    )
+                result.window = tw
             when defined(macosx) and not defined(ios):
                 result.kind = etUnknown # TODO: Fix apple trackpad problem
 
@@ -420,8 +427,9 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
         of DisplayEvent:
             # Sometimes happens on android resulting in black screen, so we need to
             # redraw.
-            if not defaultWindow.isNil:
-                defaultWindow.setNeedsDisplay()
+            lock touchWindow as tw:
+                if not tw.isNil:
+                    tw.setNeedsDisplay()
         of KeymapChanged:
             discard # What should we do with it?
         of QuitEvent:
