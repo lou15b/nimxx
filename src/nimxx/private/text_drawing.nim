@@ -1,6 +1,7 @@
 import unicode
 import ../font, ../composition, ../context, ../types
 
+# The value in this global (bool) is retrieved and set atomically, so doesn't need a lock
 var textSubpixelDrawing = true
 proc enableTextSubpixelDrawing*(state: bool) =
     textSubpixelDrawing = state
