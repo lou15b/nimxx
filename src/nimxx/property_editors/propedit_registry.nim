@@ -5,6 +5,7 @@ import ../font
 import ../property_visitor
 
 import variant
+import malebolgia/lockers
 
 type
     PropertyEditorView* = ref object of View
@@ -14,22 +15,22 @@ type
     PropertyEditorCreator*[T] = proc(setter: proc(s: T) {.gcsafe.}, getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
     RegistryTableEntry = proc(editedObject: Variant, v: Variant): PropertyEditorView {.gcsafe.}
 
-var propEditors {.threadvar.}: Table[TypeId, RegistryTableEntry]
-propEditors = initTable[TypeId, RegistryTableEntry]()
+var propEditors = initLocker(initTable[TypeId, RegistryTableEntry]())
 
 proc registerPropertyEditorAUX[T, C](createView: C) =
-    propEditors[getTypeId(SetterAndGetter[T])] = proc(n: Variant, v: Variant): PropertyEditorView {.gcsafe.} =
-        let sng = v.get(SetterAndGetter[T])
-        var r: PropertyEditorView
-        proc setterAUX(s: T) {.gcsafe.} =
-            sng.setter(s)
-            if not r.isNil and not r.onChange.isNil:
-                r.onChange()
-        when C is PropertyEditorCreatorWO:
-            r = createView(n, setterAUX, sng.getter)
-        else:
-            r = createView(setterAUX, sng.getter)
-        result = r
+    lock propEditors as peds:
+        peds[getTypeId(SetterAndGetter[T])] = proc(n: Variant, v: Variant): PropertyEditorView {.gcsafe.} =
+            let sng = v.get(SetterAndGetter[T])
+            var r: PropertyEditorView
+            proc setterAUX(s: T) {.gcsafe.} =
+                sng.setter(s)
+                if not r.isNil and not r.onChange.isNil:
+                    r.onChange()
+            when C is PropertyEditorCreatorWO:
+                r = createView(n, setterAUX, sng.getter)
+            else:
+                r = createView(setterAUX, sng.getter)
+            result = r
 
 proc registerPropertyEditor*[T](createView: PropertyEditorCreatorWO[T]) =
     registerPropertyEditorAUX[T, PropertyEditorCreatorWO[T]](createView)
@@ -63,7 +64,9 @@ template createEditorAUX(r: Rect) =
 
 proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant,
   onChange: proc() {.gcsafe.} = nil, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
-    let creator = propEditors.getOrDefault(v.typeId)
+    var creator: RegistryTableEntry
+    lock propEditors as peds:
+        creator = peds.getOrDefault(v.typeId)
     result = View.new(newRect(0, 0, 328, editorRowHeight))
     result.name = "'" & title & "'"
     result.autoresizingMask = {afFlexibleWidth, afFlexibleMaxY}
@@ -79,7 +82,9 @@ proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant
         createEditorAUX(newRect(label.frame.width, 0, result.bounds.width - label.frame.width, result.bounds.height))
 
 proc propertyEditorForProperty*(editedObject: Variant, v: Variant, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
-    let creator = propEditors.getOrDefault(v.typeId)
+    var creator: RegistryTableEntry
+    lock propEditors as peds:
+        creator = peds.getOrDefault(v.typeId)
     result = View.new(newRect(0, 0, 228, editorRowHeight))
     result.autoresizingMask = {afFlexibleWidth, afFlexibleMaxY}
     if creator.isNil:
