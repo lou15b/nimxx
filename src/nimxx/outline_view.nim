@@ -63,6 +63,10 @@ template xOffsetForIndexPath(ip: IndexPath): Coord =
 proc configureCellAUX(v: OutlineView, n: ItemNode, y: Coord, indexPath: IndexPath) =
     if n.cell.isNil:
         n.cell = v.createCell()
+        # Note that the cell is NOT a subview of the outline view, it's drawn as *part* of the view
+        # because the outline view must control the drawing according to whether the cell's parent
+        # has been expanded
+        (n.cell).moveToWindow(v.window)
     n.cell.selected = indexPath == v.selectedIndexPath
     let indent = xOffsetForIndexPath(indexPath)
     n.cell.setFrame(newRect(indent + 6, y, v.bounds.width - indent - 6, rowHeight))

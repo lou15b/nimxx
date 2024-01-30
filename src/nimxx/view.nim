@@ -175,7 +175,7 @@ method init*(v: View, frame: Rect) {.base, gcsafe.} =
     v.autoresizingMask = { afFlexibleMaxX, afFlexibleMaxY }
     v.usesNewLayout = frame == zeroRect
 
-method getClassName*(v: View): string {.base.} =
+method getClassName*(v: View): string {.base, gcsafe.} =
     result = "View"
 
 method getClassName*(w: Window): string =
@@ -295,7 +295,9 @@ method viewDidMoveToWindow*(v: View){.base, gcsafe.} =
     for s in v.subviews:
         s.viewDidMoveToWindow()
 
-proc moveToWindow(v: View, w: Window) =
+# This is public because there is at least one case where a view must have its window field explicitly set
+# (see configureCellAUX in outline_view.nim)
+proc moveToWindow*(v: View, w: Window) =
     v.window = w
     for s in v.subviews:
         s.moveToWindow(w)
