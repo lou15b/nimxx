@@ -1,5 +1,5 @@
 import ./property_desc
-import macros
+import std/macros
 
 macro genVisitorProc(typdesc: typed{nkSym}): untyped=
     result = newNimNode(nnkStmtList)

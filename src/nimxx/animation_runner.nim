@@ -1,6 +1,6 @@
 import ./animation
-import times
-import logging
+import std/times
+import std/logging
 
 ##[
     Provides pause/resume/update control for a collection of Animations. AnimationRunner objects are

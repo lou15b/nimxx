@@ -1,4 +1,4 @@
-import typetraits
+import std/typetraits
 
 type SampleInfo = tuple[name: string, className: string]
 

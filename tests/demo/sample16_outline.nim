@@ -1,6 +1,6 @@
 import ./sample_registry
 import nimxx / [ view, outline_view, scroll_view, table_view_cell, text_field ]
-import variant
+import pkg/variant
 
 type
     DataItem = ref object

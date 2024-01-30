@@ -1,4 +1,4 @@
-import macros
+import std/macros
 
 proc replaceIf*(inNode, withNode: NimNode, predicate: proc(n: NimNode): bool) =
     ## Recursively replaces all nodes matching `predicate` in `inNode` with
@@ -33,7 +33,7 @@ macro staticFor*(cond: untyped, body: untyped): untyped =
             result.add(copiedBody)
 
 when isMainModule:
-    import typetraits
+    import std/typetraits
 
     proc testProc() =
         block:

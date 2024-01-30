@@ -1,4 +1,4 @@
-import strutils
+import std/strutils
 import ./sample_registry
 import nimxx / [ view, context, animation, window, button, progress_indicator, text_field, font, types ]
 import nimxx/editor/bezier_view

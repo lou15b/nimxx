@@ -1,7 +1,7 @@
-import macros, times
+import std / [ macros, times ]
 import ./ [ view, table_view_cell, text_field, context, app, view_event_handling, font ]
 import ./utils/lock_utils
-import rlocks
+import std/rlocks
 
 type MenuItem* = ref object of RootObj
     title*: string

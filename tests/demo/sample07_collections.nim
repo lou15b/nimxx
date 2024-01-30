@@ -1,4 +1,4 @@
-import strutils
+import std/strutils
 import ./sample_registry
 import nimxx / [ collection_view, popup_button, slider, text_field, timer, view ]
 

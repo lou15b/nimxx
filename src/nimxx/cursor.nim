@@ -1,12 +1,12 @@
-import rlocks
-import utils/lock_utils
+import std/rlocks
+import ./utils/lock_utils
 
 const useAppKit = defined(macosx) and not defined(ios)
 
 when useAppKit:
-    import darwin/app_kit as apkt
+    import pkg/darwin/app_kit as apkt
 else:
-    import sdl2
+    import pkg/sdl2
 
 
 type

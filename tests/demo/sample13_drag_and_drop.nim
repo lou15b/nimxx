@@ -1,10 +1,10 @@
-import variant
+import pkg/variant
 import ./sample_registry
 import nimxx / [ view, view_event_handling, drag_and_drop, text_field, expanding_view,
                 view_render_to_image ]
 import nimxx/pasteboard/pasteboard_item
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type DragAndDropView = ref object of View
 type MyDropDelegate* = ref object of DragDestinationDelegate

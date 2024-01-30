@@ -1,7 +1,7 @@
-import os
+import std/os
 import ./abstract_asset_bundle
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 var nativeAssetBasePath = initLocker(getAppDir())
 

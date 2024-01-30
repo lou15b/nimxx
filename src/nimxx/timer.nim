@@ -1,11 +1,11 @@
-import times, rlocks
+import std / [ times, rlocks ]
 import ./mini_profiler
 import ./utils/lock_utils
 
 when defined(macosx):
     type TimerID = pointer
 else:
-    import sdl2
+    import pkg/sdl2
 
 type TimerState = enum
     tsInvalid

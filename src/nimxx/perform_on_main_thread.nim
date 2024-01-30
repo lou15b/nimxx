@@ -1,4 +1,4 @@
-import sdl2
+import pkg/sdl2
 
 {.push stack_trace:off.}
 proc performOnMainThread*(fun: proc(data: pointer) {.cdecl.}, data: pointer): int {.discardable.} =

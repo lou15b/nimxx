@@ -1,8 +1,8 @@
 import ./ [ context_base, types, portable_gl, image ]
 import ./private/helper_macros
-import strutils, tables, hashes
-import nimsl/nimsl
-import malebolgia/lockers
+import std / [ strutils, tables, hashes ]
+import pkg/nimsl/nimsl
+import pkg/malebolgia/lockers
 
 export portable_gl
 

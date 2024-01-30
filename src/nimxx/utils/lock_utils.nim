@@ -4,7 +4,7 @@
   acquired in the same thread
 ]##
 
-import rlocks
+import std/rlocks
 
 template withRLockGCsafe*(lock: RLock, code: untyped) =
   ## A version of "withRLock" that adds gcsafe to the locks pragma. Inspired by Mastering Nim 2nd ed (p.269)

@@ -1,9 +1,9 @@
 import ./types
-import opengl
+import pkg/opengl
 import ./system_logger
 import ./matrixes
 import ./portable_gl
-import nimsl/nimsl
+import pkg/nimsl/nimsl
 
 export matrixes
 

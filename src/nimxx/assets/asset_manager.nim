@@ -1,9 +1,9 @@
-import strutils, tables
-import variant
+import std / [ strutils, tables ]
+import pkg/variant
 import ./ [ abstract_asset_bundle, asset_cache, url_stream, asset_loading, asset_loader ]
 import ../pathutils
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type
     MountEntry = tuple

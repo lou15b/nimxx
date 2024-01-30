@@ -1,4 +1,4 @@
-import json
+import std/json
 type Serializer* = ref object of RootObj
     curKey*: string
 

@@ -1,5 +1,5 @@
 import ./types
-import math
+import std/math
 
 type Matrix4* = array[16, Coord]
 type Matrix3* = array[9, Coord]

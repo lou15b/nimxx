@@ -6,8 +6,8 @@ import ./view_event_handling
 
 import ./scroll_view
 
-import math
-import variant
+import std/math
+import pkg/variant
 
 # Quick and dirty implementation of outline view
 

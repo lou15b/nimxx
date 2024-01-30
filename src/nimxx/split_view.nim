@@ -1,4 +1,4 @@
-import kiwi
+import pkg/kiwi
 
 import ./ [ view, window, cursor, view_event_handling, layout_vars ]
 

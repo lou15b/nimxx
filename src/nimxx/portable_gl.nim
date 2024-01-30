@@ -1,5 +1,5 @@
 
-import opengl
+import pkg/opengl
 # export opengl
 
 export GLuint, GLint, GLfloat, GLenum, GLsizei, GLushort, GLbitfield, opengl.`or`

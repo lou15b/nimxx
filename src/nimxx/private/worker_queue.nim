@@ -1,5 +1,5 @@
-import locks except Lock, acquire, release, tryAcquire
-import rlocks
+import std/locks except Lock, acquire, release, tryAcquire
+import std/rlocks
 
 type TaskListNode = object
     p: proc(data: pointer) {.cdecl, gcsafe.}
@@ -66,7 +66,7 @@ proc addTask*(q: WorkerQueue, p: proc(data: pointer) {.cdecl, gcsafe.}, data: po
     q.queueLock.release()
 
 when isMainModule:
-    import os
+    import std/os
     proc worker(data: pointer) {.cdecl.} =
         echo "worker doing: ", cast[int](data)
         sleep(500)

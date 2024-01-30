@@ -1,11 +1,11 @@
-import sequtils
-import threading/smartptrs
+import std/sequtils
+import pkg/threading/smartptrs
 import std/isolation
 
 import ./abstract_window
 import ./event
 import ./window_event_handling
-import rlocks, logging
+import std / [ rlocks, logging ]
 
 type EventFilterControl* = enum
     efcContinue

@@ -1,4 +1,4 @@
-import math
+import std/math
 import ./view
 import ./context
 import ./types

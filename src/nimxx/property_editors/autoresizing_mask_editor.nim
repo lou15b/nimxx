@@ -1,10 +1,7 @@
-import ../property_visitor
 import ../popup_button
 import ../linear_layout
 
 import ./propedit_registry
-
-import variant
 
 proc newAutoresizingMaskPropertyView(setter: proc(s: set[AutoresizingFlag]) {.gcsafe.}, getter: proc(): set[AutoresizingFlag] {.gcsafe.}): PropertyEditorView =
     result = PropertyEditorView.new(newRect(0, 0, 208, editorRowHeight))

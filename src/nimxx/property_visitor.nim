@@ -1,7 +1,7 @@
 import ./types
 
-import tables
-import variant
+import std/tables
+import pkg/variant
 
 type
     Setter*[T] = proc(v: T) {.gcsafe.}

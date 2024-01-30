@@ -1,7 +1,8 @@
-import os, streams, variant, logging
+import std / [ os, streams, logging ]
+import pkg/variant
 import ./asset_cache, ./url_stream
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type UrlLoaderProc* = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
 type SimpleUrlLoaderProc*[T] = proc(url: string, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}

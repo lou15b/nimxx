@@ -1,10 +1,10 @@
-import tables, sequtils, macros
+import std / [ tables, sequtils, macros ]
 
-import variant # for legacy api
+import pkg/variant # for legacy api
 export variant
 
 when defined(debugNC):
-    import logging
+    import std/logging
 
 type
     NotificationCenter* = ref object

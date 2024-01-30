@@ -1,4 +1,4 @@
-import strutils, os, parseutils
+import std / [ strutils, os, parseutils ]
 
 proc urlParentDir*(url: string): string =
     let schemeEnd = url.find(':')

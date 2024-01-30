@@ -1,12 +1,12 @@
-import sdl2 except Event, Rect, Point
+import pkg/sdl2 except Event, Rect, Point
 
 import ../../ [ abstract_window, view, context, event, app, linkage_details,
                 portable_gl ]
 import ../sdl_vk_map
 import ../../utils/lock_utils
-import opengl
-import times, logging
-import malebolgia/lockers
+import pkg/opengl
+import std / [ times, logging ]
+import pkg/malebolgia/lockers
 
 export abstract_window
 
@@ -19,7 +19,7 @@ when not x11Platform and not appkitPlatform:
     import ../../screen
 
 when defined(nimxAsyncRunloop):
-    import asyncdispatch
+    import std/asyncdispatch
 
 proc initSDLIfNeeded() =
     var sdlInitialized {.global.} = false
@@ -135,12 +135,12 @@ proc flags(w: SdlWindow): cuint=
         # result = result or SDL_WINDOW_HIDDEN
 
 when appkitPlatform:
-    import darwin/app_kit/nswindow
+    import pkg/darwin/app_kit/nswindow
 elif x11Platform:
-    import x11/[ xresource, xlib ], parseutils
+    import pkg/x11/[ xresource, xlib ], parseutils
 
 # when waylandPlatform:
-#     import wayland/client as wl
+#     import pkg/wayland/client as wl
 
 when x11Platform:
     proc getX11Display(w: SdlWindow): PDisplay =

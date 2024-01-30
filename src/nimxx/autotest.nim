@@ -1,4 +1,4 @@
-import macros, logging, strutils
+import std / [ macros, logging, strutils ]
 import ./ [ timer, app, event, abstract_window, button ]
 import ./utils/lock_utils
 
@@ -154,10 +154,10 @@ when false:
     trunner.registerTest(myTest)
 
 when defined(android):
-    import jnim
-    import android/app/activity, android/content/intent, android/os/base_bundle
+    import pkg/jnim
+    import pkg/android/app/activity, pkg/android/content/intent, pkg/android/os/base_bundle
 else:
-    import os
+    import std/os
 
 proc getAllTestNames(runner: TestRunner): seq[string] =
     result = newSeq[string](runner.registeredTests.len)

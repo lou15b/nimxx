@@ -1,5 +1,5 @@
-import kiwi
-import threading/smartptrs
+import pkg/kiwi
+import pkg/threading/smartptrs
 
 type
   LayoutVars* = object

@@ -1,8 +1,8 @@
-import strutils, streams, logging
+import std / [ strutils, streams, logging ]
 import ./font_data
 import ../../assets/url_stream
-import rect_packer
-import ttf
+import pkg/rect_packer
+import pkg/ttf
 
 type StbTtfGlyphProvider* = ref object
     path: string

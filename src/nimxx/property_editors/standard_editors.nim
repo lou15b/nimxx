@@ -1,6 +1,6 @@
-import strutils
-import tables
-import algorithm
+import std/strutils
+import std/tables
+import std/algorithm
 
 import ../view
 import ../text_field
@@ -18,11 +18,11 @@ import ../image_preview
 
 import ./propedit_registry
 
-import variant
+import pkg/variant
 
 #### Hacked out - we need to have our own file dialog
 # when not defined(android) and not defined(ios):
-#     import os_files/dialog
+#     import pkg/os_files/dialog
 
 template toStr(v: SomeFloat, precision: uint): string = formatFloat(v, ffDecimal, precision)
 template toStr(v: SomeInteger): string = $v

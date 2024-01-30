@@ -33,6 +33,7 @@ requires "darwin"
 # requires "https://github.com/tormund/nester"  # Used by naketools.nim
 requires "nimwebp"  # Used (indirectly) by image.nim to decode an image being downloaded from the Web
 requires "https://github.com/yglukhov/clipboard"  # Used for copy/paste functionality
+requires "threading"
 
 
 # "Unpublished" packages that have been copied to local "imported" directory

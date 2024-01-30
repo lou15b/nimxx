@@ -2,7 +2,7 @@ import ./linear_layout
 import ./property_visitor
 import ./property_editors/propedit_registry
 
-import variant
+import pkg/variant
 
 export linear_layout
 

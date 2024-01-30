@@ -1,9 +1,9 @@
 
-import math
-import macros
-import algorithm
-import logging
-import times
+import std/math
+import std/macros
+import std/algorithm
+import std/logging
+import std/times
 
 ##[
     An Animation provides the timing/progress infrastructure that controls the "animated" portion of a view. Note that
@@ -589,7 +589,7 @@ method tick*(a: MetaAnimation, t: float) =
 
 
 when isMainModule:
-    import rlocks
+    import std/rlocks
     import ./utils/lock_utils
 
     proc emulateAnimationRun(a: Animation, startTime, endTime, fps: float): float =

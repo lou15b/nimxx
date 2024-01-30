@@ -5,8 +5,8 @@ import ./composition
 import ./animation
 import ./abstract_window
 
-import times
-import math
+import std/times
+import std/math
 
 type ProgressIndicator* = ref object of View
     mValue: Coord

@@ -1,5 +1,5 @@
 {.used.}
-import json
+import std/json
 import std/async
 
 import ./editor_types
@@ -11,7 +11,7 @@ const ViewPboardKind* = "io.github.yglukhov.nimx"
 
 #### Hacked out - we need to have our own file dialog
 # when savingAndLoadingEnabled:
-#     import os_files / dialog
+#     import pkg/os_files / dialog
 
 proc newUIDocument*(e: Editor): UIDocument =
     result.new()

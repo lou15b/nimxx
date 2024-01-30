@@ -1,4 +1,4 @@
-import strutils, math, times
+import std / [ strutils, math, times ]
 import ./ [ text_field, formatted_text, view_event_handling, composition,
     context, animation, window ]
 # import ./keyboard

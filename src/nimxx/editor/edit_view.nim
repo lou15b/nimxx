@@ -1,4 +1,4 @@
-import times, json, math
+import std / [ times, json, math ]
 import std/async
 
 import ../ [ view, context, undo_manager, toolbar, button, menu, inspector_panel,

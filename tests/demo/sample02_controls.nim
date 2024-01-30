@@ -4,7 +4,7 @@ import nimxx / [ view, segmented_control, color_picker, button, image, image_vie
                 text_field, slider, popup_button, progress_indicator ]
 import nimxx/assets/asset_manager
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type ControlsSampleView = ref object of View
 

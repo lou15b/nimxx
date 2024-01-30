@@ -1,4 +1,4 @@
-import kiwi
+import pkg/kiwi
 
 proc equalConstraints(a, b: openarray[Expression], result: var openarray[Constraint]) =
     for i in 0 ..< a.len:

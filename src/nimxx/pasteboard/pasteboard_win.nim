@@ -1,8 +1,8 @@
 import ./abstract_pasteboard
 export abstract_pasteboard
 import ./pasteboard_item
-import winlean
-import os
+import std/winlean
+import std/os
 
 {.pragma: user32, stdcall, dynlib: "user32" .}
 {.pragma: kernel32, stdcall, dynlib: "kernel32" .}

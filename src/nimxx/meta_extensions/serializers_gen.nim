@@ -1,7 +1,7 @@
 import ./property_desc
 import ../ui_resource
 export ui_resource
-import macros
+import std/macros
 
 proc genSerializeCall(view, serializer, field: NimNode, isSerialize: bool): NimNode {.compileTime.}=
     let call = if isSerialize: ident("serialize") else: ident("deserialize")

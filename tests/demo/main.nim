@@ -2,8 +2,8 @@
 import ./ [ sample_registry, autotest_runner ]
 
 import nimxx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
-import sequtils, intsets
-import malebolgia/lockers
+import std / [ sequtils, intsets ]
+import pkg/malebolgia/lockers
 
 {.warning[UnusedImport]: off.}
 

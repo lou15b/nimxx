@@ -1,5 +1,5 @@
-import streams, strutils, tables
-import malebolgia/lockers
+import std / [ streams, strutils, tables ]
+import pkg/malebolgia/lockers
 
 export streams
 

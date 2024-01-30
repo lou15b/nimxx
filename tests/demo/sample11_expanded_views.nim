@@ -1,4 +1,4 @@
-import random
+import std/random
 import ./sample_registry
 import nimxx / [ view, font, button, expanding_view, stack_view ]
 

@@ -4,7 +4,7 @@ import ./types
 import ./image
 import ./pasteboard/pasteboard_item
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type DragSystem* = ref object
     itemPosition*: Point

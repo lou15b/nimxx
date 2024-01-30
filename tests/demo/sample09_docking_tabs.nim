@@ -1,4 +1,4 @@
-import random
+import std/random
 import ./sample_registry
 import nimxx / [ view, linear_layout, button ]
 import nimxx/editor/tab_view

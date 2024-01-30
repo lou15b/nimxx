@@ -1,7 +1,7 @@
 import ./types
-import unicode
+import std/unicode
 import ./abstract_window
-import atomics
+import std/atomics
 
 import ./keyboard
 export keyboard

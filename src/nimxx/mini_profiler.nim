@@ -1,4 +1,5 @@
-import tables, rlocks, threading/smartptrs
+import std / [ tables, rlocks ]
+import pkg/threading/smartptrs
 
 #[
     This code gathers user-defined global statistics.

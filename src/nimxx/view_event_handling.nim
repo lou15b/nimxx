@@ -1,5 +1,5 @@
 import ./ [ view, event, drag_and_drop, gesture_detector ]
-import tables, sequtils
+import std / [ tables, sequtils ]
 
 export event
 

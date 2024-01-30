@@ -1,5 +1,5 @@
-import math
-import kiwi
+import std/math
+import pkg/kiwi
 import ../ [ view, context, matrixes, font, linear_layout, button, menu, split_view, layout_vars ]
 import ../ [ view_event_handling ]
 

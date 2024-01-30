@@ -1,5 +1,5 @@
-import json, logging
-import url_stream
+import std / [ json, logging ]
+import ./url_stream
 
 proc loadJsonFromURL*(url: string, handler: proc(j: JsonNode) {.gcsafe.}) =
     openStreamForUrl(url) do(s: Stream, err: string):

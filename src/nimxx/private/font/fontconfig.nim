@@ -1,4 +1,4 @@
-import os, dynlib, strutils
+import std / [ os, dynlib, strutils ]
 
 const fontSearchPaths = when defined(macosx):
   [

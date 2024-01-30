@@ -1,4 +1,4 @@
-import math
+import std/math
 
 type Coord* = float32
 type ColorComponent* = float32

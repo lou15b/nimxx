@@ -1,5 +1,5 @@
 import ./ [ image, types, context, portable_gl ]
-import opengl
+import pkg/opengl
 
 type
     RTIContext* = tuple

@@ -2,7 +2,7 @@ import ./sample_registry
 import nimxx / [ view, image, context, render_to_image, font ]
 import nimxx/assets/asset_manager
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type ImageSampleView = ref object of View
     image: Image

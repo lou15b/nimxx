@@ -1,9 +1,9 @@
-import typetraits, tables
+import std / [ typetraits, tables ]
 import ./ [ types, context, animation_runner, layout_vars ]
 import ./property_visitor
 import ./class_registry
 import ./serializers
-import kiwi
+import pkg/kiwi
 import ./notification_center
 
 export types

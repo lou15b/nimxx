@@ -1,4 +1,4 @@
-import math # for PI
+import std/math # for PI
 import ./sample_registry
 import nimxx / [ view, context, animation, window, button, progress_indicator ]
 

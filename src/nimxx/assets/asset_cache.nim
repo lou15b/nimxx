@@ -1,5 +1,5 @@
-import tables
-import variant
+import std/tables
+import pkg/variant
 
 type AssetCache* = TableRef[string, Variant]
 

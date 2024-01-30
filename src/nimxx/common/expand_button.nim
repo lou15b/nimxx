@@ -1,5 +1,5 @@
 import ../ [ view, context, button ]
-import math
+import std/math
 
 type ExpandButton* = ref object of Button
     expanded*: bool

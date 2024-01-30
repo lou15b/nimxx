@@ -1,11 +1,11 @@
 import ./context_base
 import ./types
-import opengl
+import pkg/opengl
 import ./matrixes
 import ./image
-import math
+import std/math
 import ./portable_gl
-import nimsl/nimsl
+import pkg/nimsl/nimsl
 
 export matrixes, context_base
 import ./composition

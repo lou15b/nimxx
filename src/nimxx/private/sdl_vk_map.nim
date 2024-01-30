@@ -1,6 +1,6 @@
 import ../keyboard
-import tables, hashes
-import sdl2
+import std / [ tables, hashes ]
+import pkg/sdl2
 
 proc hash(s: Scancode): Hash {.inline.} = hash(int(s))
 

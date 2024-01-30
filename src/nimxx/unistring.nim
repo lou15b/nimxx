@@ -1,5 +1,5 @@
 
-import unicode
+import std/unicode
 
 proc uniInsert*(dest: var string, src: string, position: int) =
     var r: Rune

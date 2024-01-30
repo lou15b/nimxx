@@ -1,11 +1,11 @@
-import tables
+import std/tables
 import ../view
 import ../text_field
 import ../font
 import ../property_visitor
 
-import variant
-import malebolgia/lockers
+import pkg/variant
+import pkg/malebolgia/lockers
 
 type
     PropertyEditorView* = ref object of View

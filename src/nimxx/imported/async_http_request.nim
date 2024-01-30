@@ -13,13 +13,13 @@ type Response* = tuple[statusCode: int, status: string, body: string]
 type Handler* = proc (data: Response) {.gcsafe.}
 type ErrorHandler* = proc (e: ref Exception) {.gcsafe.}
 
-import httpclient, parseutils, uri
+import std / [ httpclient, parseutils, uri ]
 export HttpMethod
 
 type AsyncHttpRequestError* = object of CatchableError
 
 when defined(ssl):
-    import net
+    import std/net
 else:
     type SSLContext = ref object
 var defaultSslContext {.threadvar.}: SSLContext
@@ -41,7 +41,7 @@ proc parseStatusCode(s: string): int {.inline.} =
     discard parseInt(s, result)
 
 when defined(asyncHttpRequestAsyncIO):
-    import strtabs
+    import std/strtabs
 
     proc doAsyncRequest(cl: AsyncHttpClient, meth, url, body: string,
                         handler: Handler, onError: ErrorHandler) {.async.} =
@@ -87,7 +87,7 @@ when defined(asyncHttpRequestAsyncIO):
                                         onSuccess: Handler, onError: ErrorHandler) =
         doSendRequest(meth, url, body, headers, sslContext, onSuccess, onError)
 elif compileOption("threads"):
-    import threadpool
+    import std/threadpool
 
     type ThreadedHandler* = proc(r: Response, ctx: pointer) {.nimcall, gcsafe.}
 

@@ -1,16 +1,16 @@
-import math, tables, streams, logging, rlocks
+import std / [ math, tables, streams, logging, rlocks ]
 import ./ [ types, portable_gl, mini_profiler ]
 import ./utils/lock_utils
-import opengl
+import pkg/opengl
 
 import ./assets / [ asset_loading, url_stream, asset_manager ]
 import ./serializers
 
-import nimwebp / decoder
+import pkg/nimwebp/decoder
 import ./load_image_impl
 import ./write_image_impl
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type
     Image* = ref object of RootObj

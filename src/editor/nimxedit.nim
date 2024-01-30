@@ -3,7 +3,7 @@ import nimxx/autotest
 import nimxx/button, nimxx/text_field
 import nimxx/editor/edit_view
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 const isMobile = defined(ios) or defined(android)
 

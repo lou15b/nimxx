@@ -2,7 +2,7 @@
 import ./view
 import ./text_field
 
-import tables
+import std/tables
 
 type FormView* = ref object of View
     labelsMap: Table[string, int]

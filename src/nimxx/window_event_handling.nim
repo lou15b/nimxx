@@ -3,7 +3,7 @@ import ./abstract_window
 import ./view_event_handling
 import ./drag_and_drop
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 proc propagateEventThroughResponderChain(w: Window, e: var Event): bool =
     var r = w.firstResponder

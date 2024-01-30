@@ -4,11 +4,13 @@ import ./ [ view, animation, context, composition, image, notification_center,
 import ./utils/lock_utils
 # ################### mini_profiler related code
 import ./ [ mini_profiler, font ]
-import times
+import std/times
 # ################### 
-import tables, rlocks, threading/smartptrs
-import malebolgia/lockers
-import kiwi
+import std / [ tables, rlocks ]
+import pkg/threading/smartptrs 
+import pkg/malebolgia/lockers
+import pkg/kiwi
+
 export view
 
 # Window type is defined in view module

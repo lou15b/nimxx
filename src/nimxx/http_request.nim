@@ -1,7 +1,8 @@
 import ./imported/async_http_request
 export async_http_request
 
-import ./perform_on_main_thread, marshal, streams
+import ./perform_on_main_thread
+import std / [ marshal, streams ]
 
 proc storeToSharedBuffer*[T](a: T): pointer =
     let s = newStringStream()

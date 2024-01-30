@@ -1,5 +1,5 @@
-import math
-import strutils
+import std/math
+import std/strutils
 
 import ./view
 export view

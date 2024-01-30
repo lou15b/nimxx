@@ -1,4 +1,4 @@
-import unicode, logging
+import std / [ unicode, logging ]
 
 import ./ [ types, timer, portable_gl ]
 import ./private/font/font_data
@@ -6,10 +6,10 @@ import ./private/font/font_data
 import ./private/font/stb_ttf_glyph_provider
 type GlyphProvider = StbTtfGlyphProvider
 
-import os
-import malebolgia/lockers
+import std/os
+import pkg/malebolgia/lockers
 
-import ttf/edtaa3func
+import pkg/ttf/edtaa3func
 import ./private/simple_table
 
 when defined(android):

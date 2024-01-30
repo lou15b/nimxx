@@ -1,9 +1,9 @@
 import ./abstract_pasteboard
 export abstract_pasteboard
 import ./pasteboard_item
-import x11 / [ xlib, x, xatom ]
+import pkg/x11 / [ xlib, x, xatom ]
 import ../app, ../private/windows/sdl_window
-import sdl2
+import pkg/sdl2
 import ../utils/lock_utils
 
 type X11Pasteboard = object of Pasteboard

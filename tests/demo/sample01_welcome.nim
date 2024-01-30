@@ -3,7 +3,7 @@ import ./ [ sample_registry, autotest_runner ]
 import nimxx / [ view, font, context, composition, button, autotest,
                 gesture_detector, view_event_handling ]
 
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 const welcomeMessage = "Welcome to nimX"
 

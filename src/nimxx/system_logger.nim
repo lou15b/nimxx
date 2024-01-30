@@ -1,4 +1,4 @@
-import strutils, logging
+import std / [ strutils, logging ]
 
 when defined(macosx) or defined(ios):
     {.passL:"-framework Foundation".}

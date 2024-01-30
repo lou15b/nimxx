@@ -1,7 +1,7 @@
 import ./ [ control, context, font, types, event, abstract_window, timer, table_view_cell,
     property_visitor, serializers, key_commands, formatted_text, scroll_view ]
-import unicode
-import clipboard
+import std/unicode
+import pkg/clipboard
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 

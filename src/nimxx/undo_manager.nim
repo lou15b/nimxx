@@ -1,4 +1,4 @@
-import malebolgia/lockers
+import pkg/malebolgia/lockers
 
 type
     UndoManager* = ref object

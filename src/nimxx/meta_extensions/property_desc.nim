@@ -1,4 +1,4 @@
-import macros, tables, typetraits
+import std / [ macros, tables, typetraits ]
 import ../class_registry
 
 export class_registry

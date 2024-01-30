@@ -3,8 +3,8 @@ import ./ [ view, view_event_handling, table_view_cell, scroll_view, layout_vars
 
 import ./clip_view
 
-import intsets
-import kiwi
+import std/intsets
+import pkg/kiwi
 
 export view, table_view_cell
 
