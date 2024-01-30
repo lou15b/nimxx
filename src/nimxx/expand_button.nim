@@ -1,4 +1,4 @@
-import ../ [ view, context, button ]
+import ./ [ view, context, button ]
 import std/math
 
 type ExpandButton* = ref object of Button

@@ -6,7 +6,7 @@ import ./types
 import ./color
 
 import ./stack_view
-import ./common/expand_button
+import ./expand_button
 
 const titleSize = 20.0
 const expandButtonSize = 20.0
