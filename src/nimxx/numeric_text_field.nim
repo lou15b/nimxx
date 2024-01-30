@@ -11,6 +11,9 @@ type NumericTextField* = ref object of TextField
     touchAnim: Animation
     directionLeft: bool
 
+method getClassName*(v: NumericTextField): string =
+    result = "NumericTextField"
+
 proc newNumericTextField*(r: Rect, precision: uint = 2): NumericTextField =
     result.new()
     result.init(r)

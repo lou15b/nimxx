@@ -12,6 +12,12 @@ type WelcomeView = ref object of View
 
 type CustomControl* = ref object of Control
 
+method getClassName*(v: WelcomeView): string =
+    result = "WelcomeView"
+
+method getClassName*(v: CustomControl): string =
+    result = "CustomControl"
+
 method onScroll*(v: CustomControl, e: var Event): bool =
     echo "custom scroll ", e.offset
     result = true

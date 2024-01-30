@@ -7,6 +7,9 @@ type TableViewCell* = ref object of View
     row*, col*: int
     selected*: bool
 
+method getClassName*(v: TableViewCell): string =
+    result = "TableViewCell"
+
 proc newTableViewCell*(): TableViewCell =
     result.new()
     result.init(zeroRect)

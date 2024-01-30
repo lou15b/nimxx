@@ -6,6 +6,9 @@ type TimersSampleView = ref object of View
     timer: Timer
     intervalTextField: TextField
 
+method getClassName*(v: TimersSampleView): string =
+    result = "TimersSampleView"
+
 method init(t: TimersSampleView, r: Rect) =
     procCall t.View.init(r)
 

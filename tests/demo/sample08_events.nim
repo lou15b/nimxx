@@ -26,6 +26,21 @@ type
         clickPos: Point
 
 
+method getClassName*(v: EventsPriorityView): string =
+    result = "EventsPriorityView"
+
+method getClassName*(v: ContentView): string =
+    result = "ContentView"
+
+method getClassName*(v: ScissorView): string =
+    result = "ScissorView"
+
+method getClassName*(v: DraggedButton): string =
+    result = "DraggedButton"
+
+method getClassName*(v: CustomControl): string =
+    result = "CustomControl"
+
 ########################
 method init(v: ContentView, r: Rect) =
     procCall v.View.init(r)

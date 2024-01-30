@@ -14,6 +14,9 @@ type ScrollView* = ref object of View
 
 const scrollBarWidth = 12.Coord
 
+method getClassName*(v: ScrollView): string =
+    result = "ScrollView"
+
 method init*(v: ScrollView, r: Rect) =
     procCall v.View.init(r)
 

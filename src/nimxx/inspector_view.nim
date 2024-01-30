@@ -9,6 +9,9 @@ export linear_layout
 type InspectorView* = ref object of LinearLayout
     onPropertyChanged*: proc(name: string) {.gcsafe.}
 
+method getClassName*(v: InspectorView): string =
+    result = "InspectorView"
+
 method init*(v: InspectorView, r: Rect) =
     procCall v.LinearLayout.init(r)
     v.horizontal = false

@@ -26,6 +26,12 @@ type
 
     Label* = ref object of TextField
 
+method getClassName*(v: TextField): string =
+    result = "TextField"
+
+method getClassName*(v: Label): string =
+    result = "Label"
+
 template len[T](s: Slice[T]): T = s.b - s.a
 
 var cursorUpdateTimer {.threadvar.}: Timer

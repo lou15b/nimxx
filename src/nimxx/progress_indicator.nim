@@ -67,6 +67,9 @@ void compose() {
 }
 """
 
+method getClassName*(v: ProgressIndicator): string =
+    result = "ProgressIndicator"
+
 method init(v: ProgressIndicator, r: Rect) =
     procCall v.View.init(r)
     v.animation = newAnimation()

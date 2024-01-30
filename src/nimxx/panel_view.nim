@@ -24,6 +24,9 @@ template collapsed*(v: PanelView): bool = v.mCollapsed
 
 # PanelView implementation
 
+method getClassName*(v: PanelView): string =
+    result = "PanelView"
+
 method init*(v: PanelView, r: Rect) =
     procCall v.View.init(r)
     v.backgroundColor = newColor(0.5, 0.5, 0.5, 0.5)

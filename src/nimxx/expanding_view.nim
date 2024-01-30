@@ -23,6 +23,9 @@ type ExpandingView* = ref object of View
     titleBarColor*: Color
     titleTextColor*: Color
 
+method getClassName*(v: ExpandingView): string =
+    result = "ExpandingView"
+
 proc updateFrame(v: ExpandingView) =
     var expandRect = v.contentView.frame
     if v.hasOffset:

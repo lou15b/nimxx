@@ -31,6 +31,9 @@ proc newViewWrapper(view : View, pos: int): ViewWrapper =
     result.v = view
     result.pos = pos
 
+method getClassName*(v: HorizontalListView): string =
+    result = "HorizontalListView"
+
 method getCount*(a : Adapter): int {.base, gcsafe.} = discard
 method getView*(a: Adapter, position: int, convertView : View): View {.base, gcsafe.} = discard
 

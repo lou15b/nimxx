@@ -10,6 +10,9 @@ type InspectorPanel* = ref object of PanelView
     mOnPropertyChanged: proc(name: string) {.gcsafe.}
 
 
+method getClassName*(v: InspectorPanel): string =
+    result = "InspectorPanel"
+
 proc moveSubviewToBack(v, s: View) =
     let i = v.subviews.find(s)
     if i != -1:

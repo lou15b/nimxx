@@ -10,6 +10,9 @@ type
 
 type OutlineSampleView = ref object of View
 
+method getClassName*(v: OutlineSampleView): string =
+    result = "OutlineSampleView"
+
 proc addChild(p: DataItem, ch: DataItem): DataItem =
     p.children.add(ch)
     ch.parent = p

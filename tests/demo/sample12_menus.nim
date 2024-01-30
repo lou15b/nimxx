@@ -3,6 +3,9 @@ import nimxx / [ view, menu, button, text_field ]
 
 type MenuSampleView = ref object of View
 
+method getClassName*(v: MenuSampleView): string =
+    result = "MenuSampleView"
+
 proc leftOf(v: View, width: Coord): Rect =
     let f = v.frame
     result.origin.x = f.maxX + 5

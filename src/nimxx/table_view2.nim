@@ -43,6 +43,9 @@ proc `createCell=`*(v: TableView, p: proc(column: int): TableViewCell {.gcsafe.}
 
 proc rebuildConstraints(v: TableView) {.gcsafe.}
 
+method getClassName*(v: TableView): string =
+    result = "TableView"
+
 method init*(v: TableView, r: Rect) {.gcsafe.} =
     procCall v.View.init(r)
     v.numberOfColumns = 1
@@ -155,6 +158,9 @@ type TableRow = ref object of View
     topConstraint: Constraint
 
 registerClass(TableRow)
+
+method classgetClassName*Name(v: TableRow): string =
+    result = "TableRow"
 
 proc configureRow(r: TableRow, top: Coord) {.inline.} =
     if not r.topConstraint.isNil:

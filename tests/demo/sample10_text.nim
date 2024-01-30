@@ -27,6 +27,12 @@ iterator rangesOfSubstring(haystack, needle: string): (int, int) =
             yield (index, b)
             start = b
 
+method getClassName*(v: TextView): string =
+    result = "TextView"
+
+method getClassName*(v: TextSampleView): string =
+    result = "TextSampleView"
+
 method init(v: TextSampleView, r: Rect) =
     procCall v.View.init(r)
 

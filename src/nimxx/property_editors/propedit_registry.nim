@@ -17,6 +17,9 @@ type
 
 var propEditors = initLocker(initTable[TypeId, RegistryTableEntry]())
 
+method getClassName*(v: PropertyEditorView): string =
+    result = "PropertyEditorView"
+
 proc registerPropertyEditorAUX[T, C](createView: C) =
     lock propEditors as peds:
         peds[getTypeId(SetterAndGetter[T])] = proc(n: Variant, v: Variant): PropertyEditorView {.gcsafe.} =

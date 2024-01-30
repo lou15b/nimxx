@@ -56,6 +56,9 @@ type SdlWindow* = ref object of Window
     sdlGlContext: GlContextPtr
     isFullscreen: bool
 
+method getClassName*(v: SdlWindow): string =
+    result = "SdlWindow"
+
 when defined(ios) or defined(android):
     method fullscreen*(w: SdlWindow): bool = true
 else:

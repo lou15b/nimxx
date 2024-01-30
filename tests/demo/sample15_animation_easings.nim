@@ -12,6 +12,9 @@ type AnimationEasing = ref object of View
     animationCurved: Animation
     animationLinear: Animation
 
+method getClassName*(v: AnimationEasing): string =
+    result = "AnimationEasing"
+
 proc createAnimation(v: AnimationEasing, curved: bool): Animation=
     var a = newAnimation()
     a.loopDuration = 1.0

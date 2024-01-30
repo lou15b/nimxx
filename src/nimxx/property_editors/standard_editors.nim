@@ -90,6 +90,9 @@ type ColorComponentTextField = ref object of NumericTextField
     onBecomeFirstResponder: proc() {.gcsafe.}
     onResignFirstResponder: proc() {.gcsafe.}
 
+method getClassName*(v: ColorComponentTextField): string =
+    result = "ColorComponentTextField"
+
 method viewDidBecomeFirstResponder*(t: ColorComponentTextField) {.gcsafe.} =
     procCall t.NumericTextField.viewDidBecomeFirstResponder()
     if not t.onBecomeFirstResponder.isNil: t.onBecomeFirstResponder()

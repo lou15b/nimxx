@@ -8,6 +8,9 @@ type
         key: bool
         mOnAction: proc() {.gcsafe.}
 
+method getClassName*(v: BezierView): string =
+    result = "BezierView"
+
 proc onAction*(v: BezierView, cb: proc() {.gcsafe.})=
     v.mOnAction = cb
 

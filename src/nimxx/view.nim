@@ -175,6 +175,12 @@ method init*(v: View, frame: Rect) {.base, gcsafe.} =
     v.autoresizingMask = { afFlexibleMaxX, afFlexibleMaxY }
     v.usesNewLayout = frame == zeroRect
 
+method getClassName*(v: View): string {.base.} =
+    result = "View"
+
+method getClassName*(w: Window): string =
+    result = "Window"
+
 proc addMouseOverListener(w: Window, v: View) =
     let i = w.mouseOverListeners.find(v)
     if i == -1: w.mouseOverListeners.add(v)

@@ -5,6 +5,9 @@ import nimxx / [ view, font, button, expanding_view, stack_view ]
 type ExpandingSampleView = ref object of View
     welcomeFont: Font
 
+method getClassName*(v: ExpandingSampleView): string =
+    result = "ExpandingSampleView"
+
 method init(v: ExpandingSampleView, r: Rect) =
     procCall v.View.init(r)
 

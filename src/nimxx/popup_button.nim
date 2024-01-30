@@ -10,6 +10,9 @@ type PopupButton* = ref object of Control
     mItems: seq[MenuItem]
     mSelectedIndex: int
 
+method getClassName*(v: PopupButton): string =
+    result = "PopupButton"
+
 proc newPopupButton(r: Rect): PopupButton =
     result.new()
     result.init(r)

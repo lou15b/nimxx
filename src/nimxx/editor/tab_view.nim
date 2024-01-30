@@ -24,6 +24,12 @@ type TabView* = ref object of View
     onClose*: proc(v: View) {.gcsafe.}
     subviewConstraintProtos: seq[Constraint]
 
+method getClassName*(v: TabDraggingView): string =
+    result = "TabDraggingView"
+
+method getClassName*(v: TabView): string =
+    result = "TabView"
+
 proc contentFrame(v: TabView): Rect =
     result = v.bounds
     case v.mTabBarOrientation

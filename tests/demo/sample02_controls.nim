@@ -8,6 +8,9 @@ import malebolgia/lockers
 
 type ControlsSampleView = ref object of View
 
+method getClassName*(v: ControlsSampleView): string =
+    result = "ControlsSampleView"
+
 method init(v: ControlsSampleView, r: Rect) =
     procCall v.View.init(r)
 

@@ -4,6 +4,9 @@ import nimxx / [ collection_view, popup_button, slider, text_field, timer, view 
 
 type CollectionsSampleView = ref object of View
 
+method getClassName*(v: CollectionsSampleView): string =
+    result = "CollectionsSampleView"
+
 method init(v: CollectionsSampleView, r: Rect) =
     procCall v.View.init(r)
 

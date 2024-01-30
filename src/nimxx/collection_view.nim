@@ -38,6 +38,9 @@ const
     LayoutWidthAuto*: int = 0
 
 
+method getClassName*(v: CollectionView): string =
+    result = "CollectionView"
+
 proc updateLayout*(v: CollectionView)
 
 proc newCollectionView*(r: Rect, itemSize: Size, layoutDirection: LayoutDirection, layoutWidth: int = LayoutWidthAuto): CollectionView =

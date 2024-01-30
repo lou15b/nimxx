@@ -5,6 +5,9 @@ type ExpandButton* = ref object of Button
     expanded*: bool
     onExpandAction*: proc(state: bool) {.gcsafe.}
 
+method getClassName*(v: ExpandButton): string =
+    result = "ExpandButton"
+
 method init*(b: ExpandButton, r: Rect) =
     procCall b.Button.init(r)
 

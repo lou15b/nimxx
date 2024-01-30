@@ -2,6 +2,9 @@ import ./ [ button, view, types, color ]
 
 type StackView* = ref object of View
 
+method getClassName*(v: StackView): string =
+    result = "StackView"
+
 method init*(v: StackView, r: Rect) =
     procCall v.View.init(r)
     v.backgroundColor = contentViewColor()

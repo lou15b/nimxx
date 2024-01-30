@@ -8,6 +8,9 @@ proc newClipView*(r: Rect): ClipView =
     result.init(r)
     result.autoresizingMask = { afFlexibleWidth, afFlexibleHeight }
 
+method getClassName*(v: ClipView): string =
+    result = "ClipView"
+
 method subviewDidChangeDesiredSize*(v: ClipView, sub: View, desiredSize: Size) =
     v.superview.subviewDidChangeDesiredSize(v, desiredSize)
 

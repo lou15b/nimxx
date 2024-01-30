@@ -73,6 +73,27 @@ type
         # Callbacks
         onColorSelected*: proc(c: Color) {.gcsafe.}
 
+method getClassName*(v: ColorView): string =
+    result = "ColorView"
+
+method getClassName*(v: ColorPickerCircle): string =
+    result = "ColorPickerCircle"
+
+method getClassName*(v: ColorPickerH): string =
+    result = "ColorPickerH"
+
+method getClassName*(v: ColorPickerS): string =
+    result = "ColorPickerS"
+
+method getClassName*(v: ColorPickerV): string =
+    result = "ColorPickerV"
+
+method getClassName*(v: ColorPickerView): string =
+    result = "ColorPickerView"
+
+method getClassName*(v: ColorComponentTextField): string =
+    result = "ColorComponentTextField"
+
 template enclosingColorPickerView(v: View): ColorPickerView = v.enclosingViewOfType(ColorPickerView)
 
 proc newColorComponentTextField(r: Rect, comp: ColorComponent): ColorComponentTextField =

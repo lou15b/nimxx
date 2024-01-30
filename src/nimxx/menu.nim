@@ -105,11 +105,17 @@ proc newViewWithMenuItems(item: MenuItem, size: Size): MenuView =
         result.addSubview(cell)
         yOff += menuItemHeight
 
+method getClassName*(v: MenuView): string =
+    result = "MenuView"
+
 method draw(v: MenuView, r: Rect) =
     let c = v.window.renderingContext
     c.fillColor = newGrayColor(0.7)
     c.strokeWidth = 0
     c.drawRoundedRect(v.bounds, 5)
+
+method getClassName*(v: TriangleView): string =
+    result = "TriangleView"
 
 method draw(v: TriangleView, r: Rect) =
     let cell = v.enclosingTableViewCell()
@@ -118,6 +124,9 @@ method draw(v: TriangleView, r: Rect) =
     if not cell.isNil and cell.selected:
         c.fillColor = whiteColor()
     c.drawTriangle(v.bounds, 0)
+
+method getClassName*(v: SeparatorView): string =
+    result = "SeparatorView"
 
 method draw(v: SeparatorView, r: Rect) =
     let c = v.window.renderingContext

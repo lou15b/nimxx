@@ -6,6 +6,9 @@ type Control* = ref object of View
     actionHandler: proc(e: Event) {.gcsafe.}
     clickable*: bool
 
+method getClassName*(v: Control): string =
+    result = "Control"
+
 method sendAction*(c: Control, e: Event) {.base, gcsafe.} =
     if not c.actionHandler.isNil:
         c.actionHandler(e)

@@ -24,6 +24,9 @@ type ImagePreview* = ref object of PanelView
     imgScale*: float
     imageRect*: Rect
 
+method getClassName*(v: ImagePreview): string =
+    result = "ImagePreview"
+
 #todo: fix this, make image setter
 method init*(v: ImagePreview, r: Rect) =
     let maxLen = max(v.image.size.width, v.image.size.height)

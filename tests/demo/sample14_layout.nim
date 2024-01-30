@@ -4,8 +4,15 @@ import nimxx / [ view, window, button, text_field, layout, scroll_view, table_vi
 
 type LayoutSampleView = ref object of View
 
-
 type TestView = ref object of View
+
+
+method getClassName*(v: LayoutSampleView): string =
+    result = "LayoutSampleView"
+
+method getClassName*(v: TestView): string =
+    result = "TestView"
+
 method draw*(v: TestView, r: Rect) =
   procCall v.View.draw(r)
   let c = v.window.renderingContext

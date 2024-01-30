@@ -41,6 +41,9 @@ type
 
     IndexPath* = seq[int]
 
+method getClassName*(v: OutlineView): string =
+    result = "OutlineView"
+
 method init*(v: OutlineView, r: Rect) =
     procCall v.View.init(r)
     v.rootItem = ItemNode.new()

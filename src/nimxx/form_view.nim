@@ -7,6 +7,9 @@ import tables
 type FormView* = ref object of View
     labelsMap: Table[string, int]
 
+method getClassName*(v: FormView): string =
+    result = "FormView"
+
 proc newFormView*(r: Rect, numberOfFields: int, adjustFrameHeight: bool = true): FormView =
     result.new()
     let fieldHeight = 20.Coord

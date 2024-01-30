@@ -51,6 +51,15 @@ Button.properties:
     imageMarginLeft
     image
 
+method getClassName*(v: Button): string =
+    result = "Button"
+
+method getClassName*(v: Checkbox): string =
+    result = "Checkbox"
+
+method getClassName*(v: Radiobox): string =
+    result = "Radiobox"
+
 proc newButton*(r: Rect): Button =
     result.new()
     result.init(r)

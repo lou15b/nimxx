@@ -48,6 +48,9 @@ void compose() {
 }
 """
 
+method getClassName*(v: Slider): string =
+    result = "Slider"
+
 method draw*(s: Slider, r: Rect) =
     let c = s.window.renderingContext
     sliderComposition.draw(c, s.bounds):

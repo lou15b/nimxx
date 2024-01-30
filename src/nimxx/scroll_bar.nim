@@ -10,6 +10,9 @@ type ScrollBar* = ref object of Slider
                     # document is 0.5.
     trackingPos: Coord # Position of mouse coordinate (x or y depending on orientation) within knob
 
+method getClassName*(v: ScrollBar): string =
+    result = "ScrollBar"
+
 const minKnobSize = 0.05
 method init*(s: ScrollBar, r: Rect) =
     procCall s.Slider.init(r)

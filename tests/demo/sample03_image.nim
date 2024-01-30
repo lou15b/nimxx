@@ -9,6 +9,9 @@ type ImageSampleView = ref object of View
     generatedImage: Image
     httpImage: Image
 
+method getClassName*(v: ImageSampleView): string =
+    result = "ImageSampleView"
+
 method init*(v: ImageSampleView, r: Rect) =
     procCall v.View.init(r)
     loadImageFromURL("http://gravatar.com/avatar/71b7b08fbc2f989a8246913ac608cca9") do(i: Image):

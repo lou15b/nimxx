@@ -12,6 +12,12 @@ type DraggedView* = ref object of View
 
 const PboardSampleDrag* = "nimx.sample.drag"
 
+method getClassName*(v: DragAndDropView): string =
+    result = "DragAndDropView"
+
+method getClassName*(v: DraggedView): string =
+    result = "DraggedView"
+
 method onTouchEv*(v: DraggedView, e: var Event): bool =
     if e.buttonState == bsDown:
         let dpi = newPasteboardItem(PboardSampleDrag, v.name)

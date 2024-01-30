@@ -25,6 +25,9 @@ proc newVerticalLayout*(r: Rect): LinearLayout =
     result.name = "VerticalLayout"
     result.mHorizontal = false
 
+method getClassName*(v: LinearLayout): string =
+    result = "LinearLayout"
+
 method init*(v: LinearLayout, r: Rect) =
     procCall v.View.init(r)
     v.mPadding = 1

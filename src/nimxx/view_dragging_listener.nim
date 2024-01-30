@@ -32,6 +32,9 @@ method onScrollProgress(ls: ResizingScrollListener, dx, dy : float32, e : var Ev
     let v = ls.view.superview
     v.setFrameSize(ls.originalSize + newSize(dx, dy))
 
+method getClassName*(v: ResizingKnob): string =
+    result = "ResizingKnob"
+
 method draw(k: ResizingKnob, r: Rect) =
     let c = k.window.renderingContext
     c.strokeWidth = 2

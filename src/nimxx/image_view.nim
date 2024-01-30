@@ -27,6 +27,9 @@ proc newImageView*(r: Rect, image: Image = nil, fillRule = ImageFillRule.NoFill)
     result.fillRule = fillRule
     result.init(r)
 
+method getClassName*(v: ImageView): string =
+    result = "ImageView"
+
 method init*(v: ImageView, r: Rect) =
     procCall v.View.init(r)
 

@@ -32,6 +32,9 @@ template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord,
     fv.addSubview(ef)
     y += 22
 
+method getClassName*(v: FontsView): string =
+    result = "FontsView"
+
 method init(v: FontsView, r: Rect) =
     procCall v.View.init(r)
     let captionTf = newTextField(newRect(20, 20, r.width - 40, 20))

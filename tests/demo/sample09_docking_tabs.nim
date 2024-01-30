@@ -6,6 +6,9 @@ import nimxx/editor/tab_view
 type DockingTabsSampleView = ref object of View
     tabNameIndex: int
 
+method getClassName*(v: DockingTabsSampleView): string =
+    result = "DockingTabsSampleView"
+
 proc newTabTitle(v: DockingTabsSampleView): string =
     inc v.tabNameIndex
     result = "Tab " & $v.tabNameIndex

@@ -6,6 +6,9 @@ type AnimationSampleView = ref object of View
     rotation: Coord
     animation: Animation
 
+method getClassName*(v: AnimationSampleView): string =
+    result = "AnimationSampleView"
+
 method init*(v: AnimationSampleView, r: Rect) =
     procCall v.View.init(r)
     v.animation = newAnimation()

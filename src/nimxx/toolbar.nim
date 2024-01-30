@@ -5,6 +5,9 @@ import ./linear_layout
 
 type Toolbar* = ref object of LinearLayout
 
+method getClassName*(v: Toolbar): string =
+    result = "Toolbar"
+
 method init*(v: Toolbar, r: Rect) =
     procCall v.LinearLayout.init(r)
     v.horizontal = true

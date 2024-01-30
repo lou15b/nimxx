@@ -47,3 +47,12 @@ type
 
     EditorWorkspace* = ref object of View
         gridSize*: Size
+
+method getClassName*(v: EventCatchingView): string =
+    result = "EventCatchingView"
+
+method getClassName*(v: EditView): string =
+    result = "EditView"
+
+method getClassName*(v: EditorWorkspace): string =
+    result = "EditorWorkspace"

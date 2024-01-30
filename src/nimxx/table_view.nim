@@ -49,6 +49,9 @@ proc newTableView*(r: Rect): TableView = # [Deprecated old layout]
 
 proc rebuildConstraints(v: TableView) {.gcsafe.}
 
+method getClassName*(v: TableView): string =
+    result = "TableView"
+
 method init*(v: TableView, r: Rect) =
     procCall v.View.init(r)
     v.numberOfColumns = 1
@@ -162,6 +165,9 @@ proc topCoordOfRow(v: TableView, row: int): Coord {.inline.} =
 
 type TableRow = ref object of View
     topConstraint, heightConstraint: Constraint
+
+method getClassName*(v: TableRow): string =
+    result = "TableRow"
 
 proc configureRow(r: TableRow, top, height: Coord) {.inline.} =
     if not r.topConstraint.isNil:
