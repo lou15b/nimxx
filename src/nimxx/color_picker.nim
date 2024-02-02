@@ -7,7 +7,7 @@ export view
 import ./context
 import ./composition
 import ./types
-import ./portable_gl
+import ./opengl_etc
 import ./popup_button
 import ./text_field
 import ./view_event_handling

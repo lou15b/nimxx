@@ -1,10 +1,9 @@
-import ./ [ context_base, types, portable_gl, image ]
+import ./ [ context_base, types, opengl_etc, image ]
 import ./private/helper_macros
 import std / [ strutils, tables, hashes ]
 import pkg/nimsl/nimsl
 import pkg/malebolgia/lockers
 
-export portable_gl
 
 const commonDefinitions = """
 #define PI 3.14159265359
@@ -266,8 +265,8 @@ type
     PostEffect* = ref PostEffectObj
 
     CompiledCompositionObj* = object
-        program*: ProgramRef
-        uniformLocations*: seq[UniformLocation]
+        program*: ProgramGLRef
+        uniformLocations*: seq[UniformGLLocation]
         iTexIndex*: GLint
         iUniform*: int
 
@@ -461,7 +460,7 @@ proc compileComposition(comp: Composition, cchash: Hash, compOptions: int): Comp
         else:
             options & comp.vsDefinition
     result.program = newShaderProgram(vsCode, fragmentShaderCode, [(posAttr, "aPosition")])
-    result.uniformLocations = newSeq[UniformLocation]()
+    result.uniformLocations = newSeq[UniformGLLocation]()
     lock programCache as pc:
         pc.entries[cchash] = result
 
@@ -486,10 +485,10 @@ var texQuad {.threadvar.} : array[4, GLfloat]
 template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsContext) =
     ## This template inserts the following templates into the code where it is invoked
     # It is invoked when the "draw" template below is invoked
-    template uniformLocation(name: string): UniformLocation =
+    template uniformLocation(name: string): UniformGLLocation =
         inc cc.iUniform
         if cc.uniformLocations.len - 1 < cc.iUniform:
-            cc.uniformLocations.add(getUniformLocation(cc.program, name))
+            cc.uniformLocations.add(glGetUniformLocation(cc.program, name))
         cc.uniformLocations[cc.iUniform]
 
     template setUniform(name: string, v: Rect) {.hint[XDeclaredButNotUsed]: off.} =
@@ -502,37 +501,37 @@ template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsCo
         setUniform(name, newPoint(v.width, v.height))
 
     template setUniform(name: string, v: openarray[Point]) {.hint[XDeclaredButNotUsed]: off.} =
-        uniform2fv(uniformLocation(name), GLsizei(v.len), cast[ptr GLfloat](unsafeAddr v[0]))
+        glUniform2fv(uniformLocation(name), GLsizei(v.len), cast[ptr GLfloat](unsafeAddr v[0]))
 
     template setUniform(name: string, v: Color) {.hint[XDeclaredButNotUsed]: off.} =
         ctx.setColorUniform(uniformLocation(name), v)
 
     template setUniform(name: string, v: GLfloat) {.hint[XDeclaredButNotUsed]: off.}  =
-        uniform1f(uniformLocation(name), v)
+        glUniform1f(uniformLocation(name), v)
 
     template setUniform(name: string, v: GLint) {.hint[XDeclaredButNotUsed]: off.}  =
-        uniform1i(uniformLocation(name), v)
+        glUniform1i(uniformLocation(name), v)
 
     template setUniform(name: string, v: Vector3) {.hint[XDeclaredButNotUsed]: off.}  =
-        uniform3fv(uniformLocation(name), v)
+        uniformGL3fv(uniformLocation(name), v)
 
     template setUniform(name: string, v: Vector2) {.hint[XDeclaredButNotUsed]: off.}  =
-        uniform2fv(uniformLocation(name), v)
+        uniformGL2fv(uniformLocation(name), v)
 
     template setUniform(name: string, v: Matrix4) {.hint[XDeclaredButNotUsed]: off.}  =
-        uniformMatrix4fv(uniformLocation(name), false, v)
+        uniformGLMatrix4fv(uniformLocation(name), false, v)
 
-    template setUniform(name: string, tex: TextureRef) {.hint[XDeclaredButNotUsed]: off.} =
-        activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
-        bindTexture(TEXTURE_2D, tex)
-        uniform1i(uniformLocation(name), cc.iTexIndex)
+    template setUniform(name: string, tex: TextureGLRef) {.hint[XDeclaredButNotUsed]: off.} =
+        glActiveTexture(GLenum(int(GL_TEXTURE0) + cc.iTexIndex))
+        glBindTexture(GL_TEXTURE_2D, tex)
+        glUniform1i(uniformLocation(name), cc.iTexIndex)
         inc cc.iTexIndex
 
     template setUniform(name: string, i: Image) {.hint[XDeclaredButNotUsed]: off.} =
-        activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
-        bindTexture(TEXTURE_2D, getTextureQuad(i, texQuad))
-        uniform4fv(uniformLocation(name & "_texCoords"), texQuad)
-        uniform1i(uniformLocation(name & "_tex"), cc.iTexIndex)
+        glActiveTexture(GLenum(int(GL_TEXTURE0) + cc.iTexIndex))
+        glBindTexture(GL_TEXTURE_2D, getTextureQuad(i, texQuad))
+        uniformGL4fv(uniformLocation(name & "_texCoords"), texQuad)
+        glUniform1i(uniformLocation(name & "_tex"), cc.iTexIndex)
         inc cc.iTexIndex
 
 template pushPostEffect*(pe: PostEffect, ctx: GraphicsContext, args: varargs[untyped]) =
@@ -540,11 +539,11 @@ template pushPostEffect*(pe: PostEffect, ctx: GraphicsContext, args: varargs[unt
         var peids = pest.postEffectIds
         let stackLen = peids.len
         pest.postEffects.add(PostEffectStackElem(postEffect: pe, setupProc: proc(cc: CompiledComposition) =
-            compositionDrawingDefinitions(cc, ctx)
-            var j = 0
-            staticFor uni in args:
-                setUniform(postEffectUniformName(stackLen, j), uni)
-                inc j
+                compositionDrawingDefinitions(cc, ctx)
+                var j = 0
+                staticFor uni in args:
+                    setUniform(postEffectUniformName(stackLen, j), uni)
+                    inc j
         ))
 
         let oh = if stackLen > 0: peids[^1] else: 0
@@ -602,20 +601,20 @@ template ResetDIPValue*() =
 template draw*(comp: Composition, ctx: GraphicsContext, r: Rect, code: untyped) =
     block:
         let cc = getCompiledComposition(comp)
-        useProgram(cc.program)
+        glUseProgram(cc.program)
 
         overdrawValue += r.size.width * r.size.height
         DIPValue += 1
 
         const componentCount = 2
         const vertexCount = 4
-        bindGLBuffer(ARRAY_BUFFER, ctx.singleQuadBuffer)
-        enableVertexAttribArray(posAttr)
-        vertexAttribPointer(posAttr, componentCount, FLOAT, false, 0, 0)
+        glBindBuffer(GL_ARRAY_BUFFER, ctx.singleQuadBuffer)
+        glEnableVertexAttribArray(posAttr)
+        vertexGLAttribPointer(posAttr, componentCount, cGL_FLOAT, false, 0, 0)
 
         compositionDrawingDefinitions(cc, ctx)
 
-        uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, ctx.transform)
+        uniformGLMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, ctx.transform)
 
         setUniform("bounds", r) # This is for fragment shader
         setUniform("uBounds", r) # This is for vertex shader
@@ -623,8 +622,8 @@ template draw*(comp: Composition, ctx: GraphicsContext, r: Rect, code: untyped) 
         setupPosteffectUniforms(cc)
 
         code
-        drawArrays(TRIANGLE_FAN, 0, vertexCount)
-        bindGLBuffer(ARRAY_BUFFER, invalidBuffer)
+        glDrawArrays(GL_TRIANGLE_FAN, 0, vertexCount)
+        glBindBuffer(GL_ARRAY_BUFFER, invalidGLBuffer)
 
 template draw*(comp: Composition, ctx: GraphicsContext, r: Rect) =
     comp.draw(ctx, r):

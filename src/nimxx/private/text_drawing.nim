@@ -1,5 +1,6 @@
 import std/unicode
 import ../font, ../composition, ../context, ../types
+import ../opengl_etc
 
 # The value in this global (bool) is retrieved and set atomically, so doesn't need a lock
 var textSubpixelDrawing = true
@@ -196,19 +197,19 @@ void compose()
 """, false, "mediump")
 
 proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
-    enableVertexAttribArray(saPosition.GLuint)
-    bindGLBuffer(ELEMENT_ARRAY_BUFFER, c.quadIndexBuffer)
-    bindGLBuffer(ARRAY_BUFFER, c.sharedBuffer)
+    glEnableVertexAttribArray(saPosition.GLuint)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, c.quadIndexBuffer)
+    glBindBuffer(GL_ARRAY_BUFFER, c.sharedBuffer)
 
-    var texture: TextureRef
-    var newTexture: TextureRef
+    var texture: TextureGLRef
+    var newTexture: TextureGLRef
     var n : GLint = 0
 
     template flush() =
         const componentCount = 4
-        copyDataToGLBuffer(ARRAY_BUFFER, c.vertexes, componentCount * n * 4, DYNAMIC_DRAW)
-        vertexAttribPointer(saPosition.GLuint, componentCount, FLOAT, false, 0, 0)
-        drawElements(TRIANGLES, n * 6, UNSIGNED_SHORT)
+        copyDataToGLBuffer(GL_ARRAY_BUFFER, c.vertexes, componentCount * n * 4, GL_DYNAMIC_DRAW)
+        vertexGLAttribPointer(saPosition.GLuint, componentCount, cGL_FLOAT, false, 0, 0)
+        drawGLElements(GL_TRIANGLES, n * 6, GL_UNSIGNED_SHORT)
 
     for ch in text.runes:
         if n > 127:
@@ -224,7 +225,7 @@ proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) 
                 n = 0
 
             texture = newTexture
-            bindTexture(TEXTURE_2D, texture)
+            glBindTexture(GL_TEXTURE_2D, texture)
         inc n
         pt.x += font.horizontalSpacing
 
@@ -244,32 +245,32 @@ proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
     let preScale = 1.0 / 320.0 # magic constant...
 
     if subpixelDraw:
-        if getParami(BLEND_SRC_ALPHA) != SRC_ALPHA.GLint or getParami(BLEND_DST_ALPHA) != ONE_MINUS_SRC_ALPHA.GLint:
+        if getGLParami(GL_BLEND_SRC_ALPHA) != GL_SRC_ALPHA.GLint or getGLParami(GL_BLEND_DST_ALPHA) != GL_ONE_MINUS_SRC_ALPHA.GLint:
             subpixelDraw = false
 
     if subpixelDraw:
         cc = getCompiledComposition(fontSubpixelCompositionWithDynamicBase)
-        blendColor(c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a)
-        blendFunc(CONSTANT_COLOR, ONE_MINUS_SRC_COLOR)
+        glBlendColor(c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a)
+        glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR)
     else:
         cc = getCompiledComposition(fontComposition)
 
-    useProgram(cc.program)
+    glUseProgram(cc.program)
 
     compositionDrawingDefinitions(cc, c)
     setUniform("fillColor", c.fillColor)
     setUniform("preScale", preScale)
 
-    uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+    uniformGLMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
     setupPosteffectUniforms(cc)
 
-    activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
-    uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+    glActiveTexture(GLenum(int(GL_TEXTURE0) + cc.iTexIndex))
+    glUniform1i(uniformLocation("texUnit"), cc.iTexIndex)
 
     c.drawTextBase(font, pt, text)
 
     if subpixelDraw:
-        blendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA)
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 proc drawText*(c: GraphicsContext, font: Font, pt: Point, text: string) {.gcsafe.}=
     var p = pt

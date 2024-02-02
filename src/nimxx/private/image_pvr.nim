@@ -1,4 +1,5 @@
-# NOTE: This file is ***included*** (not imported) into nimx/image.nim
+# NOTE: This file is ***included*** (not imported) into nimxx/image.nim
+# So it does ***not*** compile on its own
 
 type PVRTextureHeaderV3 {.packed.} = object
     version: uint32
@@ -45,7 +46,7 @@ type ePVR3Format* = enum
     PVR3_EAC_RG11_U = 27,
     PVR3_EAC_RG11_S = 28,
 
-proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureRef, size: var Size, texCoords: var array[4, GLfloat]) =
+proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat]) =
     let header = cast[ptr PVRTextureHeaderV3](data)
 
     texCoords[2] = 1.0

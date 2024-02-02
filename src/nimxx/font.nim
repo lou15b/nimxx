@@ -1,6 +1,6 @@
 import std / [ unicode, logging ]
 
-import ./ [ types, timer, portable_gl ]
+import ./ [ types, timer, opengl_etc ]
 import ./private/font/font_data
 
 import ./private/font/stb_ttf_glyph_provider
@@ -22,7 +22,7 @@ type Baseline* = enum
 
 type CharInfo = ref object
     data: GlyphData
-    texture: TextureRef
+    texture: TextureGLRef
 
 template bakedChars(ci: CharInfo): GlyphMetrics = ci.data.glyphMetrics
 
@@ -210,13 +210,13 @@ proc generateDistanceFieldForGlyph(ch: CharInfo, index: int, uploadToTexture: bo
 
     dfCtx.make_distance_map(ch.data.bitmap, x, y, w, h, ch.data.bitmapWidth.int, not uploadToTexture)
     if uploadToTexture:
-        bindTexture(TEXTURE_2D, ch.texture)
+        glBindTexture(GL_TEXTURE_2D, ch.texture)
         if w mod 4 == 0:
-            texSubImage2D(TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), ALPHA, UNSIGNED_BYTE, dfCtx.output)
+            texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
         else:
-            pixelStorei(UNPACK_ALIGNMENT, 1)
-            texSubImage2D(TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), ALPHA, UNSIGNED_BYTE, dfCtx.output)
-            pixelStorei(UNPACK_ALIGNMENT, 4)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
     ch.data.dfDoneForGlyph[index] = true
 
     when dumpDebugBitmaps:
@@ -255,7 +255,7 @@ proc chunkAndCharIndexForRune(f: Font, r: Rune): tuple[ch: CharInfo, index: int]
 
     result.ch = ch
 
-    if ch.texture.isEmpty:
+    if ch.texture.isEmptyGLRef:
         if not ch.data.dfDoneForGlyph[result.index]:
             generateDistanceFieldForGlyph(ch, result.index, false)
 
@@ -263,20 +263,20 @@ proc chunkAndCharIndexForRune(f: Font, r: Rune): tuple[ch: CharInfo, index: int]
         if glyphGenerationTimer.isNil:
             glyphGenerationTimer = setInterval(0.1, generateDistanceFields)
 
-        ch.texture = createTexture()
-        bindTexture(TEXTURE_2D, ch.texture)
+        ch.texture = createGLTexture()
+        glBindTexture(GL_TEXTURE_2D, ch.texture)
 
         let texWidth = ch.data.bitmapWidth.GLsizei
         let texHeight = ch.data.bitmapHeight.GLsizei
-        texImage2D(TEXTURE_2D, 0, GLint(ALPHA), texWidth, texHeight, 0, ALPHA, UNSIGNED_BYTE, ch.data.bitmap)
-        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
-        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
-        #texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST)
-        #generateMipmap(TEXTURE_2D)
+        texGLImage2D(GL_TEXTURE_2D, 0, GLint(GL_ALPHA), texWidth, texHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, ch.data.bitmap)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
+        #glGenerateMipmap(GL_TEXTURE_2D)
     elif ch.data.dfDoneForGlyph.len != 0 and not ch.data.dfDoneForGlyph[result.index]:
         generateDistanceFieldForGlyph(ch, result.index, true)
 
-proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: int, texture: var TextureRef, pt: var Point) =
+proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: int, texture: var TextureGLRef, pt: var Point) =
     let (chunk, charIndexInChunk) = f.chunkAndCharIndexForRune(r)
     let c = charOff(charIndexInChunk)
 
@@ -320,7 +320,7 @@ proc getCharComponent*(f: Font, text: string, comp: GlyphMetricsComponent): Coor
     f.updateFontMetricsIfNeeded()
     result = chunk.data.glyphMetrics.charOffComp(c, comp).Coord
 
-template getQuadDataForRune*(f: Font, r: Rune, quad: var array[16, Coord], texture: var TextureRef, pt: var Point) =
+template getQuadDataForRune*(f: Font, r: Rune, quad: var array[16, Coord], texture: var TextureGLRef, pt: var Point) =
     f.getQuadDataForRune(r, quad, 0, texture, pt)
 
 proc getAdvanceForRune*(f: Font, r: Rune): Coord =
@@ -348,7 +348,7 @@ proc getClosestCursorPositionToPointInString*(f: Font, s: string, p: Point, posi
     var closestPoint = zeroPoint
     var quad: array[16, Coord]
     var i = 0
-    var tex: TextureRef
+    var tex: TextureGLRef
     for ch in s.runes:
         f.getQuadDataForRune(ch, quad, tex, pt)
         if (f.isHorizontal and (abs(p.x - pt.x) < abs(p.x - closestPoint.x))) or
@@ -364,7 +364,7 @@ proc cursorOffsetForPositionInString*(f: Font, s: string, position: int): Coord 
     var pt = zeroPoint
     var quad: array[16, Coord]
     var i = 0
-    var tex: TextureRef
+    var tex: TextureGLRef
 
     for ch in s.runes:
         if i == position:

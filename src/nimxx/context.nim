@@ -1,10 +1,9 @@
 import ./context_base
 import ./types
-import pkg/opengl
 import ./matrixes
 import ./image
 import std/math
-import ./portable_gl
+import ./opengl_etc
 import pkg/nimsl/nimsl
 
 export matrixes, context_base
@@ -78,8 +77,8 @@ void compose() {
 """)
 
 proc bindVertexData*(c: GraphicsContext, length: int) =
-    bindGLBuffer(ARRAY_BUFFER, c.sharedBuffer)
-    copyDataToGLBuffer(ARRAY_BUFFER, c.vertexes, length, DYNAMIC_DRAW)
+    glBindBuffer(GL_ARRAY_BUFFER, c.sharedBuffer)
+    copyDataToGLBuffer(GL_ARRAY_BUFFER, c.vertexes, length, GL_DYNAMIC_DRAW)
 
 proc drawImage*(c: GraphicsContext, i: Image, toRect: Rect, fromRect: Rect = zeroRect, alpha: ColorComponent = 1.0) =
     if i.isLoaded:
@@ -164,26 +163,26 @@ proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, 
         14.setVertex(toRect.maxX - mr, toRect.maxY, fuv[2] - tmr, fuv[3])
         15.setVertex(toRect.maxX, toRect.maxY, fuv[2], fuv[3])
 
-        useProgram(cc.program)
+        glUseProgram(cc.program)
         compositionDrawingDefinitions(cc, c)
 
         setUniform("uAlpha", alpha * c.alpha)
 
-        uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+        uniformGLMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
         setupPosteffectUniforms(cc)
 
-        activeTexture(GLenum(int(TEXTURE0) + cc.iTexIndex))
-        uniform1i(uniformLocation("texUnit"), cc.iTexIndex)
-        bindTexture(TEXTURE_2D, tex)
+        glActiveTexture(GLenum(int(GL_TEXTURE0) + cc.iTexIndex))
+        glUniform1i(uniformLocation("texUnit"), cc.iTexIndex)
+        glBindTexture(GL_TEXTURE_2D, tex)
 
-        enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
-        bindGLBuffer(ELEMENT_ARRAY_BUFFER, c.gridIndexBuffer4x4)
+        glEnableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, c.gridIndexBuffer4x4)
 
         const componentsCount = 4
         const vertexCount = (4 - 1) * 4 * 2
         c.bindVertexData(componentsCount * vertexCount)
-        vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, FLOAT, false, 0, 0)
-        drawElements(TRIANGLE_STRIP, vertexCount, UNSIGNED_SHORT)
+        vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, cGL_FLOAT, false, 0, 0)
+        drawGLElements(GL_TRIANGLE_STRIP, vertexCount, GL_UNSIGNED_SHORT)
 
 
 const simpleComposition = newComposition("""
@@ -225,24 +224,24 @@ proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
         let p = newPoint(bezierPoint(p0.x, p1.x, p2.x, p3.x, t), bezierPoint(p0.y, p1.y, p2.y, p3.y, t))
         setVertex(i, p)
 
-    useProgram(cc.program)
+    glUseProgram(cc.program)
     compositionDrawingDefinitions(cc, c)
 
-    uniformMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
+    uniformGLMatrix4fv(uniformLocation("uModelViewProjectionMatrix"), false, c.transform)
     setUniform("uStrokeColor", c.strokeColor)
     setupPosteffectUniforms(cc)
 
     const componentsCount = 2
-    enableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
+    glEnableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
     c.bindVertexData(componentsCount * vertexCount)
-    vertexAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, FLOAT, false, 0, 0)
+    vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, cGL_FLOAT, false, 0, 0)
 
-    enableCapability(GL_LINE_SMOOTH)
+    glEnable(GL_LINE_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
     glLineWidth(c.strokeWidth)
 
-    drawArrays(GL_LINE_STRIP, 0.GLint, vertexCount.GLsizei)
+    glDrawArrays(GL_LINE_STRIP, 0.GLint, vertexCount.GLsizei)
     glLineWidth(1.0)
 
 
@@ -352,28 +351,28 @@ proc drawTriangle*(c: GraphicsContext, rect: Rect, angleRad: Coord) =
 
 # Clipping
 proc applyClippingRect*(c: GraphicsContext, r: Rect, on: bool) =
-    enableCapability(STENCIL_TEST)
-    colorMask(false, false, false, false)
-    depthMask(false)
-    stencilMask(0xFF)
+    glEnable(GL_STENCIL_TEST)
+    glColorMask(false, false, false, false)
+    glDepthMask(false)
+    glStencilMask(0xFF)
     if on:
         inc c.clippingDepth
-        stencilOp(INCR, KEEP, KEEP)
+        glStencilOp(GL_INCR, GL_KEEP, GL_KEEP)
     else:
         dec c.clippingDepth
-        stencilOp(DECR, KEEP, KEEP)
+        glStencilOp(GL_DECR, GL_KEEP, GL_KEEP)
 
-    stencilFunc(NEVER, 1, 0xFF)
+    glStencilFunc(GL_NEVER, 1, 0xFF)
     c.drawRect(r)
 
-    colorMask(true, true, true, true)
-    depthMask(true)
-    stencilMask(0x00)
+    glColorMask(true, true, true, true)
+    glDepthMask(true)
+    glStencilMask(0x00)
 
-    stencilOp(KEEP, KEEP, KEEP)
-    stencilFunc(EQUAL, c.clippingDepth, 0xFF)
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+    glStencilFunc(GL_EQUAL, c.clippingDepth, 0xFF)
     if c.clippingDepth == 0:
-        disableCapability(STENCIL_TEST)
+        glDisable(GL_STENCIL_TEST)
 
 template withClippingRect*(c: GraphicsContext, r: Rect, body: typed) =
     c.applyClippingRect(r, true)

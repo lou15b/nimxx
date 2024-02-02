@@ -1,11 +1,10 @@
-import ./ [ image, types, context, portable_gl ]
-import pkg/opengl
+import ./ [ image, types, context, opengl_etc ]
 
 type
     RTIContext* = tuple
         clearColor: array[4, GLfloat]
         viewportSize: array[4, GLint]
-        framebuffer: FramebufferRef
+        framebuffer: FramebufferGLRef
         bStencil: bool
         skipClear: bool
 
@@ -13,21 +12,21 @@ type
 
     ImageRenderTarget* = ref ImageRenderTargetObj
     ImageRenderTargetObj = object
-        framebuffer*: FramebufferRef
-        depthbuffer*: RenderbufferRef
-        stencilbuffer*: RenderbufferRef
+        framebuffer*: FramebufferGLRef
+        depthbuffer*: RenderbufferGLRef
+        stencilbuffer*: RenderbufferGLRef
         vpX*, vpY*: GLint # Viewport geometry
         vpW*, vpH*: GLsizei
         texWidth*, texHeight*: int16
         needsDepthStencil*: bool
 
 proc `=destroy`(r: ImageRenderTargetObj) {.raises: [GLerror].} =
-    if r.framebuffer != invalidFrameBuffer:
-        deleteFramebuffer(r.framebuffer)
-    if r.depthbuffer != invalidRenderbuffer:
-        deleteRenderbuffer(r.depthbuffer)
-    if r.stencilbuffer != invalidRenderbuffer:
-        deleteRenderbuffer(r.stencilbuffer)
+    if r.framebuffer != invalidGLFrameBuffer:
+        deleteGLFramebuffer(r.framebuffer)
+    if r.depthbuffer != invalidGLRenderbuffer:
+        deleteGLRenderbuffer(r.depthbuffer)
+    if r.stencilbuffer != invalidGLRenderbuffer:
+        deleteGLRenderbuffer(r.stencilbuffer)
 
 proc newImageRenderTarget*(needsDepthStencil: bool = true): ImageRenderTarget {.inline.} =
     result.new()
@@ -36,55 +35,55 @@ proc newImageRenderTarget*(needsDepthStencil: bool = true): ImageRenderTarget {.
 proc init(rt: ImageRenderTarget, texWidth, texHeight: int16) =
     rt.texWidth = texWidth
     rt.texHeight = texHeight
-    rt.framebuffer = createFramebuffer()
+    rt.framebuffer = createGLFramebuffer()
 
     if rt.needsDepthStencil:
-        let oldFramebuffer = boundFramebuffer()
-        let oldRB = boundRenderBuffer()
-        bindFramebuffer(FRAMEBUFFER, rt.framebuffer)
+        let oldFramebuffer = getBoundGLFramebuffer()
+        let oldRB = getBoundGLRenderbuffer()
+        glBindFramebuffer(GL_FRAMEBUFFER, rt.framebuffer)
         when defined(ios):
             # SDL on iOS relies on its renderbuffer bound after drawing the frame before swapping buffers.
             # See swapBuffers in SDL_uikitopenglview.m
-            let oldRenderBuffer = boundRenderBuffer()
+            let oldRenderBuffer = getBoundGLRenderbuffer()
 
-        let depthBuffer = createRenderbuffer()
-        bindRenderbuffer(RENDERBUFFER, depthBuffer)
-        let depthStencilFormat = DEPTH24_STENCIL8
+        let depthBuffer = createGLRenderbuffer()
+        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer)
+        let depthStencilFormat = GL_DEPTH24_STENCIL8
 
-        # The following tries to use DEPTH_STENCIL_ATTACHMENT, but it may fail on some devices,
+        # The following tries to use GL_DEPTH_STENCIL_ATTACHMENT, but it may fail on some devices,
         # so for those we're creating a separate stencil buffer.
         var needsStencil = false
         when NoAutoGLerrorCheck:
-            discard getGLError()
-            renderbufferStorage(RENDERBUFFER, depthStencilFormat, texWidth, texHeight)
-            if getGLError() == 0.GLenum:
-                framebufferRenderbuffer(FRAMEBUFFER, DEPTH_STENCIL_ATTACHMENT, RENDERBUFFER, depthBuffer)
+            discard glGetError()
+            glRenderbufferStorage(GL_RENDERBUFFER, depthStencilFormat, texWidth, texHeight)
+            if glGetError() == 0.GLenum:
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer)
             else:
-                renderbufferStorage(RENDERBUFFER, DEPTH_COMPONENT16, texWidth, texHeight)
-                framebufferRenderbuffer(FRAMEBUFFER, DEPTH_ATTACHMENT, RENDERBUFFER, depthBuffer)
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texWidth, texHeight)
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer)
                 needsStencil = true
         else:
             try:
-                renderbufferStorage(RENDERBUFFER, depthStencilFormat, texWidth, texHeight)
-                framebufferRenderbuffer(FRAMEBUFFER, DEPTH_STENCIL_ATTACHMENT, RENDERBUFFER, depthBuffer)
+                glRenderbufferStorage(GL_RENDERBUFFER, depthStencilFormat, texWidth, texHeight)
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer)
             except:
-                renderbufferStorage(RENDERBUFFER, DEPTH_COMPONENT16, texWidth, texHeight)
-                framebufferRenderbuffer(FRAMEBUFFER, DEPTH_ATTACHMENT, RENDERBUFFER, depthBuffer)
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texWidth, texHeight)
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer)
                 needsStencil = true
 
         rt.depthbuffer = depthBuffer
 
         if needsStencil:
-            let stencilBuffer = createRenderbuffer()
-            bindRenderbuffer(RENDERBUFFER, stencilBuffer)
-            renderbufferStorage(RENDERBUFFER, STENCIL_INDEX8, texWidth, texHeight)
-            framebufferRenderbuffer(FRAMEBUFFER, STENCIL_ATTACHMENT, RENDERBUFFER, stencilBuffer)
+            let stencilBuffer = createGLRenderbuffer()
+            glBindRenderbuffer(GL_RENDERBUFFER, stencilBuffer)
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, texWidth, texHeight)
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilBuffer)
             rt.stencilbuffer = stencilBuffer
 
-        bindFramebuffer(FRAMEBUFFER, oldFramebuffer)
-        bindRenderbuffer(RENDERBUFFER, oldRB)
+        glBindFramebuffer(GL_FRAMEBUFFER, oldFramebuffer)
+        glBindRenderbuffer(GL_RENDERBUFFER, oldRB)
         when defined(ios):
-            bindRenderbuffer(RENDERBUFFER, oldRenderBuffer)
+            glBindRenderbuffer(GL_RENDERBUFFER, oldRenderBuffer)
 
 proc resize(rt: ImageRenderTarget, texWidth, texHeight: int16) =
     rt.texWidth = max(rt.texWidth, texWidth)
@@ -93,34 +92,34 @@ proc resize(rt: ImageRenderTarget, texWidth, texHeight: int16) =
     when defined(ios):
         # SDL on iOS relies on its renderbuffer bound after drawing the frame before swapping buffers.
         # See swapBuffers in SDL_uikitopenglview.m
-        let oldRenderBuffer = boundRenderBuffer()
-    if rt.depthbuffer != invalidRenderbuffer:
-        let depthStencilFormat = if rt.stencilbuffer == invalidRenderbuffer:
-                DEPTH24_STENCIL8
+        let oldRenderBuffer = getBoundGLRenderbuffer()
+    if rt.depthbuffer != invalidGLRenderbuffer:
+        let depthStencilFormat = if rt.stencilbuffer == invalidGLRenderbuffer:
+                GL_DEPTH24_STENCIL8
             else:
-                DEPTH_COMPONENT16
+                GL_DEPTH_COMPONENT16
 
-        bindRenderbuffer(RENDERBUFFER, rt.depthbuffer)
-        renderbufferStorage(RENDERBUFFER, depthStencilFormat, rt.texWidth, rt.texHeight)
+        glBindRenderbuffer(GL_RENDERBUFFER, rt.depthbuffer)
+        glRenderbufferStorage(GL_RENDERBUFFER, depthStencilFormat, rt.texWidth, rt.texHeight)
 
-    if rt.stencilBuffer != invalidRenderbuffer:
-        bindRenderbuffer(RENDERBUFFER, rt.stencilBuffer)
-        renderbufferStorage(RENDERBUFFER, STENCIL_INDEX8, rt.texWidth, rt.texHeight)
+    if rt.stencilBuffer != invalidGLRenderbuffer:
+        glBindRenderbuffer(GL_RENDERBUFFER, rt.stencilBuffer)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, rt.texWidth, rt.texHeight)
     when defined(ios):
-        bindRenderbuffer(RENDERBUFFER, oldRenderBuffer)
+        glBindRenderbuffer(GL_RENDERBUFFER, oldRenderBuffer)
 
 proc setImage*(rt: ImageRenderTarget, i: SelfContainedImage) =
     assert(i.texWidth != 0 and i.texHeight != 0)
 
     var texCoords: array[4, GLfloat]
     var texture = i.getTextureQuad(texCoords)
-    if texture.isEmpty:
-        texture = createTexture()
+    if texture.isEmptyGLRef:
+        texture = createGLTexture()
         i.texture = texture
-        bindTexture(TEXTURE_2D, texture)
-        texImage2D(TEXTURE_2D, 0, RGBA.GLint, i.texWidth, i.texHeight, 0, RGBA, UNSIGNED_BYTE, nil)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.GLint, i.texWidth, i.texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
 
-    if rt.framebuffer.isEmpty:
+    if rt.framebuffer.isEmptyGLRef:
         rt.init(i.texWidth, i.texHeight)
     elif rt.texWidth < i.texWidth or rt.texHeight < i.texHeight:
         rt.resize(i.texWidth, i.texHeight)
@@ -132,32 +131,32 @@ proc setImage*(rt: ImageRenderTarget, i: SelfContainedImage) =
     rt.vpW = br.width.GLsizei
     rt.vpH = br.height.GLsizei
 
-    let oldFramebuffer = boundFramebuffer()
+    let oldFramebuffer = getBoundGLFramebuffer()
 
-    bindFramebuffer(FRAMEBUFFER, rt.framebuffer)
-    bindTexture(TEXTURE_2D, texture)
-    texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
-    framebufferTexture2D(FRAMEBUFFER, COLOR_ATTACHMENT0, TEXTURE_2D, texture, 0)
+    glBindFramebuffer(GL_FRAMEBUFFER, rt.framebuffer)
+    glBindTexture(GL_TEXTURE_2D, texture)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0)
 
-    bindFramebuffer(FRAMEBUFFER, oldFramebuffer)
+    glBindFramebuffer(GL_FRAMEBUFFER, oldFramebuffer)
 
 proc beginDraw*(t: ImageRenderTarget, state: var RTIContext) =
     assert(t.vpW != 0 and t.vpH != 0)
 
-    state.framebuffer = boundFramebuffer()
-    state.viewportSize = getViewport()
-    state.bStencil = getParamb(STENCIL_TEST)
+    state.framebuffer = getBoundGLFramebuffer()
+    state.viewportSize = getGLViewport()
+    state.bStencil = getGLParamb(GL_STENCIL_TEST)
     if not state.skipClear:
-        getClearColor(state.clearColor)
+        getGLClearColor(state.clearColor)
 
-    bindFramebuffer(FRAMEBUFFER, t.framebuffer)
-    viewport(t.vpX, t.vpY, t.vpW, t.vpH)
+    glBindFramebuffer(GL_FRAMEBUFFER, t.framebuffer)
+    glViewport(t.vpX, t.vpY, t.vpW, t.vpH)
     if not state.skipClear:
-        stencilMask(0xFF) # Android requires setting stencil mask to clear
-        clearColor(0, 0, 0, 0)
-        clearGLBuffers(COLOR_BUFFER_BIT or DEPTH_BUFFER_BIT or STENCIL_BUFFER_BIT)
-        stencilMask(0x00) # Android requires setting stencil mask to clear
-        disableCapability(STENCIL_TEST)
+        glStencilMask(0xFF) # Android requires setting stencil mask to clear
+        glClearColor(0, 0, 0, 0)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
+        glStencilMask(0x00) # Android requires setting stencil mask to clear
+        glDisable(GL_STENCIL_TEST)
 
 proc beginDrawNoClear*(t: ImageRenderTarget, state: var RTIContext) =
     state.skipClear = true
@@ -165,11 +164,11 @@ proc beginDrawNoClear*(t: ImageRenderTarget, state: var RTIContext) =
 
 proc endDraw*(t: ImageRenderTarget, state: var RTIContext) =
     if state.bStencil:
-        enableCapability(STENCIL_TEST)
+        glEnable(GL_STENCIL_TEST)
     if not state.skipClear:
-        clearColor(state.clearColor[0], state.clearColor[1], state.clearColor[2], state.clearColor[3])
-    viewport(state.viewportSize)
-    bindFramebuffer(FRAMEBUFFER, state.framebuffer)
+        glClearColor(state.clearColor[0], state.clearColor[1], state.clearColor[2], state.clearColor[3])
+    setGLViewport(state.viewportSize)
+    glBindFramebuffer(GL_FRAMEBUFFER, state.framebuffer)
 
 template draw*(rt: ImageRenderTarget, sci: SelfContainedImage, c: GraphicsContext, drawBody: untyped) =
     var gfs: RTIContext

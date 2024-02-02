@@ -1,7 +1,6 @@
-import std / [ math, tables, streams, logging, rlocks ]
-import ./ [ types, portable_gl, mini_profiler ]
+import std / [ math, streams, logging, rlocks ]
+import ./ [ types, opengl_etc, mini_profiler ]
 import ./utils/lock_utils
-import pkg/opengl
 
 import ./assets / [ asset_loading, url_stream, asset_manager ]
 import ./serializers
@@ -20,7 +19,7 @@ type
 
     SelfContainedImage* = ref SelfContainedImageObj
     SelfContainedImageObj = object of Image
-        texture*: TextureRef
+        texture*: TextureGLRef
         mFilePath: string
 
     FixedTexCoordSpriteImage* = ref object of Image
@@ -28,12 +27,12 @@ type
 
 template setupTexParams() =
     when defined(android) or defined(ios):
-        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
-        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     else:
-        generateMipmap(TEXTURE_2D)
-        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
-        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST)
+        glGenerateMipmap(GL_TEXTURE_2D)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
 
 include ./private/image_pvr
 
@@ -49,7 +48,7 @@ const IMAGES = "Images"
 sharedProfiler[IMAGES] = 0
 
 proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
-    if i.texture != invalidTexture:
+    if i.texture != invalidGLTexture:
         glDeleteTextures(1, addr i.texture)
     withRLockGCsafe(sharedProfilerLock):
         try:
@@ -151,7 +150,7 @@ proc free(b: var DecodedImageData) {.inline.} =
 template offset(p: pointer, off: int): pointer =
     cast[pointer](cast[int](p) + off)
 
-proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
+proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
     glGenTextures(1, addr texture)
     glBindTexture(GL_TEXTURE_2D, texture)
     let format : GLenum = case comp:
@@ -200,7 +199,7 @@ proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureR
     if data != pixelData:
         dealloc(pixelData)
 
-proc loadDecodedImageDataToTexture(b: DecodedImageData, texture: var TextureRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
+proc loadDecodedImageDataToTexture(b: DecodedImageData, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
     if b.compressed:
         loadPVRDataToTexture(cast[ptr uint8](b.data), texture, size, texCoords)
     else:
@@ -255,7 +254,7 @@ method isLoaded*(i: SelfContainedImage): bool =
 
 method isLoaded*(i: FixedTexCoordSpriteImage): bool = i.spriteSheet.isLoaded
 
-method getTextureQuad*(i: Image, texCoords: var array[4, GLfloat]): TextureRef {.base, gcsafe.} =
+method getTextureQuad*(i: Image, texCoords: var array[4, GLfloat]): TextureGLRef {.base, gcsafe.} =
     raise newException(Exception, "Abstract method called!")
 
 method serialize*(s: Serializer, v: Image) {.base, gcsafe.} =
@@ -270,13 +269,13 @@ method deserialize*(s: Deserializer, v: var Image) {.base, gcsafe.} =
     if imagePath.len > 0:
         v = imageWithContentsOfFile(imagePath)
 
-method getTextureQuad*(i: SelfContainedImage, texCoords: var array[4, GLfloat]): TextureRef =
+method getTextureQuad*(i: SelfContainedImage, texCoords: var array[4, GLfloat]): TextureGLRef =
     texCoords = i.texCoords
     result = i.texture
 
 proc size*(i: Image): Size {.inline.} = i.mSize
 
-method getTextureQuad*(i: FixedTexCoordSpriteImage, texCoords: var array[4, GLfloat]): TextureRef =
+method getTextureQuad*(i: FixedTexCoordSpriteImage, texCoords: var array[4, GLfloat]): TextureGLRef =
     result = i.spriteSheet.getTextureQuad(texCoords)
     texCoords = i.texCoords
 
@@ -320,16 +319,16 @@ proc resetToSize*(i: SelfContainedImage, size: Size) =
     if flipped:
         i.flipVertically()
 
-    if i.texture != invalidTexture:
-        bindTexture(TEXTURE_2D, i.texture)
-        texImage2D(TEXTURE_2D, 0, RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei, 0, RGBA, UNSIGNED_BYTE, nil)
+    if i.texture != invalidGLTexture:
+        glBindTexture(GL_TEXTURE_2D, i.texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
 
 proc generateMipmap*(i: SelfContainedImage) =
-    if i.texture != invalidTexture:
-        bindTexture(TEXTURE_2D, i.texture)
-        generateMipmap(TEXTURE_2D)
-        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
-        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST)
+    if i.texture != invalidGLTexture:
+        glBindTexture(GL_TEXTURE_2D, i.texture)
+        glGenerateMipmap(GL_TEXTURE_2D)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
 
 when not defined(ios):
     type ImageFileFormat = enum tga, hdr, bmp, png
@@ -407,7 +406,7 @@ when asyncResourceLoad:
         else:
             texCoords: array[4, GLfloat]
             size: Size
-            texture: TextureRef
+            texture: TextureGLRef
             glCtx: GlContextPtr
             wnd: WindowPtr
             texWidth, texHeight: int16

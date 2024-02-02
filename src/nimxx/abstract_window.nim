@@ -1,6 +1,6 @@
 
 import ./ [ view, animation, context, composition, image, notification_center,
-    portable_gl, drag_and_drop ]
+    opengl_etc, drag_and_drop ]
 import ./utils/lock_utils
 # ################### mini_profiler related code
 import ./ [ mini_profiler, font ]
@@ -154,9 +154,9 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
 
 method draw*(w: Window, rect: Rect) =
     if w.mActiveBgColor != w.backgroundColor:
-        clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+        glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
         w.mActiveBgColor = w.backgroundColor
-    clearGLBuffers(COLOR_BUFFER_BIT or STENCIL_BUFFER_BIT or DEPTH_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
 method animationStateChanged*(w: Window, state: bool) {.base.} = discard
 

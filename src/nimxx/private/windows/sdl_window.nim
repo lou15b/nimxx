@@ -1,10 +1,9 @@
 import pkg/sdl2 except Event, Rect, Point
 
 import ../../ [ abstract_window, view, context, event, app, linkage_details,
-                portable_gl ]
+                opengl_etc ]
 import ../sdl_vk_map
 import ../../utils/lock_utils
-import pkg/opengl
 import std / [ times, logging ]
 import pkg/malebolgia/lockers
 
@@ -284,11 +283,11 @@ method title*(w: SdlWindow): string = $w.impl.getTitle()
 
 method draw*(w: SdlWindow, r: Rect) =
     if w.mActiveBgColor != w.backgroundColor:
-        clearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+        glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
         w.mActiveBgColor = w.backgroundColor
-    stencilMask(0xFF) # Android requires setting stencil mask to clear
-    clearGLBuffers(COLOR_BUFFER_BIT or STENCIL_BUFFER_BIT or DEPTH_BUFFER_BIT)
-    stencilMask(0x00)
+    glStencilMask(0xFF) # Android requires setting stencil mask to clear
+    glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+    glStencilMask(0x00)
 
 method drawWindow(w: SdlWindow) =
     discard glMakeCurrent(w.impl, w.sdlGlContext)
