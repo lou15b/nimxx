@@ -861,3 +861,4 @@ when isMainModule:
         echo "Arial font requested, actual font used = ", arial16.face
         let t = newFormattedText("Hello world!")
         let h = t.lineHeight(0)
+        echo "Line height of \"Hello world!\" is ", h

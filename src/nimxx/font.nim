@@ -255,26 +255,30 @@ proc chunkAndCharIndexForRune(f: Font, r: Rune): tuple[ch: CharInfo, index: int]
 
     result.ch = ch
 
-    if ch.texture.isEmptyGLRef:
-        if not ch.data.dfDoneForGlyph[result.index]:
-            generateDistanceFieldForGlyph(ch, result.index, false)
+    # As a side effect, an opengl texture for the rune is created.
+    # But this caode is also on the execution path of at least one unit test,
+    # so the texture is only created if an opengl context has been established.
+    if isOpenglInitialized():
+        if ch.texture.isEmptyGLRef:
+            if not ch.data.dfDoneForGlyph[result.index]:
+                generateDistanceFieldForGlyph(ch, result.index, false)
 
-        chunksToGen.add(ch)
-        if glyphGenerationTimer.isNil:
-            glyphGenerationTimer = setInterval(0.1, generateDistanceFields)
+            chunksToGen.add(ch)
+            if glyphGenerationTimer.isNil:
+                glyphGenerationTimer = setInterval(0.1, generateDistanceFields)
 
-        ch.texture = createGLTexture()
-        glBindTexture(GL_TEXTURE_2D, ch.texture)
+            ch.texture = createGLTexture()
+            glBindTexture(GL_TEXTURE_2D, ch.texture)
 
-        let texWidth = ch.data.bitmapWidth.GLsizei
-        let texHeight = ch.data.bitmapHeight.GLsizei
-        texGLImage2D(GL_TEXTURE_2D, 0, GLint(GL_ALPHA), texWidth, texHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, ch.data.bitmap)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
-        #glGenerateMipmap(GL_TEXTURE_2D)
-    elif ch.data.dfDoneForGlyph.len != 0 and not ch.data.dfDoneForGlyph[result.index]:
-        generateDistanceFieldForGlyph(ch, result.index, true)
+            let texWidth = ch.data.bitmapWidth.GLsizei
+            let texHeight = ch.data.bitmapHeight.GLsizei
+            texGLImage2D(GL_TEXTURE_2D, 0, GLint(GL_ALPHA), texWidth, texHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, ch.data.bitmap)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
+            #glGenerateMipmap(GL_TEXTURE_2D)
+        elif ch.data.dfDoneForGlyph.len != 0 and not ch.data.dfDoneForGlyph[result.index]:
+            generateDistanceFieldForGlyph(ch, result.index, true)
 
 proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: int, texture: var TextureGLRef, pt: var Point) =
     let (chunk, charIndexInChunk) = f.chunkAndCharIndexForRune(r)

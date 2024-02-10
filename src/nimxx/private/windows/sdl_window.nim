@@ -222,8 +222,10 @@ proc initSdlWindow(w: SdlWindow, r: view.Rect) =
 
     discard glSetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
     w.sdlGlContext = w.impl.glCreateContext()
-    if w.sdlGlContext == nil:
-        error "Could not create context!"
+    if not w.sdlGlContext.isNIl():
+        markOpenglInitialized()
+    else:
+        error "Could not create opengl context!"
     discard glMakeCurrent(w.impl, w.sdlGlContext)
 
     withRLockGCsafe(mainAppLock):

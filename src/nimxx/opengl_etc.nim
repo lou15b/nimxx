@@ -21,6 +21,12 @@ const invalidGLFrameBuffer* : FramebufferGLRef = 0
 const invalidGLRenderBuffer* : RenderbufferGLRef = 0
 const invalidGLTexture* : TextureGLRef = 0
 
+# This is intended to be used by code that calls opengl procs, but that also
+# may be called by unit tests with no opengl context established.
+# It is set once when opengl is set up, and read thereafter. So no lock needed.
+var openglInitializedFlag: bool = false
+proc isOpenglInitialized*(): bool = openglInitializedFlag
+proc markOpenglInitialized*() = openglInitializedFlag = true
 
 template drawGLElements*(mode: GLenum, count: GLsizei, typ: GLenum, offset: int = 0) =
     glDrawElements(mode, count, typ, cast[pointer](offset))
