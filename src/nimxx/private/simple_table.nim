@@ -7,7 +7,7 @@ type SimpleTable*[TKey, TVal] = TableRef[TKey, TVal]
 template newSimpleTable*(TKey, TVal: typedesc): SimpleTable[TKey, TVal] = newTable[TKey, TVal]()
 
 when isMainModule:
-    let t = newSimpleTable(int, int)
-    t[1] = 123
-    doAssert(t[1] == 123)
-    doAssert(t.hasKey(1))
+  let t = newSimpleTable(int, int)
+  t[1] = 123
+  doAssert(t[1] == 123)
+  doAssert(t.hasKey(1))

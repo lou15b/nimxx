@@ -7,7 +7,7 @@ type AndroidAssetBundle* = ref object of AssetBundle
 #     raise newException()
 
 proc newAndroidAssetBundle*(): AndroidAssetBundle =
-    result.new()
+  result.new()
 
 method urlForPath*(ab: AndroidAssetBundle, path: string): string =
-    return "android_asset://" & path
+  return "android_asset://" & path

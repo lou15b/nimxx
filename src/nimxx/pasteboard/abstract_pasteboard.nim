@@ -10,9 +10,9 @@ import ./pasteboard_item
 export pasteboard_item
 
 type
-    Pasteboard* {.inheritable.} = object
-        writeImpl*: proc(pb: Pasteboard, pi: varargs[PasteboardItem] ) {.nimcall, gcsafe.}
-        readImpl*: proc(pb: Pasteboard, kind: string): PasteboardItem {.nimcall, gcsafe.}
+  Pasteboard* {.inheritable.} = object
+    writeImpl*: proc(pb: Pasteboard, pi: varargs[PasteboardItem] ) {.nimcall, gcsafe.}
+    readImpl*: proc(pb: Pasteboard, kind: string): PasteboardItem {.nimcall, gcsafe.}
 
 const PboardGeneral* = "__nimx.PboardGeneral"
 const PboardFont* = "__nimx.PboardFont"
@@ -21,12 +21,12 @@ const PboardFind* = "__nimx.PboardFind"
 const PboardDrag* = "__nimx.PboardDrag"
 
 proc write*(pb: Pasteboard, pi: varargs[PasteboardItem]) {.inline.} =
-    if not pb.writeImpl.isNil: pb.writeImpl(pb, pi)
+  if not pb.writeImpl.isNil: pb.writeImpl(pb, pi)
 proc read*(pb: Pasteboard, kind: string): PasteboardItem {.inline.} =
-    if not pb.readImpl.isNil: result = pb.readImpl(pb, kind)
+  if not pb.readImpl.isNil: result = pb.readImpl(pb, kind)
 
 proc writeString*(pb: Pasteboard, s: string) = pb.write(newPasteboardItem(s))
 proc readString*(pb: Pasteboard): string =
-    let pi = pb.read(PboardKindString)
-    if not pi.isNil and pi.kind == PboardKindString:
-        result = pi.data
+  let pi = pb.read(PboardKindString)
+  if not pi.isNil and pi.kind == PboardKindString:
+    result = pi.data

@@ -4,39 +4,39 @@ import nimxx / [ view, menu, button, text_field ]
 type MenuSampleView = ref object of View
 
 method getClassName*(v: MenuSampleView): string =
-    result = "MenuSampleView"
+  result = "MenuSampleView"
 
 proc leftOf(v: View, width: Coord): Rect =
-    let f = v.frame
-    result.origin.x = f.maxX + 5
-    result.origin.y = f.y
-    result.size.height = f.height
-    result.size.width = width
+  let f = v.frame
+  result.origin.x = f.maxX + 5
+  result.origin.y = f.y
+  result.size.height = f.height
+  result.size.width = width
 
 method init(v: MenuSampleView, r: Rect) =
-    procCall v.View.init(r)
-    let b = Button.new(newRect(5, 5, 100, 25))
-    b.title = "Menu"
+  procCall v.View.init(r)
+  let b = Button.new(newRect(5, 5, 100, 25))
+  b.title = "Menu"
 
-    let textField = TextField.new(b.leftOf(120))
-    textField.text = "Menu: none"
+  let textField = TextField.new(b.leftOf(120))
+  textField.text = "Menu: none"
 
-    let m = makeMenu("File"):
-            - "Open":
-                textField.text = "Menu: Open"
-                echo "Open"
-            - "Save":
-                textField.text = "Menu: Save"
-            - "-"
-            + "Bye":
-                - "Sub1"
-                - "-"
-                - "Sub2":
-                    textField.text = "Menu: Sub2"
+  let m = makeMenu("File"):
+      - "Open":
+        textField.text = "Menu: Open"
+        echo "Open"
+      - "Save":
+        textField.text = "Menu: Save"
+      - "-"
+      + "Bye":
+        - "Sub1"
+        - "-"
+        - "Sub2":
+          textField.text = "Menu: Sub2"
 
-    b.onAction do():
-        m.popupAtPoint(b, newPoint(0, 25))
-    v.addSubview(b)
-    v.addSubview(textField)
+  b.onAction do():
+    m.popupAtPoint(b, newPoint(0, 25))
+  v.addSubview(b)
+  v.addSubview(textField)
 
 registerSample(MenuSampleView, "Menus")
