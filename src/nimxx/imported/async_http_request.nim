@@ -93,7 +93,10 @@ when defined(asyncHttpRequestAsyncIO):
       onError: ErrorHandler) =
     doSendRequest(meth, url, body, headers, sslContext, onSuccess, onError)
 elif compileOption("threads"):
-  import std/threadpool
+  import pkg/malebolgia
+
+  var asyncMaster = createMaster()
+  var asyncHandle = asyncMaster.getHandle() # Used to avoid gc-safety complaints
 
   type ThreadedHandler* = proc(r: Response, ctx: pointer) {.nimcall, gcsafe.}
 
@@ -123,6 +126,6 @@ elif compileOption("threads"):
       headers: openarray[(string, string)], handler: ThreadedHandler,
       ctx: pointer = nil) =
     ## handler might not be called on the invoking thread
-    spawn asyncHTTPRequest(url, meth, body, @headers, handler, ctx)
+    asyncHandle.spawn asyncHTTPRequest(url, meth, body, @headers, handler, ctx)
 else:
   {.warning: "async_http_requests requires either --threads:on or -d:asyncHttpRequestAsyncIO".}
