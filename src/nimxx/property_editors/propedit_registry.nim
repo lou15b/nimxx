@@ -11,8 +11,10 @@ type
   PropertyEditorView* = ref object of View
     onChange*: proc() {.gcsafe.}
     changeInspector*: proc() {.gcsafe.}
-  PropertyEditorCreatorWO*[T] = proc(editedObject: Variant, setter: proc(s: T) {.gcsafe.}, getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
-  PropertyEditorCreator*[T] = proc(setter: proc(s: T) {.gcsafe.}, getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
+  PropertyEditorCreatorWO*[T] = proc(editedObject: Variant, setter: proc(s: T) {.gcsafe.},
+    getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
+  PropertyEditorCreator*[T] = proc(setter: proc(s: T) {.gcsafe.},
+    getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
   RegistryTableEntry = proc(editedObject: Variant, v: Variant): PropertyEditorView {.gcsafe.}
 
 var propEditors = initLocker(initTable[TypeId, RegistryTableEntry]())
@@ -22,7 +24,8 @@ method getClassName*(v: PropertyEditorView): string =
 
 proc registerPropertyEditorAUX[T, C](createView: C) =
   lock propEditors as peds:
-    peds[getTypeId(SetterAndGetter[T])] = proc(n: Variant, v: Variant): PropertyEditorView {.gcsafe.} =
+    peds[getTypeId(SetterAndGetter[T])] =
+        proc(n: Variant, v: Variant): PropertyEditorView {.gcsafe.} =
       let sng = v.get(SetterAndGetter[T])
       var r: PropertyEditorView
       proc setterAUX(s: T) {.gcsafe.} =
@@ -66,7 +69,8 @@ template createEditorAUX(r: Rect) =
   editor.onChange = onChange
 
 proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant,
-    onChange: proc() {.gcsafe.} = nil, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
+    onChange: proc() {.gcsafe.} = nil,
+    changeInspectorCallback: proc() {.gcsafe.} = nil): View =
   var creator: RegistryTableEntry
   lock propEditors as peds:
     creator = peds.getOrDefault(v.typeId)
@@ -82,9 +86,11 @@ proc propertyEditorForProperty*(editedObject: Variant, title: string, v: Variant
   if creator.isNil:
     label.text = title & " - Unknown property"
   else:
-    createEditorAUX(newRect(label.frame.width, 0, result.bounds.width - label.frame.width, result.bounds.height))
+    createEditorAUX(newRect(label.frame.width, 0, result.bounds.width - label.frame.width,
+      result.bounds.height))
 
-proc propertyEditorForProperty*(editedObject: Variant, v: Variant, changeInspectorCallback: proc() {.gcsafe.} = nil): View =
+proc propertyEditorForProperty*(editedObject: Variant, v: Variant,
+    changeInspectorCallback: proc() {.gcsafe.} = nil): View =
   var creator: RegistryTableEntry
   lock propEditors as peds:
     creator = peds.getOrDefault(v.typeId)

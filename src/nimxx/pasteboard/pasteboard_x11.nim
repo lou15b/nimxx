@@ -54,7 +54,8 @@ proc pbWrite(p: Pasteboard, pi_ar: varargs[PasteboardItem]) =
   let clipboard = XInternAtom(display, x11ClipboardSelection, 0)
   let cutBuffer = nimxCutBuffer(display)
   for pi in pi_ar:
-    discard XChangeProperty(display, rootWindow, cutBuffer, format, 8.cint, PropModeReplace, pi.data.Pcuchar, pi.data.len.cint)
+    discard XChangeProperty(display, rootWindow, cutBuffer, format, 8.cint,
+      PropModeReplace, pi.data.Pcuchar, pi.data.len.cint)
     if clipboard != None and XGetSelectionOwner(display, clipboard) != window:
       discard XSetSelectionOwner(display, clipboard, window, CurrentTime)
     if XGetSelectionOwner(display, XA_PRIMARY) != window:
@@ -81,7 +82,8 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
   else:
     owner = window
     selection = XInternAtom(display, "SDL_SELECTION", 0)
-    discard XConvertSelection(display, clipboard, format, selection, owner, CurrentTime)
+    discard XConvertSelection(display, clipboard, format, selection, owner,
+      CurrentTime)
 
   var selType: Atom
   var selFormat: cint
@@ -89,8 +91,9 @@ proc pbRead(p: Pasteboard, kind: string): PasteboardItem =
   var overflow: culong = 0
   var src : cstring
 
-  if XGetWindowProperty(display, owner, selection, 0.clong, (XINT_MAX div 4).clong, 0.XBool, format, (addr selType).PAtom,
-    (addr selFormat).PCint, (addr bytes).Pculong, (addr overflow).Pculong, cast[PPcuchar](addr src)) == Success:
+  if XGetWindowProperty(display, owner, selection, 0.clong, (XINT_MAX div 4).clong,
+      0.XBool, format, (addr selType).PAtom, (addr selFormat).PCint,
+      (addr bytes).Pculong, (addr overflow).Pculong, cast[PPcuchar](addr src)) == Success:
     if selType == format:
       var data = $src
       result = newPasteboardItem(PboardKindString, data)

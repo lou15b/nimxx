@@ -12,7 +12,8 @@ type DragSystem* = ref object
   prevTarget*: View
   image*: Image
 
-# Only one object is being dragged at any one time, so only one DragSystem object is ever needed
+# Only one object is being dragged at any one time, so only one
+# DragSystem object is ever needed
 var dragSystem* = initLocker(new(DragSystem))
 
 proc startDrag*(item: PasteboardItem, ds: DragSystem, image: Image = nil) =
@@ -27,10 +28,14 @@ proc stopDrag*(ds: DragSystem) =
 proc newDragDestinationDelegate*(): DragDestinationDelegate =
   result.new()
 
-method onDrag*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} = discard
-method onDrop*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} = discard
-method onDragEnter*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} = discard
-method onDragExit*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} = discard
+method onDrag*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} =
+  discard
+method onDrop*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} =
+  discard
+method onDragEnter*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} =
+  discard
+method onDragExit*(dd: DragDestinationDelegate, target: View, i: PasteboardItem) {.base, gcsafe.} =
+  discard
 
 proc findSubviewAtPoint*(v: View, p: Point, res: var View) =
   for i in countdown(v.subviews.len - 1, 0):

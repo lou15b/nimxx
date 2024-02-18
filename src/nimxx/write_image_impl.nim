@@ -1542,13 +1542,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """.}
 
 
-proc stbi_write_png_impl(filename: cstring, w, h, comp: cint, data: pointer, stride_in_bytes: cint): cint {.importc: "stbi_write_png", nodecl.}
-proc stbi_write_bmp_impl(filename: cstring, w, h, comp: cint, data: pointer): cint {.importc: "stbi_write_bmp", nodecl.}
-proc stbi_write_tga_impl(filename: cstring, w, h, comp: cint, data: pointer): cint {.importc: "stbi_write_tga", nodecl.}
-proc stbi_write_hdr_impl(filename: cstring, w, h, comp: cint, data: pointer): cint {.importc: "stbi_write_hdr", nodecl.}
+proc stbi_write_png_impl(filename: cstring, w, h, comp: cint, data: pointer,
+  stride_in_bytes: cint): cint {.importc: "stbi_write_png", nodecl.}
+proc stbi_write_bmp_impl(filename: cstring, w, h, comp: cint,
+  data: pointer): cint {.importc: "stbi_write_bmp", nodecl.}
+proc stbi_write_tga_impl(filename: cstring, w, h, comp: cint,
+  data: pointer): cint {.importc: "stbi_write_tga", nodecl.}
+proc stbi_write_hdr_impl(filename: cstring, w, h, comp: cint,
+  data: pointer): cint {.importc: "stbi_write_hdr", nodecl.}
 
 
-proc stbi_write_png*(filename: cstring, w, h, comp: cint, data: pointer, stride_in_bytes: cint): cint =
+proc stbi_write_png*(filename: cstring, w, h, comp: cint, data: pointer,
+    stride_in_bytes: cint): cint =
   stbi_write_png_impl(filename, w, h, comp, data, stride_in_bytes)
 
 proc stbi_write_bmp*(filename: cstring, w, h, comp: cint, data: pointer): cint =

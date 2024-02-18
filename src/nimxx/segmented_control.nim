@@ -86,9 +86,11 @@ method draw*(s: SegmentedControl, r: Rect) {.gcsafe.} =
   scComposition.draw(c, s.bounds):
     if s.mSelectedSegment < s.widths.len and s.mSelectedSegment >= 0:
       setUniform("uSelectedRect",
-        newRect(s.selectedSegmentOffset, 0, s.widths[s.mSelectedSegment] + s.padding, s.bounds.height))
+        newRect(s.selectedSegmentOffset, 0, s.widths[s.mSelectedSegment] + s.padding,
+          s.bounds.height))
       setUniform("uTrackedRect",
-        newRect(s.trackedSegmentOffset, 0, s.widths[s.trackedSegment] + s.padding, s.bounds.height))
+        newRect(s.trackedSegmentOffset, 0, s.widths[s.trackedSegment] + s.padding,
+          s.bounds.height))
     else:
       setUniform("uSelectedRect", zeroRect)
       setUniform("uTrackedRect", zeroRect)

@@ -239,11 +239,13 @@ proc `truncationBehavior=`*(t: FormattedText, b: TruncationBehavior) =
     t.mTruncationBehavior = b
     t.cacheValid = false
 
-template truncationBehavior*(t: FormattedText): TruncationBehavior = t.mTruncationBehavior
+template truncationBehavior*(t: FormattedText): TruncationBehavior =
+  t.mTruncationBehavior
 
 proc lineOfRuneAtPos*(t: FormattedText, pos: int): int =
   t.updateCacheIfNeeded()
-  result = lowerBoundIt(t.lines, t.lines.low, t.lines.high, cmp(it.startRune, pos) <= 0) - 1
+  result =
+    lowerBoundIt(t.lines, t.lines.low, t.lines.high, cmp(it.startRune, pos) <= 0) - 1
 
 proc lineTop*(t: FormattedText, ln: int): float32 =
   t.updateCacheIfNeeded()
@@ -282,7 +284,8 @@ proc totalWidth*(t: FormattedText): float32 =
   t.mTotalWidth
 
 proc prepareAttributes(t: FormattedText, a: int): int =
-  result = lowerBoundIt(t.mAttributes, 0, t.mAttributes.high, cmp(it.startRune, a) < 0)
+  result =
+    lowerBoundIt(t.mAttributes, 0, t.mAttributes.high, cmp(it.startRune, a) < 0)
   if result < t.mAttributes.len and t.mAttributes[result].startRune == a:
     return
 
@@ -332,7 +335,8 @@ proc setTextAlphaInRange*(t: FormattedText, a, b: int, alpha: float32) =
     t.mAttributes[i].textColor.a = alpha
     t.mAttributes[i].textColor2.a = alpha
 
-proc setShadowInRange*(t: FormattedText, a, b: int, color: Color, offset: Size, radius, spread: float32) =
+proc setShadowInRange*(t: FormattedText, a, b: int, color: Color, offset: Size,
+    radius, spread: float32) =
   for i in t.attrsInRange(a, b):
     t.mAttributes[i].shadowColor = color
     t.mAttributes[i].shadowOffset = offset
@@ -357,7 +361,8 @@ proc setStrokeInRange*(t: FormattedText, a, b: int, color1, color2: Color, size:
 
 proc attrIndexForRuneAtPos(t: FormattedText, pos: int): int =
   if pos == 0: return 0 # Shortcut
-  result = t.mAttributes.lowerBoundIt(0, t.mAttributes.high, cmp(it.startRune, pos) <= 0) - 1
+  result =
+    t.mAttributes.lowerBoundIt(0, t.mAttributes.high, cmp(it.startRune, pos) <= 0) - 1
 
 proc uniInsert*(t: FormattedText, atIndex: int, s: string) =
   t.cacheValid = false
@@ -369,7 +374,8 @@ proc uniInsert*(t: FormattedText, atIndex: int, s: string) =
     t.mAttributes[i].startRune += rl
     t.mAttributes[i].startByte += s.len
 
-proc getByteOffsetsForRunePositions(t: FormattedText, positions: openarray[int], res: var openarray[int]) =
+proc getByteOffsetsForRunePositions(t: FormattedText, positions: openarray[int],
+    res: var openarray[int]) =
   let a = t.attrIndexForRuneAtPos(positions[0])
   var p = t.mAttributes[a].startByte
   var r = t.mAttributes[a].startRune
@@ -409,7 +415,8 @@ proc uniDelete*(t: FormattedText, start, stop: int) =
     if ea - sa > 1:
       t.mAttributes.delete((sa + 1) .. (ea - 1))
 
-  if sa < t.mAttributes.high and t.mAttributes[sa].startRune == t.mAttributes[sa + 1].startRune:
+  if sa < t.mAttributes.high and
+       t.mAttributes[sa].startRune == t.mAttributes[sa + 1].startRune:
     t.mAttributes.delete(sa)
 
 iterator attrsInLine(t: FormattedText, line: int): tuple[attrIndex, a, b: int] =
@@ -417,7 +424,8 @@ iterator attrsInLine(t: FormattedText, line: int): tuple[attrIndex, a, b: int] =
   var curAttrIndex = firstAttrInLine
   var breakPos = t.mText.len
   if line < t.lines.high: breakPos = t.lines[line + 1].startByte
-  while curAttrIndex < t.mAttributes.len and t.mAttributes[curAttrIndex].startByte < breakPos:
+  while curAttrIndex < t.mAttributes.len and
+      t.mAttributes[curAttrIndex].startByte < breakPos:
     var attrStartIndex = t.mAttributes[curAttrIndex].startByte
     if curAttrIndex == firstAttrInLine:
       attrStartIndex = t.lines[line].startByte
@@ -470,7 +478,8 @@ proc xOfRuneAtPos*(t: FormattedText, position: int): Coord =
   let ln = min(t.lineOfRuneAtPos(position), t.lines.high)
   result = t.cursorOffsetForPositionInLine(ln, position - t.lines[ln].startRune)
 
-proc getClosestCursorPositionToPointInLine*(t: FormattedText, line: int, p: Point, position: var int, offset: var Coord) =
+proc getClosestCursorPositionToPointInLine*(t: FormattedText, line: int, p: Point,
+    position: var int, offset: var Coord) =
   t.updateCacheIfNeeded()
   if line > t.lines.high: return
 
@@ -494,7 +503,8 @@ proc getClosestCursorPositionToPointInLine*(t: FormattedText, line: int, p: Poin
 
 proc lineAtHeight*(t: FormattedText, height: Coord): int =
   t.updateCacheIfNeeded()
-  result = lowerBoundIt(t.lines, t.lines.low, t.lines.high, cmp(it.top, height) <= 0)
+  result =
+    lowerBoundIt(t.lines, t.lines.low, t.lines.high, cmp(it.top, height) <= 0)
   if result > 0: dec result
 
 proc topOffset*(t: FormattedText): float32 =
@@ -504,7 +514,8 @@ proc topOffset*(t: FormattedText): float32 =
   of vaCenter: (t.mBoundingSize.height - t.mTotalHeight) / 2
   else: 0
 
-proc getClosestCursorPositionToPoint*(t: FormattedText, p: Point, position: var int, offset: var Coord) =
+proc getClosestCursorPositionToPoint*(t: FormattedText, p: Point, position: var int,
+    offset: var Coord) =
   let ln = t.lineAtHeight(p.y - t.topOffset)
   t.getClosestCursorPositionToPointInLine(ln, p, position, offset)
 
@@ -520,20 +531,23 @@ template len*(t: FormattedText): int = t.mText.len
 template attrOfRuneAtPos(t: FormattedText, pos: int): Attributes =
   t.mAttributes[t.attrIndexForRuneAtPos(pos)]
 
-proc colorOfRuneAtPos*(t: FormattedText, pos: int): tuple[color1, color2: Color, isGradient: bool] =
+proc colorOfRuneAtPos*(t: FormattedText,
+    pos: int): tuple[color1, color2: Color, isGradient: bool] =
   let i = t.attrIndexForRuneAtPos(pos)
   result.color1 = t.mAttributes[i].textColor
   result.color2 = t.mAttributes[i].textColor2
   result.isGradient = t.mAttributes[i].isTextGradient
 
-proc shadowOfRuneAtPos*(t: FormattedText, pos: int): tuple[color: Color, offset: Size, radius, spread: float32] =
+proc shadowOfRuneAtPos*(t: FormattedText,
+    pos: int): tuple[color: Color, offset: Size, radius, spread: float32] =
   let i = t.attrIndexForRuneAtPos(pos)
   result.color = t.mAttributes[i].shadowColor
   result.offset = t.mAttributes[i].shadowOffset
   result.radius = t.mAttributes[i].shadowRadius
   result.spread = t.mAttributes[i].shadowSpread
 
-proc strokeOfRuneAtPos*(t: FormattedText, pos: int): tuple[color1, color2: Color, size: float32, isGradient: bool] =
+proc strokeOfRuneAtPos*(t: FormattedText,
+    pos: int): tuple[color1, color2: Color, size: float32, isGradient: bool] =
   let i = t.attrIndexForRuneAtPos(pos)
   result.color1 = t.mAttributes[i].strokeColor1
   result.color2 = t.mAttributes[i].strokeColor2
@@ -606,7 +620,10 @@ float thresholdFunc(float glyphScale)
   float baseDev = 0.065;
   float devScaleMin = 0.15;
   float devScaleMax = 0.3;
-  return base - ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) / (devScaleMax - devScaleMin) * -baseDev + baseDev);
+  return base -
+    ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) / (devScaleMax - devScaleMin) *
+    -baseDev +
+    baseDev);
 }
 
 float spreadFunc(float glyphScale)
@@ -646,8 +663,12 @@ void compose()
 }
 """, false, "mediump")
 
-type ForEachLineAttributeCallback = proc(c: GraphicsContext, t: FormattedText, p: var Point, curLine, endIndex: int, str: string) {.nimcall, gcsafe.}
-proc forEachLineAttribute(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText, cb: ForEachLineAttributeCallback) =
+type ForEachLineAttributeCallback =
+  proc(c: GraphicsContext, t: FormattedText, p: var Point, curLine, endIndex: int,
+    str: string) {.nimcall, gcsafe.}
+
+proc forEachLineAttribute(c: GraphicsContext, inRect: Rect, origP: Point,
+    t: FormattedText, cb: ForEachLineAttributeCallback) =
   var p = origP
   let numLines = t.lines.len
   var curLine = 0
@@ -671,7 +692,8 @@ proc forEachLineAttribute(c: GraphicsContext, inRect: Rect, origP: Point, t: For
 
     for curAttrIndex, attrStartIndex, attrEndIndex in t.attrsInLine(curLine):
       if not lastAttrFont.isNil:
-        cb(c, t, p, curLine, lastCurAttrIndex, t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
+        cb(c, t, p, curLine, lastCurAttrIndex,
+          t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
 
       lastCurAttrIndex = curAttrIndex
       lastAttrStartIndex = attrStartIndex
@@ -680,9 +702,11 @@ proc forEachLineAttribute(c: GraphicsContext, inRect: Rect, origP: Point, t: For
 
     if not lastAttrFont.isNil:
       let nextLine = curLine + 1
-      let isNextLineHidden = nextLine < numLines and t.lines[nextLine].hidden
+      let isNextLineHidden =
+        nextLine < numLines and t.lines[nextLine].hidden
 
-      if (curLine == numLines - 1 or isNextLineHidden) and t.mTruncationBehavior != tbNone:
+      if (curLine == numLines - 1 or isNextLineHidden) and
+          t.mTruncationBehavior != tbNone:
         let lastIndex = lastAttrEndIndex
         var symbols = ""
         var runeWidth = 0.0
@@ -718,19 +742,24 @@ proc forEachLineAttribute(c: GraphicsContext, inRect: Rect, origP: Point, t: For
           p.x = t.mBoundingSize.width - width
 
         if not isCut:
-          cb(c, t, p, curLine, lastCurAttrIndex, t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
+          cb(c, t, p, curLine, lastCurAttrIndex,
+            t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
         else:
-          cb(c, t, p, curLine, lastCurAttrIndex, t.mText.substr(lastAttrStartIndex, lastAttrEndIndex) & symbols)
+          cb(c, t, p, curLine, lastCurAttrIndex,
+            t.mText.substr(lastAttrStartIndex, lastAttrEndIndex) & symbols)
           break
       else:
-        cb(c, t, p, curLine, lastCurAttrIndex, t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
+        cb(c, t, p, curLine, lastCurAttrIndex,
+          t.mText.substr(lastAttrStartIndex, lastAttrEndIndex))
 
     curLine.inc
 
 
 proc drawShadow(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText) =
   # TODO: Optimize heavily
-  forEachLineAttribute(c, inRect, origP, t) do(c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int, str: string):
+  forEachLineAttribute(c, inRect, origP, t) do(
+      c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int,
+      str: string):
     c.fillColor = t.mAttributes[curAttrIndex].shadowColor
     let font = t.mAttributes[curAttrIndex].font
     let oldBaseline = font.baseline
@@ -742,16 +771,18 @@ proc drawShadow(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
     pp.y += t.mAttributes[curAttrIndex].shadowOffset.height * t.shadowMultiplier.height
 
 
-    if t.mAttributes[curAttrIndex].shadowRadius > 0.0 or t.mAttributes[curAttrIndex].shadowSpread > 0.0:
+    if t.mAttributes[curAttrIndex].shadowRadius > 0.0 or
+        t.mAttributes[curAttrIndex].shadowSpread > 0.0:
       var options = SOFT_SHADOW_ENABLED
       # gradientAndStrokeComposition.options = options
-      var cc = getCompiledComposition(gradientAndStrokeComposition, options)
+      var cc =
+        getCompiledComposition(gradientAndStrokeComposition, options)
 
       glUseProgram(cc.program)
 
       compositionDrawingDefinitions(cc, c)
 
-      const minShadowSpread = 0.17 # make shadow border smooth and great again
+      const minShadowSpread = 0.17 # make shadow border smooth and nice again
 
       setUniform("shadowRadius", t.mAttributes[curAttrIndex].shadowRadius / 8.0)
       setUniform("shadowSpread", t.mAttributes[curAttrIndex].shadowSpread + minShadowSpread)
@@ -772,7 +803,9 @@ proc drawShadow(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
 
 proc drawStroke(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText) =
   # TODO: Optimize heavily
-  forEachLineAttribute(c, inRect, origP, t) do(c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int, str: string):
+  forEachLineAttribute(c, inRect, origP, t) do(
+      c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int,
+      str: string):
     const magicStrokeMaxSizeCoof = 0.46
     let font = t.mAttributes[curAttrIndex].font
 
@@ -782,13 +815,15 @@ proc drawStroke(c: GraphicsContext, inRect: Rect, origP: Point, t: FormattedText
         options = options or GRADIENT_ENABLED
 
       # gradientAndStrokeComposition.options = options
-      var cc = getCompiledComposition(gradientAndStrokeComposition, options)
+      var cc =
+        getCompiledComposition(gradientAndStrokeComposition, options)
 
       glUseProgram(cc.program)
 
       compositionDrawingDefinitions(cc, c)
 
-      setUniform("strokeSize", min(t.mAttributes[curAttrIndex].strokeSize / 15, magicStrokeMaxSizeCoof))
+      setUniform("strokeSize",
+        min(t.mAttributes[curAttrIndex].strokeSize / 15, magicStrokeMaxSizeCoof))
 
       if t.mAttributes[curAttrIndex].isStrokeGradient:
         setUniform("point_y", p.y - t.lines[curLine].baseline)
@@ -820,12 +855,15 @@ proc drawText*(c: GraphicsContext, origP: Point, t: FormattedText, inRect: Rect 
     if t.shadowAttrs.len > 0: c.drawShadow(inRect, origP, t)
     if t.strokeAttrs.len > 0: c.drawStroke(inRect, origP, t)
 
-  forEachLineAttribute(c, inRect, origP, t) do(c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int, str: string):
+  forEachLineAttribute(c, inRect, origP, t) do(
+      c: GraphicsContext, t: FormattedText, p: var Point, curLine, curAttrIndex: int,
+      str: string):
     let font = t.mAttributes[curAttrIndex].font
     let oldBaseline = font.baseline
     font.baseline = bAlphabetic
     if t.mAttributes[curAttrIndex].isTextGradient:
-      var cc = getCompiledComposition(gradientAndStrokeComposition, options = GRADIENT_ENABLED)
+      var cc =
+        getCompiledComposition(gradientAndStrokeComposition, options = GRADIENT_ENABLED)
 
       glUseProgram(cc.program)
 

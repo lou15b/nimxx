@@ -1,4 +1,5 @@
-## Provides access to opengl, plus a number of helpers to aid convenient access using idiomatic nim
+## Provides access to opengl, plus a number of helpers to aid convenient access
+## using idiomatic nim
 
 import pkg/opengl
 export opengl
@@ -31,8 +32,10 @@ proc markOpenglInitialized*() = openglInitializedFlag = true
 template drawGLElements*(mode: GLenum, count: GLsizei, typ: GLenum, offset: int = 0) =
   glDrawElements(mode, count, typ, cast[pointer](offset))
 proc createGLTexture*(): GLuint = glGenTextures(1, addr result)
-proc createGLFramebuffer*(): GLuint {.inline.} = glGenFramebuffers(1, addr result)
-proc createGLRenderbuffer*(): GLuint {.inline.} = glGenRenderbuffers(1, addr result)
+proc createGLFramebuffer*(): GLuint {.inline.} =
+  glGenFramebuffers(1, addr result)
+proc createGLRenderbuffer*(): GLuint {.inline.} =
+  glGenRenderbuffers(1, addr result)
 proc createGLBuffer*(): GLuint {.inline.} = glGenBuffers(1, addr result)
 template allocateGLBufferData*(target: GLenum, size: int32, usage: GLenum) =
   glBufferData(target, size, nil, usage)
@@ -53,22 +56,34 @@ template vertexGLAttribPointer*(index: GLuint, size: GLint, typ: GLenum,
     normalized: GLboolean, stride: GLsizei, offset: int) =
   glVertexAttribPointer(index, size, typ, normalized, stride, cast[pointer](offset))
 
-template uniformGL2fv*(location: UniformGLLocation, data: openarray[GLfloat]) = glUniform2fv(location, GLSizei(data.len / 2), unsafeAddr data[0])
-template uniformGL3fv*(location: UniformGLLocation, data: openarray[GLfloat]) = glUniform3fv(location, GLSizei(data.len / 3), unsafeAddr data[0])
-template uniformGL3iv*(location: UniformGLLocation, data: openarray[GLint]) = glUniform3iv(location, GLSizei(data.len / 3), unsafeAddr data[0])
-template uniformGL4fv*(location: UniformGLLocation, data: openarray[GLfloat]) = glUniform4fv(location, GLsizei(data.len / 4), unsafeAddr data[0])
-template uniformGL1fv*(location: UniformGLLocation, data: openarray[GLfloat]) = glUniform1fv(location, GLsizei(data.len), unsafeAddr data[0])
-proc uniformGLMatrix4fv*(location: UniformGLLocation, transpose: GLboolean, data: array[16, GLfloat]) {.inline.} =
+template uniformGL2fv*(location: UniformGLLocation, data: openarray[GLfloat]) =
+  glUniform2fv(location, GLSizei(data.len / 2), unsafeAddr data[0])
+template uniformGL3fv*(location: UniformGLLocation, data: openarray[GLfloat]) =
+  glUniform3fv(location, GLSizei(data.len / 3), unsafeAddr data[0])
+template uniformGL3iv*(location: UniformGLLocation, data: openarray[GLint]) =
+  glUniform3iv(location, GLSizei(data.len / 3), unsafeAddr data[0])
+template uniformGL4fv*(location: UniformGLLocation, data: openarray[GLfloat]) =
+  glUniform4fv(location, GLsizei(data.len / 4), unsafeAddr data[0])
+template uniformGL1fv*(location: UniformGLLocation, data: openarray[GLfloat]) =
+  glUniform1fv(location, GLsizei(data.len), unsafeAddr data[0])
+proc uniformGLMatrix4fv*(location: UniformGLLocation, transpose: GLboolean,
+    data: array[16, GLfloat]) {.inline.} =
   glUniformMatrix4fv(location, 1, transpose, unsafeAddr data[0])
-proc uniformGLMatrix3fv*(location: UniformGLLocation, transpose: GLboolean, data: array[9, GLfloat]) {.inline.} =
+proc uniformGLMatrix3fv*(location: UniformGLLocation, transpose: GLboolean,
+    data: array[9, GLfloat]) {.inline.} =
   glUniformMatrix3fv(location, 1, transpose, unsafeAddr data[0])
 
-template texGLImage2D*(target: GLenum, level, internalformat: GLint, width, height: GLsizei, border: GLint, format, t: GLenum, pixels: openarray) =
-  glTexImage2D(target, level, internalformat, width, height, border, format, t, unsafeAddr pixels[0])
-template texGLSubImage2D*(target: GLenum, level: GLint, xoffset, yoffset: GLint, width, height: GLsizei, format, t: GLenum, pixels: openarray) =
-  glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, t, unsafeAddr pixels[0])
+template texGLImage2D*(target: GLenum, level, internalformat: GLint,
+    width, height: GLsizei, border: GLint, format, t: GLenum, pixels: openarray) =
+  glTexImage2D(target, level, internalformat, width, height, border, format, t,
+    unsafeAddr pixels[0])
+template texGLSubImage2D*(target: GLenum, level: GLint, xoffset, yoffset: GLint,
+    width, height: GLsizei, format, t: GLenum, pixels: openarray) =
+  glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, t,
+    unsafeAddr pixels[0])
 
-template isEmptyGLRef*(obj: TextureGLRef or FramebufferGLRef or RenderbufferGLRef): bool = obj == 0
+template isEmptyGLRef*(obj: TextureGLRef or FramebufferGLRef or RenderbufferGLRef): bool =
+  obj == 0
 
 proc shaderGLInfoLog*(s: ShaderGLRef): string =
   var infoLen: GLint
@@ -102,7 +117,8 @@ proc isGLProgramLinked*(prog: ProgramGLRef): bool {.inline.} =
   glGetProgramiv(prog, GL_LINK_STATUS, addr linked)
   result = GLboolean(linked) == GLboolean(GL_TRUE)
 
-proc copyDataToGLBuffer*[T](target: GLenum, data: openarray[T], size: int, usage: GLenum) {.inline.} =
+proc copyDataToGLBuffer*[T](target: GLenum, data: openarray[T], size: int,
+    usage: GLenum) {.inline.} =
   assert(size <= data.len)
   glBufferData(target, GLsizei(size * sizeof(T)), cast[pointer](data), usage);
 

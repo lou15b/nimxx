@@ -20,10 +20,12 @@ type
 proc `@`(str: string): UIResID =
   UIResID(hash(str))
 
-proc deserializeView*(jn: JsonNode): View = newJsonDeserializer(jn).deserialize(result)
+proc deserializeView*(jn: JsonNode): View =
+  newJsonDeserializer(jn).deserialize(result)
 proc deserializeView*(data: string): View = deserializeView(parseJson(data))
 
-proc loadAUX[T](path: string, deser: proc(j: JsonNode): T {.gcsafe.}, onLoad: proc(v: T) {.gcsafe.})=
+proc loadAUX[T](path: string, deser: proc(j: JsonNode): T {.gcsafe.},
+    onLoad: proc(v: T) {.gcsafe.}) =
   loadAsset[JsonNode]("res://" & path) do(jn: JsonNode, err: string):
     onLoad(deser(jn))
 
@@ -78,7 +80,8 @@ proc deserializeUIResource*(jn: JsonNode): UIResource =
   result.outlets = deser.deserTable
   result.actions = initTable[UIResID, UIActionCallback]()
 
-proc deserializeUIResource*(data: string): UIResource = deserializeUIResource(parseJson(data))
+proc deserializeUIResource*(data: string): UIResource =
+  deserializeUIResource(parseJson(data))
 
 proc loadUiResource*(path: string, onLoad: proc(v: UIResource) {.gcsafe.}) =
   loadAUX[UIResource](path, deserializeUIResource, onLoad)

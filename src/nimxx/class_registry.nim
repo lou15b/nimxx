@@ -10,7 +10,8 @@ proc skipPtrRef(n: NimNode): NimNode =
 
 proc nodeTypedefInheritsFrom(n: NimNode): NimNode =
   n.expectKind(nnkTypeDef)
-  if n[2].kind == nnkRefTy and n[2][0].kind == nnkObjectTy and n[2][0][1].kind == nnkOfInherit:
+  if n[2].kind == nnkRefTy and n[2][0].kind == nnkObjectTy and
+      n[2][0][1].kind == nnkOfInherit:
     result = n[2][0][1][0]
 
 proc `*`(s: string, i: int): string {.compileTime, used.} =
@@ -60,8 +61,9 @@ type ClassInfo = tuple
 
 # Locks aren't needed for these, because they are initialized at start-up
 # and are not changed afterward
-# ***But note*** that any code referring to them in a proc, etc. that is called from
-#   outside code that is not top level must be inside a "{.gcsafe.}:" block.
+# ***But note*** that any code referring to them in a proc, etc. that is
+#   called from outside code that is not top level must be inside a
+#   "{.gcsafe.}:" block.
 #   See proc newObjectOfClass and the registeredX iterators
 var classFactory: Table[string, ClassInfo]
 var superTypeRelations: Table[TypeId, TypeId]
@@ -80,7 +82,8 @@ proc isTypeOf(tself, tsuper: TypeId): bool =
     t = superTypeRelations.getOrDefault(t)
   result = t != 0
 
-proc isSubtypeOf(tself, tsuper: TypeId): bool = tself != tsuper and isTypeOf(tself, tsuper)
+proc isSubtypeOf(tself, tsuper: TypeId): bool =
+  tself != tsuper and isTypeOf(tself, tsuper)
 
 {.pop.}
 
@@ -107,7 +110,8 @@ template isClassRegistered*(name: string): bool = name in classFactory
 proc newObjectOfClass*(name: string): RootRef =
   {.gcsafe.}:
     let c = classFactory.getOrDefault(name)
-    if c.creatorProc.isNil: raise newException(Exception, "Class '" & name & "' is not registered")
+    if c.creatorProc.isNil:
+      raise newException(Exception, "Class '" & name & "' is not registered")
     result = c.creatorProc()
 
 iterator registeredClasses*(): string =

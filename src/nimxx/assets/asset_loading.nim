@@ -4,32 +4,42 @@ import ./asset_cache, ./url_stream
 
 import pkg/malebolgia/lockers
 
-type UrlLoaderProc* = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
-type SimpleUrlLoaderProc*[T] = proc(url: string, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}
-type StreamLoaderProc* = proc(s: Stream, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
-type SimpleStreamLoaderProc*[T] = proc(s: Stream, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}
+type UrlLoaderProc* =
+  proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
+type SimpleUrlLoaderProc*[T] =
+  proc(url: string, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}
+type StreamLoaderProc* =
+  proc(s: Stream, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) {.gcsafe.}
+type SimpleStreamLoaderProc*[T] =
+  proc(s: Stream, handler: proc(v: T) {.gcsafe.}) {.gcsafe.}
 
 
 const anyUrlScheme = "_"
 
-var assetLoaders =
-  initLocker(newSeq[tuple[urlSchemes: seq[string], extensions: seq[string], loader: UrlLoaderProc]]())
+var assetLoaders = 
+  initLocker(newSeq[tuple[urlSchemes: seq[string], extensions: seq[string],
+    loader: UrlLoaderProc]]())
 
 # Apparently initLocker requires a variable with a formally defined type
-# And defining a proc variable, even with a pre-defined type, which includes the proc signature,
-# *still* requires the proc signature to be included in the variable's instantiation
-# Redundant and verbose, but I guess the instantiation needs the parameter names
+# And defining a proc variable, even with a pre-defined type, which includes
+# the proc signature, *still* requires the proc signature to be included in
+# the variable's instantiation Redundant and verbose, but I guess the
+# instantiation needs the parameter names
 # ??? And the type needs the parameter names for a possible parameterized call ???
-type HackyResUrlLoader = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.}
-var hrul: HackyResUrlLoader = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
-  discard
+type HackyResUrlLoader =
+  proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.}
+var hrul: HackyResUrlLoader =
+  proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
+    discard
 var hackyResUrlLoader* = initLocker(hrul)
 
-proc registerAssetLoader*(urlSchemes: openarray[string], fileExtensions: openarray[string], loader: UrlLoaderProc) =
+proc registerAssetLoader*(urlSchemes: openarray[string],
+    fileExtensions: openarray[string], loader: UrlLoaderProc) =
   lock assetLoaders as als:
     als.add((@urlSchemes, @fileExtensions, loader))
 
-proc registerAssetLoader*[T](urlSchemes: openarray[string], fileExtensions: openarray[string], simpleLoader: SimpleUrlLoaderProc[T]) =
+proc registerAssetLoader*[T](urlSchemes: openarray[string],
+    fileExtensions: openarray[string], simpleLoader: SimpleUrlLoaderProc[T]) =
   let loader = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
     simpleLoader(url) do(v: T):
       cache.registerAsset(path, v)
@@ -37,23 +47,28 @@ proc registerAssetLoader*[T](urlSchemes: openarray[string], fileExtensions: open
   registerAssetLoader(urlSchemes, fileExtensions, loader)
 
 # Any url scheme variants
-proc registerAssetLoader*(fileExtensions: openarray[string], loader: UrlLoaderProc) {.inline.} =
+proc registerAssetLoader*(fileExtensions: openarray[string],
+    loader: UrlLoaderProc) {.inline.} =
   registerAssetLoader([anyUrlScheme], fileExtensions, loader)
 
-proc registerAssetLoader*[T](fileExtensions: openarray[string], loader: SimpleUrlLoaderProc[T]) {.inline.} =
+proc registerAssetLoader*[T](fileExtensions: openarray[string],
+    loader: SimpleUrlLoaderProc[T]) {.inline.} =
   registerAssetLoader([anyUrlScheme], fileExtensions, loader)
 
 # Stream variants
-proc registerAssetLoader*(fileExtensions: openarray[string], streamLoader: StreamLoaderProc) =
-  let loader = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
-    openStreamForUrl(url) do(s: Stream, err: string):
-      if err.len == 0:
-        streamLoader(s, path, cache, handler)
-      else:
-        handler()
+proc registerAssetLoader*(fileExtensions: openarray[string],
+    streamLoader: StreamLoaderProc) =
+  let loader =
+    proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
+      openStreamForUrl(url) do(s: Stream, err: string):
+        if err.len == 0:
+          streamLoader(s, path, cache, handler)
+        else:
+          handler()
   registerAssetLoader([anyUrlScheme], fileExtensions, loader)
 
-proc registerAssetLoader*[T](fileExtensions: openarray[string], streamLoader: SimpleStreamLoaderProc[T]) =
+proc registerAssetLoader*[T](fileExtensions: openarray[string],
+    streamLoader: SimpleStreamLoaderProc[T]) =
   let loader = proc(url, path: string, cache: AssetCache, handler: proc() {.gcsafe.}) =
     openStreamForUrl(url) do(s: Stream, err: string):
       if err.len == 0:

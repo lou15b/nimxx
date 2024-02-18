@@ -83,7 +83,8 @@ method resizeSubviews*(v: LinearLayout, oldSize: Size) =
     let newViewSize = v.bounds.size
     if v.mHorizontal:
       for s in v.subviews: totalSize += s.frame.width
-      let newTotalSize = newViewSize.width - v.mPadding * (v.subviews.len - 1).Coord - v.mLeftMargin - v.mRightMargin
+      let newTotalSize = newViewSize.width -
+        v.mPadding * (v.subviews.len - 1).Coord - v.mLeftMargin - v.mRightMargin
       let k = newTotalSize / totalSize
       var x = v.mLeftMargin
       for s in v.subviews:
@@ -92,7 +93,8 @@ method resizeSubviews*(v: LinearLayout, oldSize: Size) =
         x = f.maxX + v.mPadding
     else:
       for s in v.subviews: totalSize += s.frame.height
-      let newTotalSize = newViewSize.height - v.mPadding * (v.subviews.len - 1).Coord - v.mTopMargin - v.mBottomMargin
+      let newTotalSize = newViewSize.height -
+        v.mPadding * (v.subviews.len - 1).Coord - v.mTopMargin - v.mBottomMargin
       let k = newTotalSize / totalSize
       var y = v.mTopMargin
       for s in v.subviews:
@@ -122,11 +124,15 @@ proc updateSize*(v: LinearLayout) =
   # Better don't use this proc...
   var totalSize = v.frame.size
   if v.mHorizontal:
-    totalSize.width = v.mRightMargin + v.mLeftMargin + v.mPadding * (v.subviews.len - 1).Coord
-    for s in v.subviews: totalSize.width = totalSize.width + s.frame.width
+    totalSize.width =
+      v.mRightMargin + v.mLeftMargin + v.mPadding * (v.subviews.len - 1).Coord
+    for s in v.subviews:
+      totalSize.width = totalSize.width + s.frame.width
   else:
-    totalSize.height = v.mTopMargin + v.mBottomMargin + v.mPadding * (v.subviews.len - 1).Coord
-    for s in v.subviews: totalSize.height = totalSize.height + s.frame.height
+    totalSize.height =
+      v.mTopMargin + v.mBottomMargin + v.mPadding * (v.subviews.len - 1).Coord
+    for s in v.subviews:
+      totalSize.height = totalSize.height + s.frame.height
   v.setFrameSize(totalSize)
   if not v.superview.isNil:
     v.superview.subviewDidChangeDesiredSize(v, totalSize)

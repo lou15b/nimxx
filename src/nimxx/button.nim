@@ -64,7 +64,8 @@ proc newButton*(r: Rect): Button =
   result.new()
   result.init(r)
 
-proc newButton*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), title: string = "Button"): Button =
+proc newButton*(parent: View = nil, position: Point = newPoint(0, 0),
+    size: Size = newSize(100, 20), title: string = "Button"): Button =
   result = newButton(newRect(position.x, position.y, size.width, size.height))
   result.title = title
   if not isNil(parent):
@@ -84,7 +85,8 @@ proc newImageButton*(r: Rect): Button =
   result = newButton(r)
   result.style = bsRegular
 
-proc newImageButton*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), image: Image = nil): Button =
+proc newImageButton*(parent: View = nil, position: Point = newPoint(0, 0),
+    size: Size = newSize(100, 20), image: Image = nil): Button =
   result = newImageButton(newRect(position.x, position.y, size.width, size.height))
   result.image = image
   if not isNil(parent):
@@ -137,7 +139,8 @@ void compose() {
   vec4 fc = gradient(smoothstep(bounds.y, bounds.y + bounds.w, vPos.y),
     uFillColorStart,
     uFillColorEnd);
-  drawShape(sdRoundedRect(insetRect(bounds, 2.0) + vec4(0.0, uShadowOffset, 0.0, uShadowOffset), radius - 1.0), fc);
+  drawShape(sdRoundedRect(insetRect(bounds, 2.0) + vec4(0.0, uShadowOffset, 0.0, uShadowOffset),
+    radius - 1.0), fc);
 }
 """
 
@@ -183,13 +186,21 @@ proc drawCheckboxStyle(b: Button, r: Rect) =
 
     c.fillColor = newGrayColor(0.7)
     c.strokeColor = newGrayColor(0.7)
-    c.drawLine(newPoint(size / 4.0, size * 1.0 / 2.0 + 1.0), newPoint(size / 4.0 * 2.0, size * 1.0 / 2.0 + size / 5.0 - c.strokeWidth / 2.0 + 1.0))
-    c.drawLine(newPoint(size / 4.0 * 2.0 - c.strokeWidth / 2.0, size * 1.0 / 2.0 + size / 5.0 + 1.0), newPoint(size / 4.0 * 3.0 - c.strokeWidth / 2.0, size / 4.0 + 1.0))
+    c.drawLine(
+      newPoint(size / 4.0, size * 1.0 / 2.0 + 1.0),
+      newPoint(size / 4.0 * 2.0, size * 1.0 / 2.0 + size / 5.0 - c.strokeWidth / 2.0 + 1.0))
+    c.drawLine(
+      newPoint(size / 4.0 * 2.0 - c.strokeWidth / 2.0, size * 1.0 / 2.0 + size / 5.0 + 1.0),
+      newPoint(size / 4.0 * 3.0 - c.strokeWidth / 2.0, size / 4.0 + 1.0))
 
     c.fillColor = whiteColor()
     c.strokeColor = whiteColor()
-    c.drawLine(newPoint(size / 4.0, size * 1.0 / 2.0), newPoint(size / 4.0 * 2.0, size * 1.0 / 2.0 + size / 5.0 - c.strokeWidth / 2.0))
-    c.drawLine(newPoint(size / 4.0 * 2.0 - c.strokeWidth / 2.0, size * 1.0 / 2.0 + size / 5.0), newPoint(size / 4.0 * 3.0 - c.strokeWidth / 2.0, size / 4.0))
+    c.drawLine(
+      newPoint(size / 4.0, size * 1.0 / 2.0),
+      newPoint(size / 4.0 * 2.0, size * 1.0 / 2.0 + size / 5.0 - c.strokeWidth / 2.0))
+    c.drawLine(
+      newPoint(size / 4.0 * 2.0 - c.strokeWidth / 2.0, size * 1.0 / 2.0 + size / 5.0),
+      newPoint(size / 4.0 * 3.0 - c.strokeWidth / 2.0, size / 4.0))
   else:
     checkButtonComposition.draw(c, bezelRect):
       setUniform("uStrokeColor", newGrayColor(0.78))
@@ -238,10 +249,13 @@ proc drawImage(b: Button) =
   let r = b.bounds
   if b.imageMarginLeft != 0 or b.imageMarginRight != 0 or
       b.imageMarginTop != 0 or b.imageMarginBottom != 0:
-    c.drawNinePartImage(b.image, b.bounds, b.imageMarginLeft, b.imageMarginTop, b.imageMarginRight, b.imageMarginBottom)
+    c.drawNinePartImage(b.image, b.bounds, b.imageMarginLeft, b.imageMarginTop,
+      b.imageMarginRight, b.imageMarginBottom)
   else:
-    c.drawImage(b.image, newRect(r.x + b.imageMarginLeft, r.y + b.imageMarginTop,
-      r.width - b.imageMarginLeft - b.imageMarginRight, r.height - b.imageMarginTop - b.imageMarginBottom))
+    c.drawImage(b.image,
+      newRect(r.x + b.imageMarginLeft, r.y + b.imageMarginTop,
+        r.width - b.imageMarginLeft - b.imageMarginRight,
+        r.height - b.imageMarginTop - b.imageMarginBottom))
 
 method draw(b: Button, r: Rect) =
   case b.style
@@ -326,10 +340,12 @@ method onTouchEv*(b: Button, e: var Event): bool =
 
 registerClass(Button)
 
-const checkBox = proc(): RootRef= newCheckbox(zeroRect)
+const checkBox = proc(): RootRef =
+  newCheckbox(zeroRect)
 registerClass(Checkbox, checkBox)
 
-const radiButton = proc(): RootRef = newRadiobox(zeroRect)
+const radiButton = proc(): RootRef =
+  newRadiobox(zeroRect)
 registerClass(Radiobox, radiButton)
 
 genVisitorCodeForView(Button)

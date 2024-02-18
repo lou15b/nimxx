@@ -39,15 +39,15 @@ type
   View* = ref object of RootRef
     window*: Window
     name*: string
-    frame: Rect                 ## view rect in superview coordinate system
-    bounds: Rect                ## view rect in its own coordinate system, starting from 0,0
+    frame: Rect           ## view rect in superview coordinate system
+    bounds: Rect          ## view rect in its own coordinate system, starting from 0,0
     subviews*: seq[View]
     superview*: View
     autoresizingMask*: set[AutoresizingFlag]
     backgroundColor*: Color
     gestureDetectors*: seq[GestureDetector]
     touchTarget*: View
-    interceptEvents*: bool      ## when view starts to handle tap, this flag set to true
+    interceptEvents*: bool  ## when view starts to handle tap, this flag set to true
     mouseInside*: bool
     handleMouseOver: bool
     hidden*: bool
@@ -219,8 +219,10 @@ proc newView*(frame: Rect): View = # Deprecated
   result.new()
   result.init(frame)
 
-method convertPointToParent*(v: View, p: Point): Point {.base, gcsafe.} = p + v.frame.origin - v.bounds.origin
-method convertPointFromParent*(v: View, p: Point): Point {.base, gcsafe.} = p - v.frame.origin + v.bounds.origin
+method convertPointToParent*(v: View, p: Point): Point {.base, gcsafe.} =
+  p + v.frame.origin - v.bounds.origin
+method convertPointFromParent*(v: View, p: Point): Point {.base, gcsafe.} =
+  p - v.frame.origin + v.bounds.origin
 
 proc convertPointToWindow*(v: View, p: Point): Point =
   var curV = v
@@ -245,7 +247,8 @@ proc convertRectFromWindow*(v: View, r: Rect): Rect =
 
 # Responder chain implementation
 method acceptsFirstResponder*(v: View): bool {.base, gcsafe.} = false
-method viewShouldResignFirstResponder*(v, newFirstResponder: View): bool {.base, gcsafe.} = true
+method viewShouldResignFirstResponder*(v, newFirstResponder: View): bool {.base, gcsafe.} =
+  true
 method viewDidBecomeFirstResponder*(v: View) {.base, gcsafe.} = discard
 
 proc makeFirstResponder*(w: Window, responder: View): bool =
@@ -256,7 +259,8 @@ proc makeFirstResponder*(w: Window, responder: View): bool =
   if shouldChange:
     w.firstResponder = r
     r.viewDidBecomeFirstResponder()
-    sharedNotificationCenter().postNotification(NimxFristResponderChangedInWindow, newVariant(r))
+    sharedNotificationCenter().postNotification(NimxFristResponderChangedInWindow,
+      newVariant(r))
     result = true
 
 method makeFirstResponder*(v: View): bool {.base, gcsafe.} =
@@ -295,8 +299,8 @@ method viewDidMoveToWindow*(v: View){.base, gcsafe.} =
   for s in v.subviews:
     s.viewDidMoveToWindow()
 
-# This is public because there is at least one case where a view must have its window field explicitly set
-# (see configureCellAUX in outline_view.nim)
+# This is public because there is at least one case where a view must have its
+# window field explicitly set (see configureCellAUX in outline_view.nim)
 proc moveToWindow*(v: View, w: Window) =
   v.window = w
   for s in v.subviews:
@@ -371,8 +375,10 @@ proc insertSubview*(v, s: View, i: int) =
   v.setNeedsDisplay()
   v.setNeedsLayout()
 
-proc insertSubviewAfter*(v, s, a: View) = v.insertSubview(s, v.subviews.find(a) + 1)
-proc insertSubviewBefore*(v, s, a: View) = v.insertSubview(s, v.subviews.find(a))
+proc insertSubviewAfter*(v, s, a: View) =
+  v.insertSubview(s, v.subviews.find(a) + 1)
+proc insertSubviewBefore*(v, s, a: View) =
+  v.insertSubview(s, v.subviews.find(a))
 proc addSubview*(v: View, s: View) = v.insertSubview(s, v.subviews.len)
 
 method replaceSubview*(v: View, subviewIndex: int, withView: View) {.base, gcsafe.} =
@@ -506,7 +512,9 @@ method setFrame*(v: View, r: Rect) = # Deprecated
 method frame*(v: View): Rect {.base, gcsafe.} = v.frame
 method bounds*(v: View): Rect {.base, gcsafe.} = v.bounds
 
-method subviewDidChangeDesiredSize*(v: View, sub: View, desiredSize: Size) {.base, gcsafe.} = discard # Deprecated
+method subviewDidChangeDesiredSize*(v: View, sub: View,
+    desiredSize: Size) {.base, gcsafe.} = # Deprecated
+  discard
 
 proc autoresizingMaskFromStrLit(s: string): set[AutoresizingFlag] {.compileTime.} = # Deprecated
   case s[0]
@@ -585,7 +593,8 @@ method serializeFields*(v: View, s: Serializer) =
 proc isLastInSuperview(d: View): bool =
   d.superview.subviews[^1] == d
 
-proc constraintsForFixedFrame*(f: Rect, superSize: Size, m: set[AutoresizingFlag]): seq[Constraint] =
+proc constraintsForFixedFrame*(f: Rect, superSize: Size,
+    m: set[AutoresizingFlag]): seq[Constraint] =
   # Don't use!
   if afFlexibleMinX in m:
     result.add(selfPHS.width == f.width)

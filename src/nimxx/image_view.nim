@@ -64,7 +64,8 @@ method draw*(v: ImageView, r: Rect) =
       let rows = r.height.int div v.image.size.height.int + 1
       for col in 0 ..< cols:
         for row in 0 ..< rows:
-          let imageRect = newRect(col.Coord * v.image.size.width, row.Coord * v.image.size.height, v.image.size.width, v.image.size.height)
+          let imageRect = newRect(col.Coord * v.image.size.width,
+            row.Coord * v.image.size.height, v.image.size.width, v.image.size.height)
           c.drawImage(v.image, imageRect)
     of ImageFillRule.FitWidth:
       let
@@ -72,7 +73,11 @@ method draw*(v: ImageView, r: Rect) =
         newWidth = r.width
         newHeight = v.image.size.height * stretchRatio
         newX = 0.Coord
-        newY = if newHeight > r.height: 0.Coord else: r.height / 2 - newHeight / 2
+        newY =
+          if newHeight > r.height:
+            0.Coord
+          else:
+            r.height / 2 - newHeight / 2
       c.drawImage(v.image, newRect(newX, newY, newWidth, newHeight))
     of ImageFillRule.FitHeight:
       let
@@ -83,7 +88,8 @@ method draw*(v: ImageView, r: Rect) =
         newX = if newWidth > r.width: 0.Coord else: r.width / 2 - newWidth / 2
       c.drawImage(v.image, newRect(newX, newY, newWidth, newHeight))
     of ImageFillRule.NinePartImage:
-      c.drawNinePartImage(v.image, v.bounds, v.imageMarginLeft, v.imageMarginTop, v.imageMarginRight, v.imageMarginBottom)
+      c.drawNinePartImage(v.image, v.bounds, v.imageMarginLeft, v.imageMarginTop,
+        v.imageMarginRight, v.imageMarginBottom)
 
 ImageView.properties:
   image

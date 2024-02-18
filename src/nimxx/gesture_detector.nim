@@ -52,7 +52,8 @@ type
 method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
 
 method onTapDown*(ls: OnScrollListener, e : var Event) {.base.} = discard
-method onScrollProgress*(ls: OnScrollListener, dx, dy : float32, e : var Event) {.base.} = discard
+method onScrollProgress*(ls: OnScrollListener, dx, dy : float32, e : var Event) {.base.} =
+  discard
 method onTapUp*(ls: OnScrollListener, dx, dy : float32, e : var Event) {.base.} = discard
 
 method onZoomStart*(ls: OnZoomListener) {.base.} = discard
@@ -206,7 +207,8 @@ method onGestEvent*(d: TapGestureDetector, e: var Event): bool =
 
 proc checkZoom(d: ZoomGestureDetector) =
   if d.pointers.len > 1:
-    d.last_distance = d.pointers[0].localPosition.distanceTo(d.pointers[1].localPosition) / d.last_zoom
+    d.last_distance =
+      d.pointers[0].localPosition.distanceTo(d.pointers[1].localPosition) / d.last_zoom
     if not d.firing:
       d.firing = true
       if not d.listener.isNil:
@@ -240,7 +242,8 @@ method onGestEvent*(d: ZoomGestureDetector, e: var Event) : bool =
         d.pointers.insert(e, p)
         break
   if d.pointers.len > 1:
-    let dist = d.pointers[0].localPosition.distanceTo(d.pointers[1].localPosition)
+    let dist =
+      d.pointers[0].localPosition.distanceTo(d.pointers[1].localPosition)
     d.last_zoom = dist / d.last_distance
     if not d.listener.isNil:
       d.listener.onZoomProgress(d.lastZoom)
@@ -283,8 +286,10 @@ method onGestEvent*(d: RotateGestureDetector, e: var Event) : bool =
         d.pointers.insert(e, p)
         break
   if d.pointers.len > 1:
-    let s = newPoint(d.pointers[0].localPosition.x, -(d.pointers[0].localPosition.y))
-    let f = newPoint(d.pointers[1].localPosition.x, -(d.pointers[1].localPosition.y))
+    let s =
+      newPoint(d.pointers[0].localPosition.x, -(d.pointers[0].localPosition.y))
+    let f =
+      newPoint(d.pointers[1].localPosition.x, -(d.pointers[1].localPosition.y))
     let so = newPoint(d.last_start.x, -(d.last_start.y))
     let fo = newPoint(d.last_end.x, -(d.last_end.y))
     d.angle = s.vectorAngle(f) - so.vectorAngle(fo) + d.angle_offset
@@ -294,11 +299,13 @@ method onGestEvent*(d: RotateGestureDetector, e: var Event) : bool =
       d.listener.onRotateProgress(d.angle)
 
 proc checkFling*(d: FlingGestureDetector) =
-  #let dist = d.prev_ev.localPosition.distanceTo(d.this_ev.localPosition)
+  # let dist = d.prev_ev.localPosition.distanceTo(d.this_ev.localPosition)
   let timedelta = d.this_ev.timestamp - d.prev_ev.timestamp
   if not d.flingListener.isNil:
-    let vx = 1000'f32 * (d.this_ev.localPosition.x - d.prev_ev.localPosition.x) / float32(timedelta)
-    let vy = 1000'f32 * (d.this_ev.localPosition.y - d.prev_ev.localPosition.y) / float32(timedelta)
+    let vx =
+      1000'f32 * (d.this_ev.localPosition.x - d.prev_ev.localPosition.x) / float32(timedelta)
+    let vy =
+      1000'f32 * (d.this_ev.localPosition.y - d.prev_ev.localPosition.y) / float32(timedelta)
     if abs(vx)>200 or abs(vy)>200:
       d.flingListener.onFling(vx,vy)
 

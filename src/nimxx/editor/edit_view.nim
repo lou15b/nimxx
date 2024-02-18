@@ -5,7 +5,9 @@ import ../ [ view, context, undo_manager, toolbar, button, menu, inspector_panel
       view_event_handling, abstract_window,
       serializers, key_commands, ui_resource ]
 
-import ../property_editors/[ standard_editors ] # Imported here to be registered in the propedit registry
+# The following is imported here to be registered in the propedit registry
+import ../property_editors/[ standard_editors ]
+
 import ../pasteboard/pasteboard
 import ./ [ ui_document, grid_drawing, editor_types ]
 
@@ -15,7 +17,8 @@ proc `selectedView=`(e: Editor, v: View) =
 
 template selectedView(e: Editor): View = e.mSelectedView
 
-template `selectedView=`(e: EventCatchingView, v: View) = e.editor.selectedView = v
+template `selectedView=`(e: EventCatchingView, v: View) =
+  e.editor.selectedView = v
 template selectedView(e: EventCatchingView): View = e.editor.selectedView
 
 method acceptsFirstResponder(v: EventCatchingView): bool = true
@@ -28,7 +31,9 @@ method onKeyUp(v: EventCatchingView, e : var Event): bool {.gcsafe.} =
 proc gridSize(v: EventCatchingView): float = v.mGridSize
 proc `gridSize=`(v: EventCatchingView, val: float) =
   v.mGridSize = val
-  v.editor.workspace.gridSize = if v.gridSize >= 10.0: newSize(v.gridSize, v.gridSize) else: zeroSize
+  v.editor.workspace.gridSize =
+    if v.gridSize >= 10.0: newSize(v.gridSize, v.gridSize)
+    else: zeroSize
   v.setNeedsDisplay()
 
 proc toggleGrid(v: EventCatchingView)=
@@ -141,7 +146,8 @@ when savingAndLoadingEnabled:
 
 proc setupSimulateButton(e: Editor, b: Button)=
   b.onAction do():
-    var simulateWnd = newWindow(newRect(100, 100, e.document.view.bounds.width, e.document.view.bounds.height))
+    var simulateWnd = newWindow(newRect(100, 100, e.document.view.bounds.width,
+      e.document.view.bounds.height))
     simulateWnd.title = "Simulate"
     simulateWnd.addSubview(
       deserializeView(
@@ -181,7 +187,8 @@ proc startNimxEditorAsync*(wnd: Window) {.async.}=
   gridButton.onAction do():
     editor.eventCatchingView.toggleGrid()
 
-  ui.getView(View, "gridSize").initPropertyEditor(editor.eventCatchingView, "gridSize", editor.eventCatchingView.gridSize)
+  ui.getView(View, "gridSize").initPropertyEditor(editor.eventCatchingView,
+    "gridSize", editor.eventCatchingView.gridSize)
 
   editor.inspector = InspectorPanel.new(newRect(0, 0, 300, 600))
   editor.inspector.onPropertyChanged do(name: string):
@@ -219,15 +226,31 @@ proc knobRect(b: Rect, po: PanOperation): Rect =
   const edgeKnobRadius = 2
 
   case po
-  of poDragTL: newRect(b.x - cornerKnobRadius, b.y - cornerKnobRadius, cornerKnobRadius * 2, cornerKnobRadius * 2)
-  of poDragTR: newRect(b.maxX - cornerKnobRadius, b.y - cornerKnobRadius, cornerKnobRadius * 2, cornerKnobRadius * 2)
-  of poDragBL: newRect(b.x - cornerKnobRadius, b.maxY - cornerKnobRadius, cornerKnobRadius * 2, cornerKnobRadius * 2)
-  of poDragBR: newRect(b.maxX - cornerKnobRadius, b.maxY - cornerKnobRadius, cornerKnobRadius * 2, cornerKnobRadius * 2)
+  of poDragTL:
+    newRect(b.x - cornerKnobRadius, b.y - cornerKnobRadius, cornerKnobRadius * 2,
+      cornerKnobRadius * 2)
+  of poDragTR:
+    newRect(b.maxX - cornerKnobRadius, b.y - cornerKnobRadius, cornerKnobRadius * 2,
+      cornerKnobRadius * 2)
+  of poDragBL:
+    newRect(b.x - cornerKnobRadius, b.maxY - cornerKnobRadius, cornerKnobRadius * 2,
+      cornerKnobRadius * 2)
+  of poDragBR:
+    newRect(b.maxX - cornerKnobRadius, b.maxY - cornerKnobRadius, cornerKnobRadius * 2,
+      cornerKnobRadius * 2)
 
-  of poDragB: newRect(b.x + b.width / 2 - edgeKnobRadius, b.maxY - edgeKnobRadius, edgeKnobRadius * 2, edgeKnobRadius * 2)
-  of poDragL: newRect(b.x - edgeKnobRadius, b.y + b.height / 2 - edgeKnobRadius, edgeKnobRadius * 2, edgeKnobRadius * 2)
-  of poDragR: newRect(b.maxX - edgeKnobRadius, b.y + b.height / 2 - edgeKnobRadius, edgeKnobRadius * 2, edgeKnobRadius * 2)
-  of poDragT: newRect(b.x + b.width / 2 - edgeKnobRadius, b.y - edgeKnobRadius, edgeKnobRadius * 2, edgeKnobRadius * 2)
+  of poDragB:
+    newRect(b.x + b.width / 2 - edgeKnobRadius, b.maxY - edgeKnobRadius,
+      edgeKnobRadius * 2, edgeKnobRadius * 2)
+  of poDragL:
+    newRect(b.x - edgeKnobRadius, b.y + b.height / 2 - edgeKnobRadius,
+      edgeKnobRadius * 2, edgeKnobRadius * 2)
+  of poDragR:
+    newRect(b.maxX - edgeKnobRadius, b.y + b.height / 2 - edgeKnobRadius,
+      edgeKnobRadius * 2, edgeKnobRadius * 2)
+  of poDragT:
+    newRect(b.x + b.width / 2 - edgeKnobRadius, b.y - edgeKnobRadius,
+      edgeKnobRadius * 2, edgeKnobRadius * 2)
 
   else: zeroRect
 
@@ -269,7 +292,8 @@ method onTouchEv*(v: EventCatchingView, e: var Event): bool =
     if not v.panningView.isNil:
       v.panOp = panOperation(sr, e.localPosition)
 
-    let lpos = v.editor.document.view.convertPointFromWindow(v.convertPointToWindow(e.localPosition))
+    let lpos =
+      v.editor.document.view.convertPointFromWindow(v.convertPointToWindow(e.localPosition))
     var clickAtView = v.editor.document.view.subviewAtPoint(lpos)
     if v.panOp == poDrag and (not e.localPosition.inRect(sr) or clickAtView != v.panningView):
       # Either there is no view selected, or mousedown missed selected

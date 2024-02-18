@@ -27,13 +27,13 @@ proc `=destroy`(x: ApplicationObj) =
 proc pushEventFilter*(a: Application, f: EventFilter) = a[].eventFilters.add(f)
 
 # proc newApplication(): ref ApplicationObj =
-#     result.new()
-#     result.windows = @[]
-#     result.eventFilters = @[]
-#     result.inputState = {}
+#   result.new()
+#   result.windows = @[]
+#   result.eventFilters = @[]
+#   result.inputState = {}
 
-# This global is only set at startup but its contents may be changed, so it needs to be guarded by a lock
-# And that lock needs to be re-entrant
+# This global is only set at startup but its contents may be changed,
+# so it needs to be guarded by a lock. And that lock needs to be re-entrant
 var mainAppLock*: RLock
 mainAppLock.initRLock()
 var mainApp* {.guard: mainAppLock.} =
@@ -48,14 +48,14 @@ proc removeWindow*(app: Application, w: Window) =
 
 proc handleEvent*(app: Application, e: var Event): bool =
   if numberOfActiveTouches() == 0 and e.kind == etMouse and e.buttonState == bsUp:
-    # There may be cases when mouse up is not paired with mouse down.
-    # This behavior may be observed in Web and native platforms, when clicking on canvas in menu-modal
-    # mode. We just ignore such events.
+    # There may be cases when mouse up is *not* paired with mouse down.
+    # This behavior may be observed in Web and native platforms,
+    # when clicking on canvas in menu-modal mode. We just ignore such events.
     warn "Mouse up event ignored"
     return false
 
   if e.kind == etMouse and e.buttonState == bsDown and e.keyCode in app[].inputState:
-    # There may be cases when mouse down is not paired with mouse up.
+    # There may be cases when mouse down is *not* paired with mouse up.
     # This behavior may be observed in Web and native platforms
     # We just send mouse bsUp fake event
 

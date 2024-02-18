@@ -3,8 +3,8 @@ import std/times
 import std/logging
 
 ##[
-  Provides pause/resume/update control for a collection of Animations. AnimationRunner objects are
-  owned by Window objects.
+  Provides pause/resume/update control for a collection of Animations.
+  AnimationRunner objects are owned by Window objects.
 ]##
 
 type AnimationRunner* = ref object

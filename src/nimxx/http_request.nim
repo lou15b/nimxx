@@ -21,7 +21,8 @@ proc readFromSharedBuffer*[T](p: pointer, res: var T) =
   load(s, res)
   s.close()
 
-proc sendRequest*(meth: HttpMethod, url, body: string, headers: openarray[(string, string)], handler: Handler) =
+proc sendRequest*(meth: HttpMethod, url, body: string, headers: openarray[(string, string)],
+    handler: Handler) =
   type SdlHandlerContext = ref object
     handler: Handler
     data: pointer

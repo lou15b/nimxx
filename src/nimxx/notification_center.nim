@@ -40,7 +40,8 @@ proc sharedNotificationCenter*(): NotificationCenter =
     gNotifCenter = newNotificationCenter()
   result = gNotifCenter
 
-proc addObserverAux(nc: NotificationCenter, notificationId: int, observer: ObserverId, action: proc()) =
+proc addObserverAux(nc: NotificationCenter, notificationId: int,
+    observer: ObserverId, action: proc()) =
   var obsMap = nc.notificationsMap.getOrDefault(notificationId)
   if obsMap.isNil:
     obsMap = newTable[ObserverId, proc()]()
@@ -78,7 +79,8 @@ proc castProc[TTo, TFrom](p: TFrom): TTo {.inline.} =
 
 {.push stackTrace: off, inline.}
 
-proc addObserver*[T: proc](nc: NotificationCenter, name: Notification[T], observerId: ref | SomeOrdinal, action: T) =
+proc addObserver*[T: proc](nc: NotificationCenter, name: Notification[T],
+    observerId: ref | SomeOrdinal, action: T) =
   nc.addObserverAux(int(name), getObserverID(observerId), castProc[proc(), T](action))
 
 proc addObserver*[T](nc: NotificationCenter, name: Notification[T], action: T) =
@@ -86,7 +88,8 @@ proc addObserver*[T](nc: NotificationCenter, name: Notification[T], action: T) =
 
 {.pop.}
 
-template removeObserver*(nc: NotificationCenter, name: Notification, observerId: ref | SomeOrdinal) =
+template removeObserver*(nc: NotificationCenter, name: Notification,
+    observerId: ref | SomeOrdinal) =
   nc.removeObserverAux(int(name), getObserverID(observerId))
 
 template removeObserver*(nc: NotificationCenter, observerId: ref | SomeOrdinal) =
@@ -113,7 +116,8 @@ macro newTuple(args: untyped): untyped =
 # All this dancing with pointers and casts may be prettier at the cost
 # of additional closure allocation on every postNotification. We prefer to
 # avoid this allocation, so... yeah...
-proc dispatchNotification(nc: NotificationCenter, notificationId: int, ctx: pointer, dispatch: proc(prc: proc(), ctx: pointer) {.nimcall.}) =
+proc dispatchNotification(nc: NotificationCenter, notificationId: int, ctx: pointer,
+    dispatch: proc(prc: proc(), ctx: pointer) {.nimcall.}) =
   let obsMap = nc.notificationsMap.getOrDefault(notificationId)
   if not obsMap.isNil:
     # dispatch is reentrant!
@@ -124,7 +128,8 @@ proc dispatchForwarder[TProc, TTuple](prc: proc(), ctx: pointer) =
   let p = castProc[TProc, proc()](prc)
   appendTupleToCall(p(), cast[ptr TTuple](ctx)[])
 
-template postNotification*[T: proc](nc: NotificationCenter, name: Notification[T], args: varargs[typed]) =
+template postNotification*[T: proc](nc: NotificationCenter, name: Notification[T],
+    args: varargs[typed]) =
   var t = newTuple(args)
   var pt {.noInit.}: pointer
   pt = addr t
@@ -133,11 +138,16 @@ template postNotification*[T: proc](nc: NotificationCenter, name: Notification[T
 
 
 when isMainModule:
-  const TEST_NOTIFICATION_INT = notification(proc(param: int))
-  const TEST_NOTIFICATION_SEQ = notification(proc(param: seq[int]))
-  const TEST_NOTIFICATION_OPENARRAY = notification(proc(param: openarray[int]))
-  const TEST_NOTIFICATION_TWOARGS = notification(proc(a: float, b: int))
-  const TEST_NOTIFICATION_NO_PARAMS = notification(proc())
+  const TEST_NOTIFICATION_INT =
+    notification(proc(param: int))
+  const TEST_NOTIFICATION_SEQ =
+    notification(proc(param: seq[int]))
+  const TEST_NOTIFICATION_OPENARRAY =
+    notification(proc(param: openarray[int]))
+  const TEST_NOTIFICATION_TWOARGS =
+    notification(proc(a: float, b: int))
+  const TEST_NOTIFICATION_NO_PARAMS =
+    notification(proc())
 
   let nc = newNotificationCenter()
 
@@ -228,7 +238,8 @@ proc removeObserverInOldDeprecatedWay(nc: NotificationCenter, obsId: ObserverId)
   for key in toRemoveKeys:
     nc.observers.del(key)
 
-proc addObserver*(nc: NotificationCenter, ev: string, observerId: ref | SomeOrdinal, cb: NCCallback) =
+proc addObserver*(nc: NotificationCenter, ev: string, observerId: ref | SomeOrdinal,
+    cb: NCCallback) =
   let obsId = getObserverID(observerId)
   var o = nc.observers.getOrDefault(ev)
   if o.isNil:
@@ -244,7 +255,8 @@ proc postNotification*(nc: NotificationCenter, ev: string, args: Variant) {.gcsa
     for v in o.values: s.add(v)
     for v in s:
       when defined(debugNC):
-        warn "NC postNotification ", ev, " from ", instantiationInfo(), " with args ", args.typeId
+        warn "NC postNotification ", ev, " from ", instantiationInfo(),
+          " with args ", args.typeId
       v(args)
 
 proc postNotification*(nc: NotificationCenter, ev: string) {.inline.} =

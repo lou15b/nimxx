@@ -34,7 +34,8 @@ method init*(v: ImagePreview, r: Rect) =
   if maxLen > maxSize:
     scale = maxSize / maxLen
 
-  var content = newSize(v.image.size.width * scale, v.image.size.height * scale)
+  var content =
+    newSize(v.image.size.width * scale, v.image.size.height * scale)
   if v.image.size.width < minSize:
     content.width = minSize
   if v.image.size.height < minSize:
@@ -49,7 +50,8 @@ method init*(v: ImagePreview, r: Rect) =
   v.title = "Image Preview"
   v.imgScale = scale
 
-  let closeBttn = newButton(v, newPoint(viewRect.width - 16.0 - 1.0, 1.0), newSize(16, 16), "X")
+  let closeBttn =
+    newButton(v, newPoint(viewRect.width - 16.0 - 1.0, 1.0), newSize(16, 16), "X")
   closeBttn.autoresizingMask = {afFlexibleMinX, afFlexibleMaxY}
   closeBttn.onAction do():
     v.removeFromSuperview()
@@ -88,7 +90,8 @@ method draw*(v: ImagePreview, r: Rect) =
   c.drawImage(v.image, v.imageRect)
 
   # Draw Info
-  let sizeInfo = "Size: " & $v.image.size.width & " x " & $v.image.size.height
+  let sizeInfo =
+    "Size: " & $v.image.size.width & " x " & $v.image.size.height
   c.drawText(f, newPoint(5, r.height - bottomSize / 2.0), sizeInfo)
 
   var pathInfo = "Path: nil"

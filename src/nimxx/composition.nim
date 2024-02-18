@@ -161,7 +161,8 @@ vec4 gradient(float pos, vec4 startColor, float s1, vec4 c1, float sN, vec4 cN, 
     endColor, smoothstep(sN, 1.0, pos));
 }
 
-vec4 gradient(float pos, vec4 startColor, float s1, vec4 c1, float s2, vec4 c2, float sN, vec4 cN, vec4 endColor) {
+vec4 gradient(float pos, vec4 startColor, float s1, vec4 c1, float s2, vec4 c2,
+    float sN, vec4 cN, vec4 endColor) {
   return mix(gradient(pos / sN, startColor, s1 / sN, c1, s2 / sN, c2, cN),
     endColor, smoothstep(sN, 1.0, pos));
 }
@@ -247,7 +248,8 @@ proc sdEllipseInRect*(pos: Vec2, rect: Vec4): float32 =
 
 proc insetRect*(r: Vec4, by: float32): Vec4 = newVec4(r.xy + by, r.zw - by * 2.0)
 
-proc vertexShader(aPosition: Vec2, uModelViewProjectionMatrix: Mat4, uBounds: Vec4, vPos: var Vec2): Vec4 =
+proc vertexShader(aPosition: Vec2, uModelViewProjectionMatrix: Mat4, uBounds: Vec4,
+    vPos: var Vec2): Vec4 =
   vPos = uBounds.xy + aPosition * uBounds.zw
   result = uModelViewProjectionMatrix * newVec4(vPos, 0.0, 1.0);
 
@@ -279,7 +281,8 @@ type
     requiresPrequel: bool
     id*: int
     
-  # "Table" doesn't currently have a destructor, so we wrap it in an object to ensure proper cleanup
+  # "Table" doesn't currently have a destructor, so we wrap it in an object to
+  # ensure proper cleanup
   ProgramCache = object
     entries: Table[Hash, CompiledComposition]
 
@@ -337,11 +340,13 @@ proc preprocessDefinition(definition: string): string {.compileTime.} =
     if ln.startsWith(prefix):
       let uniformName = ln.substr(prefix.len, ln.len - 2)
       symbolsToReplace.add(uniformName)
-      result &= "\Luniform sampler2D " & uniformName & "_tex;\Luniform vec4 " & uniformName & "_texCoords;"
+      result &= "\Luniform sampler2D " & uniformName & "_tex;\Luniform vec4 " &
+        uniformName & "_texCoords;"
     else:
       result &= "\L" & replaceSymbolsInLine(symbolsToReplace, ln)
 
-proc newPostEffect*(definition: static[string], mainProcName: string, argTypes: openarray[string]): PostEffect =
+proc newPostEffect*(definition: static[string], mainProcName: string,
+    argTypes: openarray[string]): PostEffect =
   const preprocessedDefinition = preprocessDefinition(definition)
   result.new()
   result.source = preprocessedDefinition
@@ -352,7 +357,8 @@ proc newPostEffect*(definition: static[string], mainProcName: string, argTypes: 
 template newPostEffect*(definition: static[string], mainProcName: string): PostEffect =
   newPostEffect(definition, mainProcName, [])
 
-proc newComposition*(vsDef, fsDef: static[string], requiresPrequel: bool = true, precision: string = "highp"): Composition =
+proc newComposition*(vsDef, fsDef: static[string], requiresPrequel: bool = true,
+    precision: string = "highp"): Composition =
   const preprocessedDefinition = preprocessDefinition(fsDef)
   result.definition = preprocessedDefinition
   result.vsDefinition = vsDef
@@ -390,10 +396,13 @@ proc postEffectUniformName(postEffectIndex, argIndex: int): string =
   result = ""
   getPostEffectUniformName(postEffectIndex, argIndex, result)
 
-proc compileComposition(comp: Composition, cchash: Hash, compOptions: int): CompiledComposition =
+proc compileComposition(comp: Composition, cchash: Hash,
+    compOptions: int): CompiledComposition =
   var fragmentShaderCode = ""
 
-  if (comp.definition.len != 0 and comp.definition.find("GL_OES_standard_derivatives") < 0) or comp.requiresPrequel:
+  if (comp.definition.len != 0 and
+      comp.definition.find("GL_OES_standard_derivatives") < 0) or
+      comp.requiresPrequel:
     fragmentShaderCode &= """
       #ifdef GL_ES
       #extension GL_OES_standard_derivatives : enable
@@ -474,17 +483,19 @@ proc unwrapPointArray(a: openarray[Point]): seq[GLfloat] {.used.} =
     result[i] = p.y
     inc i
 
-# This variable is used in template setUniform below - which means that it gets referenced
-# from elsewhere. It appears to be some kind of shared working memory.. And it works, despite the fact
-# that it isn't public.
-# I made it a threadvar instead of a global, so that if images are getting drawn concurrently
-# in different threads they won't tramp on each other's feet.
-# I ***really*** don't like this way of doing things. Need to figure out how we can get rid of it.
+# This variable is used in template setUniform below - which means that it gets
+# referenced from elsewhere. It appears to be some kind of shared working memory.
+# And it works, despite the fact that it isn't public.
+# I made it a threadvar instead of a global, so that if images are getting drawn
+# concurrently in different threads they won't tramp on each other's feet.
+# I ***really*** don't like this way of doing things. Need to figure out
+# how we can get rid of it.
 var texQuad {.threadvar.} : array[4, GLfloat]
 
 template compositionDrawingDefinitions*(cc: CompiledComposition, ctx: GraphicsContext) =
-  ## This template inserts the following templates into the code where it is invoked
-  # It is invoked when the "draw" template below is invoked
+  ## This template inserts the following templates into the code where it was
+  ## invoked
+  # It gets invoked when the "draw" template below is invoked
   template uniformLocation(name: string): UniformGLLocation =
     inc cc.iUniform
     if cc.uniformLocations.len - 1 < cc.iUniform:
@@ -538,12 +549,14 @@ template pushPostEffect*(pe: PostEffect, ctx: GraphicsContext, args: varargs[unt
   lock postEffectStack as pest:
     var peids = pest.postEffectIds
     let stackLen = peids.len
-    pest.postEffects.add(PostEffectStackElem(postEffect: pe, setupProc: proc(cc: CompiledComposition) =
-        compositionDrawingDefinitions(cc, ctx)
-        var j = 0
-        staticFor uni in args:
-          setUniform(postEffectUniformName(stackLen, j), uni)
-          inc j
+    pest.postEffects.add(
+      PostEffectStackElem(postEffect: pe,
+        setupProc: proc(cc: CompiledComposition) =
+          compositionDrawingDefinitions(cc, ctx)
+          var j = 0
+          staticFor uni in args:
+            setUniform(postEffectUniformName(stackLen, j), uni)
+            inc j
     ))
 
     let oh = if stackLen > 0: peids[^1] else: 0
@@ -578,19 +591,20 @@ template setupPosteffectUniforms*(cc: CompiledComposition) =
       pe.setupProc(cc)
 
 # ******************************************
-# The following 2 globals (overdrawValue and DIPValue) should actually be attributes of Window
-# They are only used for mini-profiler display, so it's not worth the bother to rationalize
-# them until we decide whether to keep the mini-prfiler at all.
+# The following 2 globals (overdrawValue and DIPValue) should actually be
+# attributes of Window. They are only used for mini-profiler display, so
+# it's not worth the bother to rationalize them until we decide whether to
+# keep the mini-profiler at all.
 
-# It is ***assumed*** that store and retrieve operations for 32-bit float are atomic
-var overdrawValue = 0'f32       # Total number of pixels overdrawn when the window gets drawn
+# It is *assumed* that store and retrieve operations for 32-bit float are atomic
+var overdrawValue = 0'f32   # Total no. of pixels overdrawn when the window is drawn
 template GetOverdrawValue*() : float32 = overdrawValue / 1000
 
 template ResetOverdrawValue*() =
   overdrawValue = 0
 
 # It is ***assumed*** that store and retrieve operations for int are atomic
-var DIPValue = 0        # Total number of images processed when the window gets drawn
+var DIPValue = 0   # Total number of images processed when the window is drawn
 template GetDIPValue*() : int =
   DIPValue
 

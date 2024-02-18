@@ -9,7 +9,8 @@ type FontsView = ref object of View
   curFontSize: float
   baseline: Baseline
 
-template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord, val: typed) =
+template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord,
+    val: typed) =
   let lb = newLabel(newRect(20, y, 120, 20))
   lb.text = title & ":"
   let s = Slider.new(newRect(140, y, 120, 20))

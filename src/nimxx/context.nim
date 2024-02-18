@@ -17,14 +17,18 @@ uniform float uRadius;
 
 void compose() {
   drawInitialShape(sdRoundedRect(bounds, uRadius), uStrokeColor);
-  drawShape(sdRoundedRect(insetRect(bounds, uStrokeWidth), uRadius - uStrokeWidth), uFillColor);
+  drawShape(sdRoundedRect(insetRect(bounds, uStrokeWidth), uRadius - uStrokeWidth),
+    uFillColor);
 }
 """
 
 proc drawRoundedRect*(c: GraphicsContext, r: Rect, radius: Coord) =
   roundedRectComposition.draw(c, r):
     setUniform("uFillColor", c.fillColor)
-    setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
+    setUniform("uStrokeColor",
+      if c.strokeWidth == 0:
+        c.fillColor
+      else: c.strokeColor)
     setUniform("uStrokeWidth", c.strokeWidth)
     setUniform("uRadius", radius)
 
@@ -39,7 +43,10 @@ const rectComposition = newCompositionWithNimsl(drawRect)
 proc drawRect*(c: GraphicsContext, r: Rect) =
   rectComposition.draw(c, r):
     setUniform("uFillColor", c.fillColor)
-    setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
+    setUniform("uStrokeColor",
+      if c.strokeWidth == 0:
+        c.fillColor
+      else: c.strokeColor)
     setUniform("uStrokeWidth", c.strokeWidth)
 
 proc drawEllipse(bounds, uFillColor, uStrokeColor: Vec4,
@@ -53,10 +60,14 @@ const ellipseComposition = newCompositionWithNimsl(drawEllipse)
 proc drawEllipseInRect*(c: GraphicsContext, r: Rect) =
   ellipseComposition.draw(c, r):
     setUniform("uFillColor", c.fillColor)
-    setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
+    setUniform("uStrokeColor",
+      if c.strokeWidth == 0:
+        c.fillColor
+      else: c.strokeColor)
     setUniform("uStrokeWidth", c.strokeWidth)
 
-proc imageVertexShader(aPosition: Vec2, uModelViewProjectionMatrix: Mat4, uBounds, uImage_texCoords, uFromRect: Vec4, vPos, vImageUV: var Vec2): Vec4 =
+proc imageVertexShader(aPosition: Vec2, uModelViewProjectionMatrix: Mat4,
+    uBounds, uImage_texCoords, uFromRect: Vec4, vPos, vImageUV: var Vec2): Vec4 =
   let f = uFromRect
   let t = uImage_texCoords
   vPos = uBounds.xy + aPosition * uBounds.zw
@@ -80,12 +91,14 @@ proc bindVertexData*(c: GraphicsContext, length: int) =
   glBindBuffer(GL_ARRAY_BUFFER, c.sharedBuffer)
   copyDataToGLBuffer(GL_ARRAY_BUFFER, c.vertexes, length, GL_DYNAMIC_DRAW)
 
-proc drawImage*(c: GraphicsContext, i: Image, toRect: Rect, fromRect: Rect = zeroRect, alpha: ColorComponent = 1.0) =
+proc drawImage*(c: GraphicsContext, i: Image, toRect: Rect, fromRect: Rect = zeroRect,
+    alpha: ColorComponent = 1.0) =
   if i.isLoaded:
     var fr = newRect(0, 0, 1, 1)
     if fromRect != zeroRect:
       let s = i.size
-      fr = newRect(fromRect.x / s.width, fromRect.y / s.height, fromRect.maxX / s.width, fromRect.maxY / s.height)
+      fr = newRect(fromRect.x / s.width, fromRect.y / s.height,
+        fromRect.maxX / s.width, fromRect.maxY / s.height)
     imageComposition.draw(c, toRect):
       setUniform("uImage", i)
       setUniform("uAlpha", alpha * c.alpha)
@@ -114,8 +127,8 @@ void compose() {
 }
 """, false)
 
-proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, mb: Coord, fromRect: Rect = zeroRect,
-    alpha: ColorComponent = 1.0) =
+proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, mb: Coord,
+    fromRect: Rect = zeroRect, alpha: ColorComponent = 1.0) =
   if i.isLoaded:
     var cc = getCompiledComposition(ninePartImageComposition)
 
@@ -181,7 +194,8 @@ proc drawNinePartImage*(c: GraphicsContext, i: Image, toRect: Rect, ml, mt, mr, 
     const componentsCount = 4
     const vertexCount = (4 - 1) * 4 * 2
     c.bindVertexData(componentsCount * vertexCount)
-    vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, cGL_FLOAT, false, 0, 0)
+    vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount,
+      cGL_FLOAT, false, 0, 0)
     drawGLElements(GL_TRIANGLE_STRIP, vertexCount, GL_UNSIGNED_SHORT)
 
 
@@ -221,7 +235,9 @@ proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
   let vertexCount = 300
   for i in 0..<vertexCount:
     let t = i / (vertexCount - 1)
-    let p = newPoint(bezierPoint(p0.x, p1.x, p2.x, p3.x, t), bezierPoint(p0.y, p1.y, p2.y, p3.y, t))
+    let p = newPoint(
+      bezierPoint(p0.x, p1.x, p2.x, p3.x, t),
+      bezierPoint(p0.y, p1.y, p2.y, p3.y, t))
     setVertex(i, p)
 
   glUseProgram(cc.program)
@@ -234,7 +250,8 @@ proc drawBezier*(c: GraphicsContext, p0, p1, p2, p3: Point) =
   const componentsCount = 2
   glEnableVertexAttribArray(ShaderAttribute.saPosition.GLuint)
   c.bindVertexData(componentsCount * vertexCount)
-  vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount, cGL_FLOAT, false, 0, 0)
+  vertexGLAttribPointer(ShaderAttribute.saPosition.GLuint, componentsCount,
+    cGL_FLOAT, false, 0, 0)
 
   glEnable(GL_LINE_SMOOTH)
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
@@ -260,7 +277,8 @@ float drawLine(vec2 p1, vec2 p2) {
   float p = (tri.x + tri.y + tri.z) / 2.0;
   float h = 2.0 * sqrt(p * (p - tri.x) * (p - tri.y) * (p - tri.z)) / tri.x;
 
-  vec2 angles = acos(vec2(dot(normalize(-va), normalize(vc)), dot(normalize(va), normalize(vb))));
+  vec2 angles =
+    acos(vec2(dot(normalize(-va), normalize(vc)), dot(normalize(va), normalize(vb))));
   vec2 anglem = 1.0 - step(PI / 2.0, angles);
   float pixelValue = 1.0 - smoothstep(0.0, uStrokeWidth, h);
 
@@ -278,7 +296,9 @@ proc drawLine*(c: GraphicsContext, pointFrom: Point, pointTo: Point) =
   let yfrom = min(pointFrom.y, pointTo.y)
   let xsize = max(pointFrom.x, pointTo.x) - xfrom
   let ysize = max(pointFrom.y, pointTo.y) - yfrom
-  let r = newRect(xfrom - c.strokeWidth, yfrom - c.strokeWidth, xsize + 2 * c.strokeWidth, ysize + 2 * c.strokeWidth)
+  let r =
+    newRect(xfrom - c.strokeWidth, yfrom - c.strokeWidth, xsize + 2 * c.strokeWidth,
+      ysize + 2 * c.strokeWidth)
 
   lineComposition.draw(c, r):
     setUniform("uStrokeWidth", c.strokeWidth)
@@ -327,7 +347,10 @@ proc drawArc*(c: GraphicsContext, center: Point, radius: Coord, fromAngle, toAng
   arcComposition.draw(c, r):
     setUniform("uStrokeWidth", c.strokeWidth)
     setUniform("uFillColor", c.fillColor)
-    setUniform("uStrokeColor", if c.strokeWidth == 0: c.fillColor else: c.strokeColor)
+    setUniform("uStrokeColor",
+      if c.strokeWidth == 0:
+        c.fillColor
+      else: c.strokeColor)
     setUniform("uStartAngle", fromAngle)
     setUniform("uEndAngle", toAngle)
 

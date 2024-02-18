@@ -7470,14 +7470,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """.}
 
 
-proc stbi_load_impl(file: cstring, x, y, comp: ptr cint, req_comp: cint): ptr uint8 {.importc: "stbi_load", nodecl.}
-proc stbi_load_from_memory_impl(buffer: ptr uint8, bufSize : cint, x, y, comp: ptr cint, req_comp: cint): ptr uint8 {.importc: "stbi_load_from_memory", nodecl.}
+proc stbi_load_impl(file: cstring, x, y, comp: ptr cint,
+   req_comp: cint): ptr uint8 {.importc: "stbi_load", nodecl.}
+proc stbi_load_from_memory_impl(buffer: ptr uint8, bufSize : cint, x, y, comp: ptr cint,
+   req_comp: cint): ptr uint8 {.importc: "stbi_load_from_memory", nodecl.}
 proc stbi_image_free_impl(data: ptr uint8) {.importc: "stbi_image_free", nodecl.}
 
 proc stbi_load*(file: cstring, x, y, comp: ptr cint, req_comp: cint): ptr uint8 =
   stbi_load_impl(file, x, y, comp, req_comp)
 
-proc stbi_load_from_memory*(buffer: ptr uint8, bufSize : cint, x, y, comp: ptr cint, req_comp: cint): ptr uint8 =
+proc stbi_load_from_memory*(buffer: ptr uint8, bufSize : cint, x, y, comp: ptr cint,
+      req_comp: cint): ptr uint8 =
   stbi_load_from_memory_impl(buffer, bufSize, x, y, comp, req_comp)
 
 proc stbi_image_free*(data: ptr uint8) =

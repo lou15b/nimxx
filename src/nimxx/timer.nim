@@ -74,8 +74,12 @@ when defined(macosx):
 
   proc CFAbsoluteTimeGetCurrent(): CFAbsoluteTime {.importc.}
   proc CFRunLoopGetCurrent(): CFRunLoopRef {.importc.}
-  proc CFRunLoopAddTimer(rl: CFRunLoopRef, timer: CFRunLoopTimerRef, mode: CFRunLoopMode) {.importc.}
-  proc CFRunLoopTimerCreate(allocator: CFAllocatorRef, fireDate: CFAbsoluteTime, interval: CFTimeInterval, flags: CFOptionFlags, order: CFIndex, callout: CFRunLoopTimerCallBack, context: ptr CFRunLoopTimerContext): CFRunLoopTimerRef {.importc.}
+  proc CFRunLoopAddTimer(rl: CFRunLoopRef, timer: CFRunLoopTimerRef,
+    mode: CFRunLoopMode) {.importc.}
+  proc CFRunLoopTimerCreate(allocator: CFAllocatorRef, fireDate: CFAbsoluteTime,
+    interval: CFTimeInterval, flags: CFOptionFlags,
+    order: CFIndex, callout: CFRunLoopTimerCallBack,
+    context: ptr CFRunLoopTimerContext): CFRunLoopTimerRef {.importc.}
   proc CFRunLoopTimerInvalidate(t: CFRunLoopTimerRef) {.importc.}
   proc CFRelease(o: CFTypeRef) {.importc.}
 
@@ -89,7 +93,8 @@ when defined(macosx):
     if not t.isPeriodic: interval = 0
     var context: CFRunLoopTimerContext
     context.info = cast[pointer](t)
-    let cfTimer = CFRunLoopTimerCreate(nil, nextFireTime, interval, 0, 0, cftimerCallback, addr context)
+    let cfTimer = CFRunLoopTimerCreate(nil, nextFireTime, interval, 0, 0,
+      cftimerCallback, addr context)
     CFRunLoopGetCurrent().CFRunLoopAddTimer(cfTimer, kCFRunLoopCommonModes)
     CFRelease(cfTimer)
     t.timer = cfTimer
@@ -126,7 +131,8 @@ else:
 
   proc schedule(t: Timer) =
     t.ready = true
-    t.timer = addTimer(uint32(t.interval * 1000), timeoutThreadCallback, cast[pointer](t))
+    t.timer =
+      addTimer(uint32(t.interval * 1000), timeoutThreadCallback, cast[pointer](t))
 
   template cancel(t: Timer) =
     discard removeTimer(t.timer)

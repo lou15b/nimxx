@@ -74,7 +74,8 @@ proc decodeWebpStream(s: Stream, b: var DecodedImageData) =
   if s of StringStream:
     let ss = StringStream(s)
     let pos = ss.getPosition()
-    data = webpDecodeRGBA(cast[ptr uint8](addr ss.data[pos]), (ss.data.len - pos).cint, addr x, addr y)
+    data = webpDecodeRGBA(cast[ptr uint8](addr ss.data[pos]), (ss.data.len - pos).cint,
+      addr x, addr y)
   else:
     var s = s.readAll()
     data = webpDecodeRGBA(cast[ptr uint8](addr s[0]), s.len.cint, addr x, addr y)
@@ -150,7 +151,8 @@ proc free(b: var DecodedImageData) {.inline.} =
 template offset(p: pointer, off: int): pointer =
   cast[pointer](cast[int](p) + off)
 
-proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
+proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureGLRef,
+    size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
   glGenTextures(1, addr texture)
   glBindTexture(GL_TEXTURE_2D, texture)
   let format : GLenum = case comp:
@@ -176,7 +178,8 @@ proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureG
     let yExtrusion = min(2, texHeight - y)
 
     for row in 0 ..< y:
-      copyMem(offset(newData, row * texRowWidth), offset(data, row * rowWidth), rowWidth)
+      copyMem(offset(newData, row * texRowWidth),
+        offset(data, row * rowWidth), rowWidth)
       let lastRowPixel = offset(data, (row + 1) * rowWidth - comp)
       for i in 0 ..< xExtrusion:
         copyMem(offset(newData, row * texRowWidth + rowWidth + i * comp), lastRowPixel, comp)
@@ -189,7 +192,8 @@ proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureG
     texCoords[2] = x.Coord / texWidth.Coord
     texCoords[3] = y.Coord / texHeight.Coord
 
-  glTexImage2D(GL_TEXTURE_2D, 0, format.cint, texWidth.GLsizei, texHeight.GLsizei, 0, format, GL_UNSIGNED_BYTE, cast[pointer](pixelData))
+  glTexImage2D(GL_TEXTURE_2D, 0, format.cint, texWidth.GLsizei, texHeight.GLsizei,
+    0, format, GL_UNSIGNED_BYTE, cast[pointer](pixelData))
   setupTexParams()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
@@ -199,14 +203,17 @@ proc loadBitmapToTexture(data: ptr uint8, x, y, comp: int, texture: var TextureG
   if data != pixelData:
     dealloc(pixelData)
 
-proc loadDecodedImageDataToTexture(b: DecodedImageData, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
+proc loadDecodedImageDataToTexture(b: DecodedImageData, texture: var TextureGLRef,
+    size: var Size, texCoords: var array[4, GLfloat], texWidth, texHeight: var int16) =
   if b.compressed:
     loadPVRDataToTexture(cast[ptr uint8](b.data), texture, size, texCoords)
   else:
-    loadBitmapToTexture(cast[ptr uint8](b.data), b.width.int, b.height.int, b.componenens.int, texture, size, texCoords, texWidth, texHeight)
+    loadBitmapToTexture(cast[ptr uint8](b.data), b.width.int, b.height.int,
+      b.componenens.int, texture, size, texCoords, texWidth, texHeight)
 
 proc initWithBitmap*(i: SelfContainedImage, data: ptr uint8, x, y, comp: int) =
-  loadBitmapToTexture(data, x, y, comp, i.texture, i.mSize, i.texCoords, i.texWidth, i.texHeight)
+  loadBitmapToTexture(data, x, y, comp, i.texture, i.mSize, i.texCoords,
+    i.texWidth, i.texHeight)
 
 proc imageWithBitmap*(data: ptr uint8, x, y, comp: int): SelfContainedImage =
   result = newSelfContainedImage()
@@ -216,7 +223,8 @@ proc initWithDecodedData(i: SelfContainedImage, b: var DecodedImageData) =
   # Frees `b`
   if b.data.isNil:
     raise newException(ValueError, "Invalid image data")
-  loadDecodedImageDataToTexture(b, i.texture, i.mSize, i.texCoords, i.texWidth, i.texHeight)
+  loadDecodedImageDataToTexture(b, i.texture, i.mSize, i.texCoords,
+    i.texWidth, i.texHeight)
   b.free()
 
 proc initWithStream(i: SelfContainedImage, s: Stream) {.used.} =
@@ -275,11 +283,13 @@ method getTextureQuad*(i: SelfContainedImage, texCoords: var array[4, GLfloat]):
 
 proc size*(i: Image): Size {.inline.} = i.mSize
 
-method getTextureQuad*(i: FixedTexCoordSpriteImage, texCoords: var array[4, GLfloat]): TextureGLRef =
+method getTextureQuad*(i: FixedTexCoordSpriteImage,
+    texCoords: var array[4, GLfloat]): TextureGLRef =
   result = i.spriteSheet.getTextureQuad(texCoords)
   texCoords = i.texCoords
 
-proc subimageWithTexCoords*(i: Image, s: Size, texCoords: array[4, GLfloat]): FixedTexCoordSpriteImage =
+proc subimageWithTexCoords*(i: Image, s: Size,
+    texCoords: array[4, GLfloat]): FixedTexCoordSpriteImage =
   result.new()
   result.spriteSheet = i
   result.mSize = s
@@ -321,7 +331,8 @@ proc resetToSize*(i: SelfContainedImage, size: Size) =
 
   if i.texture != invalidGLTexture:
     glBindTexture(GL_TEXTURE_2D, i.texture)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.GLint, texWidth.GLsizei, texHeight.GLsizei,
+      0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
 
 proc generateMipmap*(i: SelfContainedImage) =
   if i.texture != invalidGLTexture:
@@ -368,7 +379,8 @@ when not defined(ios):
         var newData = alloc(actualRowWidth * actualHeight)
 
         for row in 0 .. actualHeight:
-          copyMem(offset(newData, row * actualRowWidth), offset(data, row * dataRowWidth), actualRowWidth)
+          copyMem(offset(newData, row * actualRowWidth), offset(data, row * dataRowWidth),
+            actualRowWidth)
 
         dealloc(data)
         data = newData
@@ -451,13 +463,16 @@ when asyncResourceLoad:
             error "Error in glMakeCurrent: ", getError()
           ctxIsCurrent = true
 
-        loadDecodedImageDataToTexture(decoded, c.texture, c.size, c.texCoords, c.texWidth, c.texHeight)
+        loadDecodedImageDataToTexture(decoded, c.texture, c.size, c.texCoords,
+          c.texWidth, c.texHeight)
         decoded.free()
 
         let fenceId = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, GLbitfield(0))
         while true:
-          let res = glClientWaitSync(fenceId, GL_SYNC_FLUSH_COMMANDS_BIT, GLuint64(5000000000)); # 5 Second timeout
-          if res != GL_TIMEOUT_EXPIRED: break  # we ignore timeouts and wait until all OpenGL commands are processed!
+          let res = glClientWaitSync(fenceId, GL_SYNC_FLUSH_COMMANDS_BIT,
+            GLuint64(5000000000)); # 5 Second timeout
+          if res != GL_TIMEOUT_EXPIRED:
+            break  # we ignore timeouts and wait until all OpenGL commands are processed!
 
       #discard glMakeCurrent(c.wnd, nil)
       let p = cast[pointer](loadComplete)
@@ -480,7 +495,8 @@ proc loadImageFromURL*(url: string, callback: proc(i: Image) {.gcsafe.}) =
       echo "----\t\t status is ", r.status
       callback(nil)
 
-registerAssetLoader(["png", "jpg", "jpeg", "gif", "tif", "tiff", "tga", "pvr", "webp"]) do(url: string, handler: proc(i: Image) {.gcsafe.}):
+registerAssetLoader(["png", "jpg", "jpeg", "gif", "tif", "tiff", "tga", "pvr", "webp"]) do(
+    url: string, handler: proc(i: Image) {.gcsafe.}):
   when asyncResourceLoad:
     var ctx: ImageLoadingCtx
     ctx.new()

@@ -18,14 +18,16 @@ proc newUndoManager*(): UndoManager =
 # Anyway, it's here in case there is a need somewhere / sometime
 var sharedUndoManager* = initLocker(newUndoManager())
 
-proc push*(u: UndoManager, description: string, redo: proc() {.gcsafe.}, undo: proc() {.gcsafe.}) {.inline.} =
+proc push*(u: UndoManager, description: string, redo: proc() {.gcsafe.},
+    undo: proc() {.gcsafe.}) {.inline.} =
   assert(not undo.isNil)
   if u.cursor != u.actions.len:
     u.actions.setLen(u.cursor)
   inc u.cursor
   u.actions.add(UndoAction(redo: redo, undo: undo, description: description))
 
-proc pushAndDo*(u: UndoManager, description: string, redo: proc(){.gcsafe.}, undo: proc(){.gcsafe.}) {.inline.} =
+proc pushAndDo*(u: UndoManager, description: string, redo: proc(){.gcsafe.},
+    undo: proc(){.gcsafe.}) {.inline.} =
   u.push(description, redo, undo)
   if not redo.isNil: redo()
 

@@ -48,7 +48,8 @@ method draw(k: ResizingKnob, r: Rect) =
 
 proc enableViewResizing*(v: View) =
   const size = 20
-  let resizingKnob = ResizingKnob.new(newRect(v.bounds.width - size, v.bounds.height - size, size, size))
+  let resizingKnob =
+    ResizingKnob.new(newRect(v.bounds.width - size, v.bounds.height - size, size, size))
   resizingKnob.autoresizingMask = {afFlexibleMinX, afFlexibleMinY}
   v.addSubview(resizingKnob)
   var listener: ResizingScrollListener

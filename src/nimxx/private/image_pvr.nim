@@ -1,5 +1,5 @@
-# NOTE: This file is ***included*** (not imported) into nimxx/image.nim
-# So it does ***not*** compile on its own
+# NOTE: This file is *included* (not imported) into nimxx/image.nim
+# So it does *not* compile on its own
 
 type PVRTextureHeaderV3 {.packed.} = object
   version: uint32
@@ -46,7 +46,8 @@ type ePVR3Format* = enum
   PVR3_EAC_RG11_U = 27,
   PVR3_EAC_RG11_S = 28,
 
-proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureGLRef, size: var Size, texCoords: var array[4, GLfloat]) =
+proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureGLRef, size: var Size,
+    texCoords: var array[4, GLfloat]) =
   let header = cast[ptr PVRTextureHeaderV3](data)
 
   texCoords[2] = 1.0
@@ -88,7 +89,9 @@ proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureGLRef, size: var 
   # create texture
   glGenTextures(1, addr texture)
   glBindTexture(GL_TEXTURE_2D, texture)
-  let filter = GLint(if header.numMipmaps == 1: GL_LINEAR else: GL_LINEAR_MIPMAP_LINEAR)
+  let filter = GLint(
+    if header.numMipmaps == 1: GL_LINEAR
+    else: GL_LINEAR_MIPMAP_LINEAR)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
   var offset = sizeof(PVRTextureHeaderV3).uint + header.metaDataSize.uint
@@ -101,11 +104,11 @@ proc loadPVRDataToTexture(data: ptr uint8, texture: var TextureGLRef, size: var 
     let pImageData = cast[pointer](cast[uint](data) + offset)
     if compressed:
       pixelBytes = max(32, pixelBytes);
-      glCompressedTexImage2D(GL_TEXTURE_2D, i.GLint, format, mipmapWidth, mipmapHeight, 0,
-                  pixelBytes, pImageData)
+      glCompressedTexImage2D(GL_TEXTURE_2D, i.GLint, format, mipmapWidth, mipmapHeight,
+        0, pixelBytes, pImageData)
     else:
       glTexImage2D(GL_TEXTURE_2D, i.GLint, format.GLint, mipmapWidth, mipmapHeight,
-              0, format, typ, pImageData)
+        0, format, typ, pImageData)
     offset += pixelBytes.uint
     inc i
 

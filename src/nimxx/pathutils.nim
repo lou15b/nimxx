@@ -2,7 +2,8 @@ import std / [ strutils, os, parseutils ]
 
 proc urlParentDir*(url: string): string =
   let schemeEnd = url.find(':')
-  if schemeEnd == -1 or url.len <= schemeEnd + 3 or url[schemeEnd + 1] != '/' or url[schemeEnd + 2] != '/':
+  if schemeEnd == -1 or url.len <= schemeEnd + 3 or url[schemeEnd + 1] != '/' or
+      url[schemeEnd + 2] != '/':
     raise newException(ValueError, "Invalid url: " & url)
 
   let i = url.rfind({'/', '\\'})
@@ -46,8 +47,16 @@ proc normalizePath*(path: var string, usePlatformSeparator: bool = true) =
   var j = 0
   var i = 0
 
-  let targetSeparator = if usePlatformSeparator:(when defined(windows):'\\'else:'/')else:'/'
-  let replaceSeparator = if usePlatformSeparator:(when defined(windows):'/'else:'\\')else:'\\'
+  let targetSeparator =
+    if usePlatformSeparator:
+      when defined(windows):'\\'
+      else:'/'
+    else:'/'
+  let replaceSeparator =
+    if usePlatformSeparator:
+      when defined(windows):'/'
+      else:'\\'
+    else:'\\'
 
   template isSep(c: char): bool = c == '/' or c == '\\'
   template rollback() =

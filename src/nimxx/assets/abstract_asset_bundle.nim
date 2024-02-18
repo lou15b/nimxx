@@ -4,7 +4,8 @@ type
 proc abstractMethod() = raise newException(Exception, "Abstract method called")
 
 method allAssets*(ab: AssetBundle): seq[string] {.base.} = abstractMethod()
-method urlForPath*(ab: AssetBundle, path: string): string {.base, gcsafe.} = abstractMethod()
+method urlForPath*(ab: AssetBundle, path: string): string {.base, gcsafe.} =
+  abstractMethod()
 
 proc allAssetsWithBasePath*(ab: AssetBundle, path: string): seq[string] =
   result = ab.allAssets()

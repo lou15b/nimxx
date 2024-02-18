@@ -4,7 +4,8 @@
 import std/tables
 export tables
 type SimpleTable*[TKey, TVal] = TableRef[TKey, TVal]
-template newSimpleTable*(TKey, TVal: typedesc): SimpleTable[TKey, TVal] = newTable[TKey, TVal]()
+template newSimpleTable*(TKey, TVal: typedesc): SimpleTable[TKey, TVal] =
+  newTable[TKey, TVal]()
 
 when isMainModule:
   let t = newSimpleTable(int, int)

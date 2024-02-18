@@ -6,11 +6,13 @@ import std/logging
 import std/times
 
 ##[
-  An Animation provides the timing/progress infrastructure that controls the "animated" portion of a view. Note that
-  an animated drawing isn't necessarily tied to time. For example, the animated portion of a ProgressIndicator View
+  An Animation provides the timing/progress infrastructure that controls the
+  "animated" portion of a view. Note that an animated drawing isn't necessarily
+  tied to time. For example, the animated portion of a ProgressIndicator View
   is a pie chart or bar that is tied to a "progress" value.
-  Note that the Animation ***does not draw*** the animated portion - it simple controls the state of whatever is to be
-  drawn. That includes time/progress interpolation so that the behavior appears to happen smoothly.
+  Note that the Animation ***does not draw*** the animated portion - it simply
+  controls the state of whatever is to be drawn. That includes time/progress
+  interpolation so that the behavior appears to happen smoothly.
 ]##
 
 type LoopPattern* = enum
@@ -85,15 +87,17 @@ proc addHandler(s: var seq[ProgressHandler], ph: ProgressHandler) =
   s.insert(ph,
     s.lowerBound(ph, proc (a, b: ProgressHandler): int = cmp(a.progress, b.progress)))
 
-proc addLoopProgressHandler*(a: Animation, progress: float, callIfCancelled: bool, handler: proc() {.gcsafe.}) =
+proc addLoopProgressHandler*(a: Animation, progress: float, callIfCancelled: bool,
+    handler: proc() {.gcsafe.}) =
   assert(not handler.isNil)
-  addHandler(a.loopProgressHandlers, ProgressHandler(handler: handler, progress: progress,
-    callIfCancelled: callIfCancelled))
+  addHandler(a.loopProgressHandlers,
+    ProgressHandler(handler: handler, progress: progress, callIfCancelled: callIfCancelled))
 
-proc addTotalProgressHandler*(a: Animation, progress: float, callIfCancelled: bool, handler: proc() {.gcsafe.}) =
+proc addTotalProgressHandler*(a: Animation, progress: float, callIfCancelled: bool,
+    handler: proc() {.gcsafe.}) =
   assert(not handler.isNil)
-  addHandler(a.totalProgressHandlers, ProgressHandler(handler: handler, progress: progress,
-    callIfCancelled: callIfCancelled))
+  addHandler(a.totalProgressHandlers,
+    ProgressHandler(handler: handler, progress: progress, callIfCancelled: callIfCancelled))
 
 proc removeTotalProgressHandlers*(a: Animation) =
   a.totalProgressHandlers.setLen(0)
@@ -119,7 +123,8 @@ method prepare*(a: Animation, st: float) {.base, gcsafe.} =
   a.cancelLoop = -1
   a.curLoop = 0
 
-template currentLoopForTotalDuration(a: Animation, d: float): int = int(d / a.loopDuration)
+template currentLoopForTotalDuration(a: Animation, d: float): int =
+  int(d / a.loopDuration)
 
 proc processHandlers(handlers: seq[ProgressHandler], it: var int, progress: float) =
   while it < handlers.len:
@@ -129,7 +134,8 @@ proc processHandlers(handlers: seq[ProgressHandler], it: var int, progress: floa
     else:
       break
 
-proc processRemainingHandlersInLoop(handlers: openarray[ProgressHandler], it: var int, stopped: bool) =
+proc processRemainingHandlersInLoop(handlers: openarray[ProgressHandler],
+    it: var int, stopped: bool) =
   while it < handlers.len:
     if not stopped or handlers[it].callIfCancelled:
       handlers[it].handler()
@@ -144,8 +150,8 @@ proc curvedProgress(a: Animation, p: float): float =
   elif a.loopPattern == lpEndToStart:
     curvedProgress = 1.0 - curvedProgress
   # elif a.loopPattern == lpEndToStartToEnd:
-  #     curvedProgress *= 2
-  #     if curvedProgress > 1.0:
+  #   curvedProgress *= 2
+  #   if curvedProgress > 1.0:
   if not a.timingFunction.isNil:
     curvedProgress = a.timingFunction(curvedProgress)
   result = curvedProgress
@@ -165,7 +171,8 @@ proc loopProgress(a: Animation, t: float): float=
 
 proc totalProgress(a: Animation, t: float): float=
   result =
-    if a.numberOfLoops > 0: (t - a.startTime) / (float(a.numberOfLoops) * a.loopDuration)
+    if a.numberOfLoops > 0:
+      (t - a.startTime) / (float(a.numberOfLoops) * a.loopDuration)
     else: 0.0
 
 method checkHandlers(a: Animation, oldLoop: int, lp, tp: float) {.base, gcsafe.} =
@@ -174,11 +181,14 @@ method checkHandlers(a: Animation, oldLoop: int, lp, tp: float) {.base, gcsafe.}
       processRemainingHandlersInLoop(a.loopProgressHandlers, a.lphIt, stopped=false)
 
   if not a.finished:
-    if a.loopProgressHandlers.len != 0: processHandlers(a.loopProgressHandlers, a.lphIt, lp)
-    if a.totalProgressHandlers.len != 0: processHandlers(a.totalProgressHandlers, a.tphIt, tp)
+    if a.loopProgressHandlers.len != 0:
+      processHandlers(a.loopProgressHandlers, a.lphIt, lp)
+    if a.totalProgressHandlers.len != 0:
+      processHandlers(a.totalProgressHandlers, a.tphIt, tp)
 
   if a.finished:
-    if a.curLoop == oldLoop and a.loopProgressHandlers.len != 0 and a.lphIt < a.loopProgressHandlers.len:
+    if a.curLoop == oldLoop and a.loopProgressHandlers.len != 0 and
+        a.lphIt < a.loopProgressHandlers.len:
       processRemainingHandlersInLoop(a.loopProgressHandlers, a.lphIt, stopped=true)
     if a.totalProgressHandlers.len != 0 and a.tphIt < a.totalProgressHandlers.len:
       processRemainingHandlersInLoop(a.totalProgressHandlers, a.tphIt, stopped=true)
@@ -220,17 +230,19 @@ proc isCancelled*(a: Animation): bool = a.cancelLoop != -1
 proc onComplete*(a: Animation, p: proc() {.gcsafe.}) =
   a.addTotalProgressHandler(1.0, true, p)
 
-# Bezier curves timing stuff.
-# Taken from http://greweb.me/2012/02/bezier-curve-based-easing-functions-from-concept-to-implementation/
+# Bezier curves timing stuff. Taken from:
+# http://greweb.me/2012/02/bezier-curve-based-easing-functions-from-concept-to-implementation/
 template A(a1, a2: float): float = 1.0 - 3.0 * a2 + 3.0 * a1
 template B(a1, a2: float): float = 3.0 * a2 - 6.0 * a1
 template C(a1: float): float = 3.0 * a1
 
 # Returns x(t) given t, x1, and x2, or y(t) given t, y1, and y2.
-template calcBezier(t, a1, a2: float): float = ((A(a1, a2) * t + B(a1, a2)) * t + C(a1)) * t
+template calcBezier(t, a1, a2: float): float =
+  ((A(a1, a2) * t + B(a1, a2)) * t + C(a1)) * t
 
 # Returns dx/dt given t, x1, and x2, or dy/dt given t, y1, and y2.
-proc getSlope(t, a1, a2: float): float = 3.0 * A(a1, a2) * t * t + 2.0 * B(a1, a2) * t + C(a1)
+proc getSlope(t, a1, a2: float): float =
+  3.0 * A(a1, a2) * t * t + 2.0 * B(a1, a2) * t + C(a1)
 
 proc bezierXForProgress*(x1, y1, x2, y2, p: float): float {.inline.} =
   if x1 == y1 and x2 == y2: return p # linear
@@ -249,15 +261,18 @@ proc bezierTimingFunction*(x1, y1, x2, y2: float): TimingFunction =
   result = proc(p: float): float =
     bezierXForProgress(x1, y1, x2, y2, p)
 
-template interpolate*[T](fromValue, toValue: T, p: float): T = fromValue + (toValue - fromValue) * p
+template interpolate*[T](fromValue, toValue: T, p: float): T =
+  fromValue + (toValue - fromValue) * p
 template interpolate*(fromValue, toValue: bool, p: float): bool =
   if p > 0.5:
     toValue
   else:
     fromValue
-template interpolate*(fromValue, toValue: SomeInteger, p: float): auto = fromValue + type(fromValue)(float(toValue - fromValue) * p)
+template interpolate*(fromValue, toValue: SomeInteger, p: float): auto =
+  fromValue + type(fromValue)(float(toValue - fromValue) * p)
 
-template setInterpolationAnimation(a: Animation, ident: untyped, fromVal, toVal: untyped, body: untyped) =
+template setInterpolationAnimation(a: Animation, ident: untyped, fromVal, toVal: untyped,
+    body: untyped) =
   let fv = fromVal
   let tv = toVal
   a.onAnimate = proc(p: float) =
@@ -275,7 +290,8 @@ proc animateValue*[T](fromValue, toValue: T, cb: proc(value: T)): AnimationFunct
   result = proc(progress: float) =
     cb((toValue - fromValue) * progress)
 
-proc chainOnAnimate*(a: Animation, oa: proc(p: float) {.gcsafe.}) {.deprecated.} = #use addOnAnimate instead of this proc
+proc chainOnAnimate*(a: Animation, oa: proc(p: float) {.gcsafe.}) {.deprecated.} =
+  ## use addOnAnimate instead of this proc
   if a.onAnimate.isNil:
     a.onAnimate = oa
   else:
@@ -310,7 +326,7 @@ proc resume*(a: Animation) =
     a.startTime += epochTime() - a.pauseTime
     a.pauseTime = 0
 
-## ---------------------------------------- ANIMATIONS COMPOSE ---------------------------------------- ##
+## -------------------------- ANIMATIONS COMPOSE -------------------------- ##
 
 proc newComposeMarker*(pStart, pEnd: float, a: Animation): ComposeMarker=
   result.new()
@@ -458,7 +474,7 @@ method onProgress*(m: CompositAnimation, p: float) {.gcsafe.} =
   m.mPrevDirection = directionForward
 
 
-## -------------------------------- META ANIMATION --------------------------------- ##
+## --------------------------- META ANIMATION ------------------------------ ##
 proc newMetaAnimation*(anims: varargs[Animation]): MetaAnimation {.deprecated.} =
   result.new()
   result.numberOfLoops = -1
@@ -529,7 +545,8 @@ method tick*(a: MetaAnimation, t: float) =
   var
     updateAnims: seq[Animation]
     animsFinished = true
-    needPrepare = a.curIndex == -1 or (not a.parallelMode and a.animations[a.curIndex].startTime == 0)
+    needPrepare =
+      a.curIndex == -1 or (not a.parallelMode and a.animations[a.curIndex].startTime == 0)
     curTime = epochTime()
 
   if a.curIndex == -1:
@@ -558,14 +575,15 @@ method tick*(a: MetaAnimation, t: float) =
       animsFinished = false
 
   if animsFinished:
-    if (a.curIndex < a.animations.len - 1 and a.currentLoopPattern == lpStartToEnd) or
-      (a.curIndex > 0 and a.currentLoopPattern == lpEndToStart):
+    if (a.curIndex < a.animations.len - 1 and
+        a.currentLoopPattern == lpStartToEnd) or
+        (a.curIndex > 0 and a.currentLoopPattern == lpEndToStart):
       a.nextIndex()
       a.animations[a.curIndex].startTime = 0
 
-    elif ( (a.curIndex == a.animations.len - 1 and a.currentLoopPattern == lpStartToEnd) or
-      (a.curIndex == 0 and a.currentLoopPattern == lpEndToStart) ) and (a.curLoop < a.numberOfLoops - 1 or a.numberOfLoops == -1):
-
+    elif ((a.curIndex == a.animations.len - 1 and a.currentLoopPattern == lpStartToEnd) or
+          (a.curIndex == 0 and a.currentLoopPattern == lpEndToStart)) and
+        (a.curLoop < a.numberOfLoops - 1 or a.numberOfLoops == -1):
       a.curIndex = -1
       inc a.curLoop
 
@@ -573,8 +591,8 @@ method tick*(a: MetaAnimation, t: float) =
         processRemainingHandlersInLoop(a.loopProgressHandlers, a.lphIt, stopped=false)
 
     elif ((a.loopPattern == lpEndToStartToEnd or a.loopPattern == lpStartToEndToStart) and
-      (a.curIndex == a.animations.len - 1 or a.curIndex == 0) and
-      (a.curLoop < a.numberOfLoops * 2 - 1 or a.numberOfLoops == -1)):
+        (a.curIndex == a.animations.len - 1 or a.curIndex == 0) and
+        (a.curLoop < a.numberOfLoops * 2 - 1 or a.numberOfLoops == -1)):
       a.curIndex = -1
       inc a.curLoop
 
@@ -794,7 +812,8 @@ when true:
       result = (var_time * var_time * (overshoot + 1) * var_time - overshoot) / 2
     else:
       var_time -= 2
-      result = (var_time * var_time * ((overshoot + 1) * var_time + overshoot)) / 2 + 1
+      result =
+        (var_time * var_time * ((overshoot + 1) * var_time + overshoot)) / 2 + 1
   proc backEaseInOut*() : TimingFunction =
     result = proc(p:float): float =
       backEaseInOut(p, 1.70158)

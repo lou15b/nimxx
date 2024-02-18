@@ -68,7 +68,8 @@ proc mountForPath(am: AssetManager, path: string): MountEntry =
   let i = am.mountIndex(path)
   if i == -1:
     return (am.defaultAssetBundle, am.defaultCache, path, 0)
-  return (am.mounts[i].ab, am.mounts[i].cache, path.substr(am.mounts[i].path.len + 1), am.mounts[i].refCount)
+  return (am.mounts[i].ab, am.mounts[i].cache, path.substr(am.mounts[i].path.len + 1),
+    am.mounts[i].refCount)
 
 proc mount*(am: AssetManager, path: string, assetBundle: AssetBundle) =
   let i = am.mountIndex(path)
@@ -131,7 +132,8 @@ proc cachedAsset*[T](am: AssetManager, path: string, default: T): T =
 proc cacheAsset*[T](am: AssetManager, path: string, v: T) {.inline.} =
   am.cacheAssetAux(path, newVariant(v))
 
-proc getAssetAtPathAux(am: AssetManager, path: string, putToCache: bool, handler: proc(res: Variant, err: string) {.gcsafe.}) =
+proc getAssetAtPathAux(am: AssetManager, path: string, putToCache: bool,
+    handler: proc(res: Variant, err: string) {.gcsafe.}) =
   let v = am.cachedAssetAux(path)
   if v.isEmpty:
     var (a, c, p, _) = am.mountForPath(path.normalizeSlashes)
@@ -148,7 +150,8 @@ proc getAssetAtPathAux(am: AssetManager, path: string, putToCache: bool, handler
   else:
     handler(v, "")
 
-proc getAssetAtPath*[T](am: AssetManager, path: string, putToCache: bool, handler: proc(res: T, err: string) {.gcsafe.}) =
+proc getAssetAtPath*[T](am: AssetManager, path: string, putToCache: bool,
+    handler: proc(res: T, err: string) {.gcsafe.}) =
   am.getAssetAtPathAux(path, putToCache) do(res: Variant, err: string):
     if err.len == 0:
       if res.ofType(T):
@@ -160,13 +163,15 @@ proc getAssetAtPath*[T](am: AssetManager, path: string, putToCache: bool, handle
       var v: T
       handler(v, err)
 
-proc getAssetAtPath*[T](am: AssetManager, path: string, handler: proc(res: T, err: string) {.gcsafe.}) {.inline.} =
+proc getAssetAtPath*[T](am: AssetManager, path: string, handler: proc(res: T,
+    err: string) {.gcsafe.}) {.inline.} =
   am.getAssetAtPath(path, true, handler)
 
 proc assetCacheForPath(am: AssetManager, path: string): AssetCache =
   result = am.mountForPath(path.normalizeSlashes).cache
 
-proc loadAssetsInBundles*(am: AssetManager, bundles: openarray[AssetBundle], onProgress: proc(p: float) {.gcsafe.}, onComplete: proc() {.gcsafe.}) =
+proc loadAssetsInBundles*(am: AssetManager, bundles: openarray[AssetBundle],
+    onProgress: proc(p: float) {.gcsafe.}, onComplete: proc() {.gcsafe.}) =
   let al = newAssetLoader()
   var tempCache = newAssetCache()
 
@@ -205,7 +210,8 @@ registerUrlHandler("res") do(url: string, handler: Handler) {.gcsafe.}:
   openStreamForUrl(resurl, handler)
 
 lock hackyResUrlLoader as hrl:
-  hrl = proc(url, path: string, cache: AssetCache, handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
+  hrl = proc(url, path: string, cache: AssetCache,
+      handler: proc(err: string) {.gcsafe.}) {.gcsafe.} =
     const prefix = "res://"
     assert(url.startsWith(prefix))
     let p = url.substr(prefix.len)

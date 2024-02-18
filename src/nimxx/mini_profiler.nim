@@ -3,9 +3,11 @@ import pkg/threading/smartptrs
 
 #[
   This code gathers user-defined global statistics.
-  Currently there is code gathering data in abstract_window.nim, image.nim, timer.nim, and the data is displayed
-  (in an overlay section) by abstract_window.nim.
-  Running the demo with "-d:miniProfiler" shows a set of profile data displayed in the upper right corner of each window.
+  Currently there is code that gathers data in abstract_window.nim, image.nim,
+  timer.nim.
+  The data is displayed (in an overlay section) by abstract_window.nim.
+  Running the demo with "-d:miniProfiler" shows a set of profile data
+  displayed in the upper right corner of each window.
 ]#
 
 type
@@ -74,8 +76,8 @@ proc newProfiler*(): Profiler =
     prof.enabled = true
   result = newSharedPtr(prof[])
 
-# This global currently requires a recursive lock, which Malebogia Locker doesn't provide.
-# So we need to use a conventional recursive lock here
+# This global currently requires a recursive lock, which Malebogia Locker
+# doesn't provide. So we need to use a conventional recursive lock here
 var sharedProfilerLock*: RLock
 sharedProfilerLock.initRLock()
 var sharedProfiler* {.guard: sharedProfilerLock.} = newProfiler()

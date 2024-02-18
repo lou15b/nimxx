@@ -55,7 +55,8 @@ proc init*(v: ExpandingView, r: Rect, hasOffset: bool) =
 
   v.hasOffset = hasOffset
   if v.hasOffset:
-    v.contentView = newStackView(newRect(expandButtonSize, titleSize, r.width - expandButtonSize, r.height - titleSize))
+    v.contentView = newStackView(
+      newRect(expandButtonSize, titleSize, r.width - expandButtonSize, r.height - titleSize))
   else:
     v.contentView = newStackView(newRect(0, titleSize, r.width, r.height - titleSize))
   v.contentView.name = "contentView"

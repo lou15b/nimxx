@@ -89,9 +89,11 @@ template withTransform*(c: GraphicsContext, t: Transform3DRef, body: typed) =
   body
   c.pTransform = old
 
-template withTransform*(c: GraphicsContext, t: Transform3D, body: typed) = c.withTransform(transformToRef(t), body)
+template withTransform*(c: GraphicsContext, t: Transform3D, body: typed) =
+  c.withTransform(transformToRef(t), body)
 
-template transform*(c: GraphicsContext): var Transform3D = c.pTransform[]
+template transform*(c: GraphicsContext): var Transform3D =
+  c.pTransform[]
 
 proc createQuadIndexBuffer*(numberOfQuads: int): BufferGLRef =
   result = createGLBuffer()
@@ -158,7 +160,8 @@ proc newGraphicsContext*(canvas: ref RootObj = nil): GraphicsContext =
   result.alpha = 1.0
 
   glEnable(GL_BLEND)
-  # We're using 1s + (1-s)d for alpha for proper alpha blending e.g. when rendering to texture.
+  # We're using 1s + (1-s)d for alpha for proper alpha blending
+  # e.g. when rendering to texture.
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
   #glEnable(GL_CULL_FACE)
@@ -170,13 +173,15 @@ proc newGraphicsContext*(canvas: ref RootObj = nil): GraphicsContext =
   result.sharedBuffer = createGLBuffer()
 
 proc setTransformUniform*(c: GraphicsContext, program: ProgramGLRef) =
-  uniformGLMatrix4fv(glGetUniformLocation(program, "modelViewProjectionMatrix"), false, c.transform)
+  uniformGLMatrix4fv(glGetUniformLocation(program, "modelViewProjectionMatrix"),
+    false, c.transform)
 
 proc setColorUniform*(c: GraphicsContext, loc: UniformGLLocation, color: Color) =
   var arr = [color.r, color.g, color.b, color.a * c.alpha]
   glUniform4fv(loc, 1, addr arr[0]);
 
-proc setColorUniform*(c: GraphicsContext, program: ProgramGLRef, name: cstring, color: Color) =
+proc setColorUniform*(c: GraphicsContext, program: ProgramGLRef, name: cstring,
+    color: Color) =
   c.setColorUniform(glGetUniformLocation(program, name), color)
 
 proc setRectUniform*(loc: UniformGLLocation, r: Rect) =

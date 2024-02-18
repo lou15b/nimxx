@@ -38,7 +38,8 @@ proc newTab(v: DockingTabsSampleView): View {.gcsafe.} =
     tv.selectTab(i)
   result.addSubview(addButton)
 
-  let removeButton = Button.new(newRect(addButton.frame.maxX + 2, 5, buttonSize, buttonSize))
+  let removeButton =
+    Button.new(newRect(addButton.frame.maxX + 2, 5, buttonSize, buttonSize))
   removeButton.title = "-"
   removeButton.onAction do():
     let tv = TabView(pane.superview)
@@ -48,7 +49,8 @@ proc newTab(v: DockingTabsSampleView): View {.gcsafe.} =
       tv.removeTab(indexOfPaneInTabView())
   result.addSubview(removeButton)
 
-  let c = Button.new(newRect(removeButton.frame.maxX + 2, 5, buttonSize, buttonSize))
+  let c =
+    Button.new(newRect(removeButton.frame.maxX + 2, 5, buttonSize, buttonSize))
   c.title = "c"
   c.onAction do():
     pane.backgroundColor = newRandomColor()

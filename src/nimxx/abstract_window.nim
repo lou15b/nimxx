@@ -124,7 +124,8 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
       var font = systemFont()
       let old_size = font.size
       font.size = fontSize
-      var rect = newRect(w.frame.width - profilerWidth, 5, profilerWidth - 5, Coord(profiler.len) * font.height)
+      var rect = newRect(w.frame.width - profilerWidth, 5, profilerWidth - 5,
+        Coord(profiler.len) * font.height)
       c.fillColor = newGrayColor(1, 0.8)
       c.strokeWidth = 0
       c.drawRect(rect)
@@ -154,7 +155,8 @@ method drawWindow*(w: Window) {.base, gcsafe.} =
 
 method draw*(w: Window, rect: Rect) =
   if w.mActiveBgColor != w.backgroundColor:
-    glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+    glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b,
+      w.backgroundColor.a)
     w.mActiveBgColor = w.backgroundColor
   glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -201,7 +203,8 @@ proc addAnimationRunner*(w: Window, ar: AnimationRunner)=
     if not (ar in w.animationRunners):
       w.animationRunners.add(ar)
 
-template animations*(w: Window): seq[Animation] = w.animationRunners[DEFAULT_RUNNER].animations
+template animations*(w: Window): seq[Animation] =
+  w.animationRunners[DEFAULT_RUNNER].animations
 
 proc removeAnimationRunner*(w: Window, ar: AnimationRunner)=
   if not w.isNil:
@@ -218,7 +221,8 @@ proc addAnimation*(w: Window, a: Animation) =
   if not w.isNil:
     w.animationRunners[DEFAULT_RUNNER].pushAnimation(a)
     when defined(ios):
-      # TODO: This is a quick fix for iOS animation issue. Should be researched more carefully.
+      # TODO: This is a quick fix for iOS animation issue. Should be researched
+      #       more carefully.
       if not w.mAnimationEnabled:
         w.enableAnimation(true)
 
@@ -230,9 +234,10 @@ proc onFocusChange*(w: Window, inFocus: bool)=
     sharedNotificationCenter().postNotification(AW_FOCUS_LEAVE)
 
 # TODO: Remove the need for using global variables here
-#       - merge window.nim, abstract_window.nim and sdl_window.nim into a single file
-# Locks not needed here, because these globals are set at startup and not changed
-# Note that they need to be nimcall - closures aren't gcsafe because they use GC'ed memory
+#   - merge window.nim, abstract_window.nim and sdl_window.nim into a single file
+# These globals are set at startup and not changed, so locks not needed here,
+# Note that they need to be nimcall - closures aren't gcsafe because
+# they use GC'ed memory
 var newWindow*: proc(r: Rect): Window {.nimcall, gcsafe.}
 var newFullscreenWindow*: proc(): Window {.nimcall, gcsafe.}
 
@@ -272,7 +277,7 @@ proc toggleFullscreen*(w: Window) =
   else:
     w.enterFullscreen()
 
-# Setting a boolean is atomic, so a lock isn't needed to ensure an uncorrupted value
+# Setting a boolean is atomic, so a lock isn't needed to ensure no corruption
 var gcRequested* = false
 
 template requestGCFullCollect*() =

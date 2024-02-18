@@ -19,7 +19,7 @@ macro genVisitorProc(typdesc: typed{nkSym}): untyped=
       `visitorIdent`.visitProperty(`plit`, `viewIdent`.`pname`)
 
   result.add quote do:
-    method visitProperties*(`viewIdent`: `typdesc`, `visitorIdent`: var PropertyVisitor)=
+    method visitProperties*(`viewIdent`: `typdesc`, `visitorIdent`: var PropertyVisitor) =
       `visitBody`
 
   # echo "getVisitor result:\n", repr(result)

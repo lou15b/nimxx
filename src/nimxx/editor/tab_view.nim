@@ -1,6 +1,7 @@
 import std/math
 import pkg/kiwi
-import ../ [ view, context, matrixes, font, linear_layout, button, menu, split_view, layout_vars ]
+import ../ [ view, context, matrixes, font, linear_layout, button, menu,
+            split_view, layout_vars ]
 import ../ [ view_event_handling ]
 
 type
@@ -271,9 +272,11 @@ method draw*(v: TabView, r: Rect) =
     else:
       c.fillColor = blackColor()
 
-    if v.tabBarOrientation == TabBarOrientation.left or v.tabBarOrientation == TabBarOrientation.right:
+    if v.tabBarOrientation == TabBarOrientation.left or
+        v.tabBarOrientation == TabBarOrientation.right:
       var tmpTransform = c.transform
-      tmpTransform.translate(newVector3(v.tabs[i].frame.x + v.tabBarThickness, v.tabs[i].frame.y))
+      tmpTransform.translate(newVector3(v.tabs[i].frame.x + v.tabBarThickness,
+        v.tabs[i].frame.y))
       tmpTransform.rotateZ(PI/2)
       c.withTransform tmpTransform:
         c.drawText(f, newPoint(5, 5), t)
@@ -370,7 +373,8 @@ proc splitNew(v: TabView, horizontally, before: bool, tab: Tab) =
   if not ntv.onSplit.isNil:
     ntv.onSplit(ntv)
 
-  if (s of SplitView) and SplitView(s).vertical != horizontally and onlyTabViewsInSplitView(s):
+  if (s of SplitView) and SplitView(s).vertical != horizontally and
+      onlyTabViewsInSplitView(s):
     if before:
       s.insertSubviewBefore(ntv, v)
     else:
@@ -406,7 +410,8 @@ proc splitOld(v: TabView, horizontally, before: bool, tab: Tab) =
   if not ntv.onSplit.isNil:
     ntv.onSplit(ntv)
 
-  if (s of LinearLayout) and LinearLayout(s).horizontal == horizontally and onlyTabViewsInSplitView(s):
+  if (s of LinearLayout) and LinearLayout(s).horizontal == horizontally and
+      onlyTabViewsInSplitView(s):
     v.setFrameSize(sz)
     if before:
       s.insertSubviewBefore(ntv, v)
@@ -434,7 +439,10 @@ proc split*(v: TabView, horizontally, before: bool, tab: Tab) =
 proc removeFromSplitViewSystem*(v: View) =
   let newLayout = v.usesNewLayout
   var s = v
-  while not s.isNil and ((not newLayout and s.superview of LinearLayout) or (newLayout and s.superview of SplitView)) and s.superview.subviews.len == 1:
+  while not s.isNil and
+      ((not newLayout and s.superview of LinearLayout) or
+          (newLayout and s.superview of SplitView)) and
+      s.superview.subviews.len == 1:
     s = s.superview
   s.removeFromSuperview()
 
@@ -479,17 +487,21 @@ proc trackDocking(v: TabView, tab: int): proc(e: Event): bool {.gcsafe.} =
             if htvp.y > htv.tabBarThickness and htvp.y < margin:
               overlayRect = newRect(0, 0, htv.bounds.width, margin)
             elif htvp.y > htv.bounds.maxY - margin:
-              overlayRect = newRect(0, htv.bounds.maxY - margin, htv.bounds.width, margin)
+              overlayRect =
+                newRect(0, htv.bounds.maxY - margin, htv.bounds.width, margin)
           elif htvp.y > margin and htvp.y < htv.bounds.maxY - margin:
             if htvp.x < margin:
               overlayRect = newRect(0, 0, margin, htv.bounds.height)
             elif htvp.x > htv.bounds.maxX - margin:
-              overlayRect = newRect(htv.bounds.maxX - margin, 0, margin, htv.bounds.height)
+              overlayRect =
+                newRect(htv.bounds.maxX - margin, 0, margin, htv.bounds.height)
           if overlayRect != zeroRect:
             overlayRect = htv.convertRectToWindow(overlayRect)
             if v.usesNewLayout:
               dropOverlayView.removeConstraints(dropOverlayView.constraints)
-              dropOverlayView.addConstraints(constraintsForFixedFrame(overlayRect, v.window.bounds.size, {afFlexibleHeight, afFlexibleWidth}))
+              dropOverlayView.addConstraints(
+                constraintsForFixedFrame(overlayRect, v.window.bounds.size,
+                  {afFlexibleHeight, afFlexibleWidth}))
             else:
               dropOverlayView.setFrame(overlayRect)
             v.window.addSubview(dropOverlayView)

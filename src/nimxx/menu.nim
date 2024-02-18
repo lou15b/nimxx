@@ -99,7 +99,8 @@ proc newViewWithMenuItems(item: MenuItem, size: Size): MenuView =
     cell.selected = false
 
     if item.children.len > 0:
-      let triangleView = TriangleView.new(newRect(width - 20, 0, 20, menuItemHeight))
+      let triangleView =
+        TriangleView.new(newRect(width - 20, 0, 20, menuItemHeight))
       cell.addSubview(triangleView)
 
     result.addSubview(cell)
@@ -198,7 +199,8 @@ proc popupAtPoint*(m: MenuItem, v: View, p: Point, size: Size = newSize(150.0, m
           curMv.highlightedRow = newHighlightedRow
 
           if newHighlightedRow != -1:
-            let selectedCell = TableViewCell(curMv.subviews[newHighlightedRow])
+            let selectedCell =
+              TableViewCell(curMv.subviews[newHighlightedRow])
             selectedCell.selected = true
             let selectedItem = curMv.item.children[newHighlightedRow]
 

@@ -1,12 +1,14 @@
 ##[
-  Copied from https://github.com/yglukhov/async_http_request, with the following changes:
+  Copied from https://github.com/yglukhov/async_http_request, with
+  the following changes:
   - code for javascript/enscripten targets has been stripped out
   - updated to remove compile warnings for nim 2.0.0
 ]##
 
-# When compiled to native target, async_http_request will not provide sendRequest proc by default.
-# run nim with -d:asyncHttpRequestAsyncIO to enable sendRequest proc, which will call out to asyncio
-# loop on the main thread
+# When compiled to native target, async_http_request will not provide
+# sendRequest proc by default.
+# Run nim with -d:asyncHttpRequestAsyncIO to enable sendRequest proc,
+# which will call out to asyncio loop on the main thread
 
 type Response* = tuple[statusCode: int, status: string, body: string]
 
@@ -65,7 +67,8 @@ when defined(asyncHttpRequestAsyncIO):
       var client = newAsyncHttpClient(sslContext = sslContext)
     else:
       if url.parseUri.scheme == "https":
-        raise newException(AsyncHttpRequestError, "SSL support is not available. Compile with -d:ssl to enable.")
+        raise newException(AsyncHttpRequestError,
+          "SSL support is not available. Compile with -d:ssl to enable.")
       var client = newAsyncHttpClient()
 
     client.headers = newHttpHeaders(headers)
@@ -73,32 +76,36 @@ when defined(asyncHttpRequestAsyncIO):
     client.headers["Connection"] = "close"
     asyncCheck doAsyncRequest(client, meth, url, body, handler, onError)
 
-  proc sendRequest*(meth, url, body: string, headers: openarray[(string, string)], handler: Handler) =
+  proc sendRequest*(meth, url, body: string, headers: openarray[(string, string)],
+      handler: Handler) =
     doSendRequest(meth, url, body, headers, getDefaultSslContext(), handler, nil)
 
-  proc sendRequest*(meth, url, body: string, headers: openarray[(string, string)], sslContext: SSLContext, handler: Handler) =
+  proc sendRequest*(meth, url, body: string, headers: openarray[(string, string)],
+      sslContext: SSLContext, handler: Handler) =
     doSendRequest(meth, url, body, headers, sslContext, handler, nil)
 
-  proc sendRequestWithErrorHandler*(meth, url, body: string, headers: openarray[(string, string)],
-                    onSuccess: Handler, onError: ErrorHandler) =
+  proc sendRequestWithErrorHandler*(meth, url, body: string,
+      headers: openarray[(string, string)], onSuccess: Handler, onError: ErrorHandler) =
     doSendRequest(meth, url, body, headers, getDefaultSslContext(), onSuccess, onError)
 
-  proc sendRequestWithErrorHandler*(meth, url, body: string, headers: openarray[(string, string)], sslContext: SSLContext,
-                    onSuccess: Handler, onError: ErrorHandler) =
+  proc sendRequestWithErrorHandler*(meth, url, body: string,
+      headers: openarray[(string, string)], sslContext: SSLContext, onSuccess: Handler,
+      onError: ErrorHandler) =
     doSendRequest(meth, url, body, headers, sslContext, onSuccess, onError)
 elif compileOption("threads"):
   import std/threadpool
 
   type ThreadedHandler* = proc(r: Response, ctx: pointer) {.nimcall, gcsafe.}
 
-  proc asyncHTTPRequest(url: string, httpMethod: HttpMethod, body: string, headers: seq[(string, string)],
-            handler: ThreadedHandler, ctx: pointer) {.gcsafe.}=
+  proc asyncHTTPRequest(url: string, httpMethod: HttpMethod, body: string,
+      headers: seq[(string, string)], handler: ThreadedHandler, ctx: pointer) {.gcsafe.}=
     try:
       when defined(ssl):
         var client = newHttpClient(sslContext = getDefaultSslContext())
       else:
         if url.parseUri.scheme == "https":
-          raise newException(AsyncHttpRequestError, "SSL support is not available. Compile with -d:ssl to enable.")
+          raise newException(AsyncHttpRequestError,
+            "SSL support is not available. Compile with -d:ssl to enable.")
         var client = newHttpClient()
 
       client.headers = newHttpHeaders(headers)
@@ -109,10 +116,12 @@ elif compileOption("threads"):
       handler((parseStatusCode(resp.status), resp.status, resp.body), ctx)
     except:
       let msg = getCurrentExceptionMsg()
-      handler((-1, "Exception caught: " & msg, getCurrentException().getStackTrace()), ctx)
+      handler((-1, "Exception caught: " & msg, getCurrentException().getStackTrace()),
+        ctx)
 
-  proc sendRequestThreaded*(meth: HttpMethod, url, body: string, headers: openarray[(string, string)], handler: ThreadedHandler,
-                ctx: pointer = nil) =
+  proc sendRequestThreaded*(meth: HttpMethod, url, body: string,
+      headers: openarray[(string, string)], handler: ThreadedHandler,
+      ctx: pointer = nil) =
     ## handler might not be called on the invoking thread
     spawn asyncHTTPRequest(url, meth, body, @headers, handler, ctx)
 else:

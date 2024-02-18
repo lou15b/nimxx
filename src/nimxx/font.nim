@@ -45,7 +45,8 @@ type FontImpl = ref object
   ascent: float32
   descent: float32
 
-var fontCache = initLocker(newSimpleTable(FastString, FontImpl))
+var fontCache =
+  initLocker(newSimpleTable(FastString, FontImpl))
 
 proc cachedImplForFont(face: string, sz: float): FontImpl =
   lock fontCache as fc:
@@ -83,12 +84,15 @@ template size*(f: Font): float = f.mSize
 const dumpDebugBitmaps = false
 
 when dumpDebugBitmaps:
-  template dumpBitmaps(name: string, bitmap: seq[byte], width, height, start: int, fSize: float) =
+  template dumpBitmaps(name: string, bitmap: seq[byte], width, height, start: int,
+      fSize: float) =
     var bmp = newSeq[byte](width * height * 3)
     for i in 0 .. < width * height:
       bmp[3*i] = bitmap[i]
 
-    discard stbi_write_bmp("atlas_nimx_" & name & "_" & $fSize & "_" & $start & "_" & $width & "x" & $height & ".bmp", width.cint, height.cint, 3.cint, addr bmp[0])
+    discard stbi_write_bmp(
+      "atlas_nimx_" & name & "_" & $fSize & "_" & $start & "_" & $width & "x" & $height & ".bmp",
+      width.cint, height.cint, 3.cint, addr bmp[0])
 
 proc updateFontMetrics(f: Font) =
   f.impl.glyphProvider.getFontMetrics(f.impl.ascent, f.impl.descent)
@@ -107,7 +111,8 @@ proc descent*(f: Font): float32 =
 proc bakeChars(f: Font, start: int32, res: CharInfo) =
   f.impl.glyphProvider.bakeChars(start, res.data)
   when dumpDebugBitmaps:
-    dumpBitmaps("df", res.data.bitmap, res.data.bitmapWidth, res.data.bitmapHeight, start, fSize)
+    dumpBitmaps("df", res.data.bitmap, res.data.bitmapWidth, res.data.bitmapHeight,
+      start, fSize)
 
 proc newFontWithFile*(pathToTTFile: string, size: float): Font =
   result.new()
@@ -210,14 +215,17 @@ proc generateDistanceFieldForGlyph(ch: CharInfo, index: int, uploadToTexture: bo
   let w = ch.bakedChars.charOffComp(c, compWidth).cint + glyphMargin * 2
   let h = ch.bakedChars.charOffComp(c, compHeight).cint + glyphMargin * 2
 
-  dfCtx.make_distance_map(ch.data.bitmap, x, y, w, h, ch.data.bitmapWidth.int, not uploadToTexture)
+  dfCtx.make_distance_map(ch.data.bitmap, x, y, w, h, ch.data.bitmapWidth.int,
+    not uploadToTexture)
   if uploadToTexture:
     glBindTexture(GL_TEXTURE_2D, ch.texture)
     if w mod 4 == 0:
-      texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
+      texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h),
+        GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
     else:
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-      texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h), GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
+      texGLSubImage2D(GL_TEXTURE_2D, 0, GLint(x), GLint(y), GLsizei(w), GLsizei(h),
+        GL_ALPHA, GL_UNSIGNED_BYTE, dfCtx.output)
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
   ch.data.dfDoneForGlyph[index] = true
 
@@ -274,7 +282,8 @@ proc chunkAndCharIndexForRune(f: Font, r: Rune): tuple[ch: CharInfo, index: int]
 
       let texWidth = ch.data.bitmapWidth.GLsizei
       let texHeight = ch.data.bitmapHeight.GLsizei
-      texGLImage2D(GL_TEXTURE_2D, 0, GLint(GL_ALPHA), texWidth, texHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, ch.data.bitmap)
+      texGLImage2D(GL_TEXTURE_2D, 0, GLint(GL_ALPHA), texWidth, texHeight, 0,
+        GL_ALPHA, GL_UNSIGNED_BYTE, ch.data.bitmap)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
       #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST)
@@ -282,7 +291,8 @@ proc chunkAndCharIndexForRune(f: Font, r: Rune): tuple[ch: CharInfo, index: int]
     elif ch.data.dfDoneForGlyph.len != 0 and not ch.data.dfDoneForGlyph[result.index]:
       generateDistanceFieldForGlyph(ch, result.index, true)
 
-proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: int, texture: var TextureGLRef, pt: var Point) =
+proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: int,
+    texture: var TextureGLRef, pt: var Point) =
   let (chunk, charIndexInChunk) = f.chunkAndCharIndexForRune(r)
   let c = charOff(charIndexInChunk)
 
@@ -320,13 +330,15 @@ proc getQuadDataForRune*(f: Font, r: Rune, quad: var openarray[Coord], offset: i
   texture = chunk.texture
 
 proc getCharComponent*(f: Font, text: string, comp: GlyphMetricsComponent): Coord =
-  let (chunk, charIndexInChunk) = f.chunkAndCharIndexForRune(text.runeAtPos(0))
+  let (chunk, charIndexInChunk) =
+    f.chunkAndCharIndexForRune(text.runeAtPos(0))
   let c = charOff(charIndexInChunk)
 
   f.updateFontMetricsIfNeeded()
   result = chunk.data.glyphMetrics.charOffComp(c, comp).Coord
 
-template getQuadDataForRune*(f: Font, r: Rune, quad: var array[16, Coord], texture: var TextureGLRef, pt: var Point) =
+template getQuadDataForRune*(f: Font, r: Rune, quad: var array[16, Coord],
+    texture: var TextureGLRef, pt: var Point) =
   f.getQuadDataForRune(r, quad, 0, texture, pt)
 
 proc getAdvanceForRune*(f: Font, r: Rune): Coord =
@@ -349,7 +361,8 @@ proc sizeOfString*(f: Font, s: string): Size =
     pt.x += f.getAdvanceForRune(ch)
   result = newSize(pt.x, f.height)
 
-proc getClosestCursorPositionToPointInString*(f: Font, s: string, p: Point, position: var int, offset: var Coord) {.deprecated.} =
+proc getClosestCursorPositionToPointInString*(f: Font, s: string, p: Point,
+    position: var int, offset: var Coord) {.deprecated.} =
   var pt = zeroPoint
   var closestPoint = zeroPoint
   var quad: array[16, Coord]

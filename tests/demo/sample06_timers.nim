@@ -27,8 +27,9 @@ method init(t: TimersSampleView, r: Rect) =
   startButton.onAction do():
     t.timer.clear()
     firesLabel.text = "fires: "
-    t.timer = newTimer(parseFloat(intervalTextField.text), periodicButton.boolValue, proc() =
-      firesLabel.text = firesLabel.text & "O"
+    t.timer = newTimer(parseFloat(intervalTextField.text), periodicButton.boolValue,
+      proc() =
+        firesLabel.text = firesLabel.text & "O"
       )
   t.addSubview(startButton)
 

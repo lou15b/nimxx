@@ -127,7 +127,8 @@ var twx: SdlWindow
 var touchWindow = initLocker(twx)
 
 proc flags(w: SdlWindow): cuint=
-  result = SDL_WINDOW_OPENGL or SDL_WINDOW_RESIZABLE or SDL_WINDOW_ALLOW_HIGHDPI or SDL_WINDOW_HIDDEN
+  result = SDL_WINDOW_OPENGL or SDL_WINDOW_RESIZABLE or
+    SDL_WINDOW_ALLOW_HIGHDPI or SDL_WINDOW_HIDDEN
   if w.isFullscreen:
     result = result or SDL_WINDOW_FULLSCREEN_DESKTOP
   # else:
@@ -204,7 +205,8 @@ proc initSdlWindow(w: SdlWindow, r: view.Rect) =
     w.isFullscreen = true
     w.impl = createWindow(nil, 0, 0, r.width.cint, r.height.cint, w.flags)
   else:
-    w.impl = createWindow(nil, cint(r.x), cint(r.y), cint(r.width), cint(r.height), w.flags)
+    w.impl =
+      createWindow(nil, cint(r.x), cint(r.y), cint(r.width), cint(r.height), w.flags)
 
   if w.impl == nil:
     error "Could not create window!"
@@ -285,7 +287,8 @@ method title*(w: SdlWindow): string = $w.impl.getTitle()
 
 method draw*(w: SdlWindow, r: Rect) =
   if w.mActiveBgColor != w.backgroundColor:
-    glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b, w.backgroundColor.a)
+    glClearColor(w.backgroundColor.r, w.backgroundColor.g, w.backgroundColor.b,
+      w.backgroundColor.a)
     w.mActiveBgColor = w.backgroundColor
   glStencilMask(0xFF) # Android requires setting stencil mask to clear
   glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -338,7 +341,8 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
         of WindowEvent_Resized, WindowEvent_SizeChanged:
           result = newEvent(etWindowResized)
           result.window = wnd
-          result.position = newPoint(wndEv.data1.Coord, wndEv.data2.Coord) / wnd.pixelRatio
+          result.position =
+            newPoint(wndEv.data1.Coord, wndEv.data2.Coord) / wnd.pixelRatio
         of WindowEvent_FocusGained:
           wnd.onFocusChange(true)
         of WindowEvent_FocusLost:
@@ -400,7 +404,8 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
     of KeyDown, KeyUp:
       let keyEv = cast[KeyboardEventPtr](event)
       let wnd = windowFromSDLEvent(keyEv)
-      result = newKeyboardEvent(virtualKeyFromNative(cint(keyEv.keysym.scancode)), buttonStateFromSDLState(keyEv.state.KeyState), keyEv.repeat)
+      result = newKeyboardEvent(virtualKeyFromNative(cint(keyEv.keysym.scancode)),
+        buttonStateFromSDLState(keyEv.state.KeyState), keyEv.repeat)
       #result.rune = keyEv.keysym.unicode.Rune
       result.window = wnd
 
@@ -506,7 +511,8 @@ proc nextEvent(evt: var sdl2.Event) =
 
   when defined(ios):
     while pollEvent(evt):
-      if evt.kind notin {FingerMotion, FingerDown, FingerUp}: # Touch events are handled in the event watch callback
+      # Note that touch events are handled in the event watch callback
+      if evt.kind notin {FingerMotion, FingerDown, FingerUp}: 
         discard handleEvent(addr evt)
 
     if not animationEnabled:
@@ -539,7 +545,8 @@ when defined(macosx): # Most likely should be enabled for linux and windows...
   # Handle live resize on macos
   {.push stackTrace: off.} # This can be called on background thread
   proc resizeEventWatch(userdata: pointer; event: ptr sdl2.Event): Bool32 {.cdecl.} =
-    if event.kind == WindowEvent and cast[WindowEventPtr](event).event == WindowEvent_Resized:
+    if event.kind == WindowEvent and
+        cast[WindowEventPtr](event).event == WindowEvent_Resized:
       # Handle macos live resize
       discard handleEvent(event)
     elif event.kind in {FingerMotion, FingerDown, FingerUp}:

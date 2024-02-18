@@ -35,7 +35,8 @@ method getClassName*(v: HorizontalListView): string =
   result = "HorizontalListView"
 
 method getCount*(a : Adapter): int {.base, gcsafe.} = discard
-method getView*(a: Adapter, position: int, convertView : View): View {.base, gcsafe.} = discard
+method getView*(a: Adapter, position: int, convertView : View): View {.base, gcsafe.} =
+  discard
 
 method setItemClickListener*(v: HorizontalListView, lis : proc(pos : int) {.gcsafe.}) {.base.} =
   v.itemClick = lis

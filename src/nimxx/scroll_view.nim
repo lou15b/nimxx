@@ -42,9 +42,11 @@ proc relayout(v: ScrollView) = # [Deprecated old layout]
   if not v.clipView.isNil:
     v.clipView.setFrameSize(cvs)
   if not v.mVerticalScrollBar.isNil:
-    v.mVerticalScrollBar.setFrameSize(newSize(v.mVerticalScrollBar.frame.width, cvs.height))
+    v.mVerticalScrollBar.setFrameSize(
+      newSize(v.mVerticalScrollBar.frame.width, cvs.height))
   if not v.mHorizontalScrollBar.isNil:
-    v.mHorizontalScrollBar.setFrameSize(newSize(cvs.width, v.mHorizontalScrollBar.frame.height))
+    v.mHorizontalScrollBar.setFrameSize(
+      newSize(cvs.width, v.mHorizontalScrollBar.frame.height))
 
 proc setScrollBar(v: ScrollView, vs: var ScrollBar, s: ScrollBar) =
   if not vs.isNil:
@@ -80,7 +82,8 @@ proc newScrollView*(r: Rect): ScrollView = # [Deprecated old layout]
   result.name = "scrollView"
   result.init(r)
 
-  var sb = ScrollBar.new(newRect(0, r.height - scrollBarWidth, 0, scrollBarWidth))
+  var sb =
+    ScrollBar.new(newRect(0, r.height - scrollBarWidth, 0, scrollBarWidth))
   sb.autoresizingMask = {afFlexibleWidth, afFlexibleMinY}
   result.horizontalScrollBar = sb
 
@@ -156,11 +159,13 @@ method updateLayout*(v: ScrollView) =
     let cvBounds = v.bounds.size
     if not v.mVerticalScrollBar.isNil:
       v.mVerticalScrollBar.knobSize = cvBounds.height / cs.height
-      v.mVerticalScrollBar.value = (v.layout.vars.y.value - v.yPos.value) / (cs.height - cvBounds.height)
+      v.mVerticalScrollBar.value =
+        (v.layout.vars.y.value - v.yPos.value) / (cs.height - cvBounds.height)
       v.mVerticalScrollBar.hidden = v.mVerticalScrollBar.knobSize == 1.0
     if not v.mHorizontalScrollBar.isNil:
       v.mHorizontalScrollBar.knobSize = cvBounds.width / cs.width
-      v.mHorizontalScrollBar.value = (v.layout.vars.x.value - v.xPos.value) / (cs.width - cvBounds.width)
+      v.mHorizontalScrollBar.value =
+        (v.layout.vars.x.value - v.xPos.value) / (cs.width - cvBounds.width)
       v.mHorizontalScrollBar.hidden = v.mHorizontalScrollBar.knobSize == 1.0
 
 method onScroll*(v: ScrollView, e: var Event): bool =
@@ -372,7 +377,8 @@ proc scrollToRect*(v: ScrollView, r: Rect) =
 proc scrollToBottom*(v: ScrollView)=
   doAssert(not v.usesNewLayout, "Not implemented")
 
-  let rect = newRect(0, v.contentSize.height - v.clipView.bounds.height, v.clipView.bounds.width, v.clipView.bounds.height)
+  let rect = newRect(0, v.contentSize.height - v.clipView.bounds.height,
+    v.clipView.bounds.width, v.clipView.bounds.height)
   v.scrollToRect(rect)
 
 proc scrollToTop*(v: ScrollView)=

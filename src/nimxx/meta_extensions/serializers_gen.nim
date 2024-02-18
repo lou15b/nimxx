@@ -3,15 +3,16 @@ import ../ui_resource
 export ui_resource
 import std/macros
 
-proc genSerializeCall(view, serializer, field: NimNode, isSerialize: bool): NimNode {.compileTime.}=
+proc genSerializeCall(view, serializer, field: NimNode,
+    isSerialize: bool): NimNode {.compileTime.} =
   let call = if isSerialize: ident("serialize") else: ident("deserialize")
   let fieldLit = newLit($field)
   # if isSerialize:
   result = quote do:
     `serializer`.`call`(`fieldLit`, `view`.`field`)
   # else:
-  #     result = quote do:
-  #         `serializer`.`call`(`view`.`field`)
+  #   result = quote do:
+  #     `serializer`.`call`(`view`.`field`)
 
   # echo "genSerializeCall ", repr(result)
 

@@ -20,9 +20,11 @@ proc newFormView*(r: Rect, numberOfFields: int, adjustFrameHeight: bool = true):
   result.init(fr)
   result.labelsMap = initTable[string, int]()
   for i in 0 ..< numberOfFields:
-    let label = newLabel(newRect(0, i.Coord * fieldHeight, r.width / 3, fieldHeight))
+    let label =
+      newLabel(newRect(0, i.Coord * fieldHeight, r.width / 3, fieldHeight))
     result.addSubview(label)
-    let value = newTextField(newRect(r.width / 3, i.Coord * fieldHeight, r.width / 3 * 2, fieldHeight))
+    let value =
+      newTextField(newRect(r.width / 3, i.Coord * fieldHeight, r.width / 3 * 2, fieldHeight))
     result.addSubview(value)
 
 proc labelAtIndex(v: FormView, index: int): TextField = TextField(v.subviews[index * 2])
@@ -43,12 +45,14 @@ proc setValue*(v: FormView, index: int, value: string) =
 proc setValue*(v: FormView, label: string, value: string) =
   v.inputForLabel(label).text = value
 
-proc newFormView*(r: Rect, fieldNames: openarray[string], adjustFrameHeight: bool = true): FormView =
+proc newFormView*(r: Rect, fieldNames: openarray[string],
+    adjustFrameHeight: bool = true): FormView =
   result = newFormView(r, fieldNames.len, adjustFrameHeight)
   for i, n in fieldNames:
     result.setLabel(i, n)
     result.setValue(i, "")
 
 proc inputValue*(v: FormView, index: int): string = v.inputAtIndex(index).text
-proc inputValue*(v: FormView, label: string): string = v.inputForLabel(label).text
+proc inputValue*(v: FormView, label: string): string =
+  v.inputForLabel(label).text
 

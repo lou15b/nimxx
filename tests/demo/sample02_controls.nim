@@ -96,7 +96,8 @@ method init(v: ControlsSampleView, r: Rect) =
       let imageView = newImageView(newRect(0, 400, 300, 150), i)
       v.addSubview(imageView)
 
-      let popupFillRule = newPopupButton(v, newPoint(420, 400), newSize(100, 20), ["NoFill", "Stretch", "Tile", "FitWidth", "FitHeight"])
+      let popupFillRule = newPopupButton(v, newPoint(420, 400), newSize(100, 20),
+        ["NoFill", "Stretch", "Tile", "FitWidth", "FitHeight"])
       popupFillRule.onAction do():
         imageView.fillRule = popupFillRule.selectedIndex().ImageFillRule
 

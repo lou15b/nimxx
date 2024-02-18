@@ -90,7 +90,8 @@ proc newTextField*(r: Rect): TextField =
   result.new()
   result.init(r)
 
-proc newTextField*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), text: string = ""): TextField =
+proc newTextField*(parent: View = nil, position: Point = newPoint(0, 0),
+    size: Size = newSize(100, 20), text: string = ""): TextField =
   result = newTextField(newRect(position.x, position.y, size.width, size.height))
   result.editable = true
   result.selectable = true
@@ -104,7 +105,8 @@ proc newLabel*(r: Rect): TextField =
   result.selectable = false
   result.backgroundColor.a = 0
 
-proc newLabel*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), text: string = "label"): TextField =
+proc newLabel*(parent: View = nil, position: Point = newPoint(0, 0),
+    size: Size = newSize(100, 20), text: string = "label"): TextField =
   result = newLabel(newRect(position.x, position.y, size.width, size.height))
   result.editable = false
   result.selectable = false
@@ -249,14 +251,15 @@ proc drawSelection(t: TextField) {.inline.} =
     r.size.width = endOff
     c.drawRect(r)
 
-#todo: replace by generic visibleRect which should be implemented in future
+#TODO: replace by generic visibleRect which should be implemented in future
 proc visibleRect(t: TextField): Rect =
   let wndRect = t.convertRectToWindow(t.bounds)
   let wndBounds = t.window.bounds
 
   result.origin.y = if wndRect.y < 0.0: abs(wndRect.y) else: 0.0
   result.size.width = t.bounds.width
-  result.size.height = min(t.bounds.height, wndBounds.height) + result.y - max(wndRect.y, 0.0)
+  result.size.height =
+    min(t.bounds.height, wndBounds.height) + result.y - max(wndRect.y, 0.0)
 
 method draw*(t: TextField, r: Rect) =
   procCall t.View.draw(r)
@@ -454,7 +457,8 @@ method onKeyDown*(t: TextField, e: var Event): bool =
         let oldCursorPos = t.cursorPos
         let ln = t.mText.lineOfRuneAtPos(t.cursorPos)
         var offset: Coord
-        t.mText.getClosestCursorPositionToPointInLine(ln + 1, newPoint(t.cursorOffset, 0), t.cursorPos, offset)
+        t.mText.getClosestCursorPositionToPointInLine(ln + 1, newPoint(t.cursorOffset, 0),
+          t.cursorPos, offset)
         t.cursorOffset = offset
         if e.modifiers.anyShift():
           t.updateSelectionWithCursorPos(oldCursorPos, t.cursorPos)
@@ -467,7 +471,8 @@ method onKeyDown*(t: TextField, e: var Event): bool =
         let ln = t.mText.lineOfRuneAtPos(t.cursorPos)
         if ln > 0:
           var offset: Coord
-          t.mText.getClosestCursorPositionToPointInLine(ln - 1, newPoint(t.cursorOffset, 0), t.cursorPos, offset)
+          t.mText.getClosestCursorPositionToPointInLine(ln - 1, newPoint(t.cursorOffset, 0),
+            t.cursorPos, offset)
           t.cursorOffset = offset
           if e.modifiers.anyShift():
             t.updateSelectionWithCursorPos(oldCursorPos, t.cursorPos)

@@ -19,7 +19,8 @@ proc newVector*[T](v0, v1, v2, v3 : T): TVector3[T] = [v0, v1, v2, v3]
 
 proc newVector2*(x: Coord = 0, y: Coord = 0): Vector2 = [x, y]
 proc newVector3*(x: Coord = 0, y: Coord = 0, z: Coord = 0): Vector3 = [x, y, z]
-proc newVector4*(x: Coord = 0, y: Coord = 0, z: Coord = 0, w: Coord = 0): Vector4 = [x, y, z, w]
+proc newVector4*(x: Coord = 0, y: Coord = 0, z: Coord = 0, w: Coord = 0): Vector4 =
+  [x, y, z, w]
 
 proc newVector3*(v2: Vector2): Vector3 = newVector3(v2[0], v2[1])
 proc newVector4*(v2: Vector2): Vector4 = newVector4(v2[0], v2[1])
@@ -62,17 +63,18 @@ template `z=`*[I: static[int], T](v: var TVector[I, T], val: T) = v[2] = val
 template `w=`*[I: static[int], T](v: var TVector[I, T], val: T) = v[3] = val
 
 # proc `.`*[I: static[int], T](v: TVector[I, T], field: static[string]): TVector[field.len, T] =
-#     for i, c in field:
-#         case c
-#             of 'x': result[i] = v.x
-#             of 'y': result[i] = v.y
-#             of 'z': result[i] = v.z
-#             of 'w': result[i] = v.w
-#             else: assert(false, "Unknown field: " & $c)
+#   or i, c in field:
+#   case c
+#     of 'x': result[i] = v.x
+#     of 'y': result[i] = v.y
+#     of 'z': result[i] = v.z
+#     of 'w': result[i] = v.w
+#     else: assert(false, "Unknown field: " & $c)
 
 # The following .= doesn't work yet because of Nim bug #3319
 discard """
-proc `.=`*[I: static[int], T](v: var TVector[I, T], field: static[string], val: TVector[field.len, T]) =
+proc `.=`*[I: static[int], T](v: var TVector[I, T], field: static[string],
+    val: TVector[field.len, T]) =
   for i, c in field:
     case c
       of 'x': v.x = val[i]
@@ -251,12 +253,14 @@ proc determinant*(mat: Matrix4): Coord =
   # Cache the matrix values (makes for huge speed increases!)
   decomposeToLocals(mat, a)
 
-  return (am30 * am21 * am12 * am03 - am20 * am31 * am12 * am03 - am30 * am11 * am22 * am03 + am10 * am31 * am22 * am03 +
-      am20 * am11 * am32 * am03 - am10 * am21 * am32 * am03 - am30 * am21 * am02 * am13 + am20 * am31 * am02 * am13 +
-      am30 * am01 * am22 * am13 - am00 * am31 * am22 * am13 - am20 * am01 * am32 * am13 + am00 * am21 * am32 * am13 +
-      am30 * am11 * am02 * am23 - am10 * am31 * am02 * am23 - am30 * am01 * am12 * am23 + am00 * am31 * am12 * am23 +
-      am10 * am01 * am32 * am23 - am00 * am11 * am32 * am23 - am20 * am11 * am02 * am33 + am10 * am21 * am02 * am33 +
-      am20 * am01 * am12 * am33 - am00 * am21 * am12 * am33 - am10 * am01 * am22 * am33 + am00 * am11 * am22 * am33)
+  # Margins not applied here
+  return (
+    am30 * am21 * am12 * am03 - am20 * am31 * am12 * am03 - am30 * am11 * am22 * am03 + am10 * am31 * am22 * am03 +
+    am20 * am11 * am32 * am03 - am10 * am21 * am32 * am03 - am30 * am21 * am02 * am13 + am20 * am31 * am02 * am13 +
+    am30 * am01 * am22 * am13 - am00 * am31 * am22 * am13 - am20 * am01 * am32 * am13 + am00 * am21 * am32 * am13 +
+    am30 * am11 * am02 * am23 - am10 * am31 * am02 * am23 - am30 * am01 * am12 * am23 + am00 * am31 * am12 * am23 +
+    am10 * am01 * am32 * am23 - am00 * am11 * am32 * am23 - am20 * am11 * am02 * am33 + am10 * am21 * am02 * am33 +
+    am20 * am01 * am12 * am33 - am00 * am21 * am12 * am33 - am10 * am01 * am22 * am33 + am00 * am11 * am22 * am33)
 
 proc tryInverse*(mat: Matrix4, dest: var Matrix4): bool =
   # Cache the matrix values (makes for huge speed increases!)
@@ -431,9 +435,12 @@ proc translate*(mat: Matrix4, vec: Vector3, dest: var Matrix4) =
     y = vec[1]
     z = vec[2]
 
-    (a00, a01, a02, a03) = (mat[0], mat[1], mat[2], mat[3])
-    (a10, a11, a12, a13) = (mat[4], mat[5], mat[6], mat[7])
-    (a20, a21, a22, a23) = (mat[8], mat[9], mat[10], mat[11])
+    (a00, a01, a02, a03) =
+      (mat[0], mat[1], mat[2], mat[3])
+    (a10, a11, a12, a13) =
+      (mat[4], mat[5], mat[6], mat[7])
+    (a20, a21, a22, a23) =
+      (mat[8], mat[9], mat[10], mat[11])
 
   dest[0] = a00; dest[1] = a01; dest[2] = a02; dest[3] = a03;
   dest[4] = a10; dest[5] = a11; dest[6] = a12; dest[7] = a13;
@@ -517,18 +524,24 @@ proc rotate*(mat: Matrix4, angle: Coord, axis: Vector3, dest: var Matrix4) =
   let t = 1 - c
 
   let
-    (a00, a01, a02, a03) = (mat[0], mat[1], mat[2], mat[3])
-    (a10, a11, a12, a13) = (mat[4], mat[5], mat[6], mat[7])
-    (a20, a21, a22, a23) = (mat[8], mat[9], mat[10], mat[11])
+    (a00, a01, a02, a03) =
+      (mat[0], mat[1], mat[2], mat[3])
+    (a10, a11, a12, a13) =
+      (mat[4], mat[5], mat[6], mat[7])
+    (a20, a21, a22, a23) =
+      (mat[8], mat[9], mat[10], mat[11])
 
 #        a00 = mat[0]; a01 = mat[1]; a02 = mat[2]; a03 = mat[3];
 #        a10 = mat[4]; a11 = mat[5]; a12 = mat[6]; a13 = mat[7];
 #        a20 = mat[8]; a21 = mat[9]; a22 = mat[10]; a23 = mat[11];
 
     # Construct the elements of the rotation matrix
-    (b00, b01, b02) = (x * x * t + c,       y * x * t + z * s,   z * x * t - y * s)
-    (b10, b11, b12) = (x * y * t - z * s,   y * y * t + c,       z * y * t + x * s)
-    (b20, b21, b22) = (x * z * t + y * s,   y * z * t - x * s,   z * z * t + c)
+    (b00, b01, b02) =
+      (x * x * t + c,   y * x * t + z * s,   z * x * t - y * s)
+    (b10, b11, b12) =
+      (x * y * t - z * s,   y * y * t + c,   z * y * t + x * s)
+    (b20, b21, b22) =
+      (x * z * t + y * s,   y * z * t - x * s,   z * z * t + c)
 
   # If the source and destination differ, copy the unchanged last row
   dest[12] = mat[12]
@@ -870,7 +883,8 @@ proc tryGetTranslationFromModel*(mat: Matrix4, translation: var Vector3): bool =
   translation = newVector3(mat[12], mat[13], mat[14]) / mat[15]
   return true
 
-proc tryGetScaleRotationFromModel*(mat: Matrix4, scale: var Vector3, rotation: var Vector4): bool =
+proc tryGetScaleRotationFromModel*(mat: Matrix4, scale: var Vector3,
+    rotation: var Vector4): bool =
   if mat[15] == 0: return false
 
   var

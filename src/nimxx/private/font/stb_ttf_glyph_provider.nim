@@ -72,7 +72,8 @@ proc bakeChars*(p: StbTtfGlyphProvider, start: int32, data: var GlyphData) =
       stbtt_GetGlyphBitmapBox(p.fontInfo, g, scale, scale, x0, y0, x1, y1)
       let gw = x1 - x0
       let gh = y1 - y0
-      let (x, y) = rectPacker.packAndGrow(gw + p.glyphMargin * 2, gh + p.glyphMargin * 2)
+      let (x, y) = rectPacker.packAndGrow(gw + p.glyphMargin * 2,
+        gh + p.glyphMargin * 2)
 
       let c = charOff(i - startChar)
       data.glyphMetrics.charOffComp(c, compX) = (x0.cfloat).int16
@@ -100,7 +101,8 @@ proc bakeChars*(p: StbTtfGlyphProvider, start: int32, data: var GlyphData) =
         let w = data.glyphMetrics.charOffComp(c, compWidth).cint
         let h = data.glyphMetrics.charOffComp(c, compHeight).cint
         if w > 0 and h > 0:
-          stbtt_MakeGlyphBitmap(p.fontInfo, addr temp_bitmap[x + y * width.int], w, h, width.cint, scale, scale, glyphIndexes[indexOfGlyphInRange])
+          stbtt_MakeGlyphBitmap(p.fontInfo, addr temp_bitmap[x + y * width.int],
+            w, h, width.cint, scale, scale, glyphIndexes[indexOfGlyphInRange])
           data.dfDoneForGlyph[indexOfGlyphInRange] = false
 
   p.clearCache()

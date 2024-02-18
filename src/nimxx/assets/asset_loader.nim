@@ -9,7 +9,7 @@ type AssetLoader* = ref object
   itemsLoaded: int
   onComplete*: proc() {.gcsafe.}
   onProgress*: proc(p: float) {.gcsafe.}
-  assetCache*: AssetCache # Cache to put the loaded resources to. If nil, default cache is used.
+  assetCache*: AssetCache # Cache for loaded resources. If nil, default cache is used.
   when debugResCache:
     assetsToLoad: seq[string]
 

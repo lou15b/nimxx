@@ -20,7 +20,8 @@ proc getOtherResponders(v: View, exceptV: View, responders: var seq[View]) =
         responders.add sv
       sv.getOtherResponders(exceptV, responders)
 
-proc findNearestNextResponder(fromX: float, fromY: float, responders: seq[View], forward: bool): View =
+proc findNearestNextResponder(fromX: float, fromY: float, responders: seq[View],
+    forward: bool): View =
   let sign: float = if forward: 1 else: -1
   var bestDH: float = Inf
   var bestDV: float = Inf
@@ -47,16 +48,19 @@ method onKeyDown*(w: Window, e: var Event): bool =
       var responders: seq[View] = @[]
       getOtherResponders(curResp.superview, curResp, responders)
       if responders.len > 0:
-        nextResponder = findNearestNextResponder(firstRespRect.minX, firstRespRect.minY, responders, forward)
+        nextResponder = findNearestNextResponder(firstRespRect.minX, firstRespRect.minY,
+          responders, forward)
       curResp = curResp.superview
 
     if nextResponder.isNil:
       var responders: seq[View] = @[]
       getOtherResponders(w, w.firstResponder, responders)
       if forward:
-        nextResponder = findNearestNextResponder(w.bounds.minX, w.bounds.minY, responders, forward)
+        nextResponder = findNearestNextResponder(w.bounds.minX, w.bounds.minY,
+          responders, forward)
       else:
-        nextResponder = findNearestNextResponder(w.bounds.maxX, w.bounds.maxY, responders, forward)
+        nextResponder = findNearestNextResponder(w.bounds.maxX, w.bounds.maxY,
+          responders, forward)
 
     if not nextResponder.isNil():
       discard w.makeFirstResponder(nextResponder)

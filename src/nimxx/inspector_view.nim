@@ -33,6 +33,7 @@ proc setInspectedObject*[T](v: InspectorView, o: T) =
   visitor.requireGetter = true
   visitor.flags = { pfEditable }
   visitor.commit = proc() {.gcsafe.} =
-    v.addSubview(propertyEditorForProperty(oo, visitor.name, visitor.setterAndGetter, onChange = onChanged(visitor)))
+    v.addSubview(propertyEditorForProperty(oo, visitor.name, visitor.setterAndGetter,
+      onChange = onChanged(visitor)))
 
   o.visitProperties(visitor)

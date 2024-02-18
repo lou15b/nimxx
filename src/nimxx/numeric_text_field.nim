@@ -60,7 +60,8 @@ proc drawArrows(v: NumericTextField) =
   let c = v.window.renderingContext
   arrowComposition.draw(c, newRect(0, 0, arrowMargin, v.bounds.height)):
     setUniform("uAngle", Coord(PI))
-  arrowComposition.draw(c, newRect(v.bounds.width - arrowMargin, 0, arrowMargin, v.bounds.height)):
+  arrowComposition.draw(c, newRect(v.bounds.width - arrowMargin, 0, arrowMargin,
+      v.bounds.height)):
     setUniform("uAngle", Coord(0))
 
 method draw*(t: NumericTextField, r: Rect) =

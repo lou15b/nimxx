@@ -33,8 +33,10 @@ type
     onSelectionChanged*: proc() {.gcsafe.}
     onDragAndDrop*: proc(fromIndexPath, toIndexPath: openarray[int]) {.gcsafe.}
     tempIndexPath: IndexPath
-    draggedElemIndexPath: IndexPath # Initial index path of the element that is currently being dragged
-    droppedElemIndexPath: IndexPath # Initial index path of the element that is currently being dragged
+    # Initial index path of the element that is currently being dragged
+    draggedElemIndexPath: IndexPath
+    # Initial index path of the element that is currently being dropped
+    droppedElemIndexPath: IndexPath
     dropAfterItem: ItemNode
     dropInsideItem: ItemNode
     dragStartLocation: Point
@@ -63,9 +65,9 @@ template xOffsetForIndexPath(ip: IndexPath): Coord =
 proc configureCellAUX(v: OutlineView, n: ItemNode, y: Coord, indexPath: IndexPath) =
   if n.cell.isNil:
     n.cell = v.createCell()
-    # Note that the cell is NOT a subview of the outline view, it's drawn as *part* of the view
-    # because the outline view must control the drawing according to whether the cell's parent
-    # has been expanded
+    # Note that the cell is NOT a subview of the outline view, it is drawn
+    # as *part* of the view because the outline view must control the drawing
+    # according to whether the cell's parent has been expanded
     (n.cell).moveToWindow(v.window)
   n.cell.selected = indexPath == v.selectedIndexPath
   let indent = xOffsetForIndexPath(indexPath)
@@ -88,16 +90,19 @@ proc drawNode(v: OutlineView, n: ItemNode, y: var Coord, indexPath: var IndexPat
     c.fillColor = newColor(0.44, 0.55, 0.90, 0.3)
     c.strokeColor = newColor(0.27, 0.44, 0.85, 0.3)
     c.strokeWidth = 2
-    # let offset = Coord(offsetOutline + (v.droppedElemIndexPath.len - 1) * offsetOutline * 2) + 6
+    # let offset =
+    #   Coord(offsetOutline + (v.droppedElemIndexPath.len - 1) * offsetOutline * 2) + 6
     c.drawRoundedRect(n.cell.frame, 4)
   elif n == v.dropAfterItem:
     # Show drop marker
     c.fillColor = newColor(0.27, 0.44, 0.85)
     c.strokeWidth = 0
-    let offset = Coord(offsetOutline + v.droppedElemIndexPath.len * offsetOutline * 2) + 6
+    let offset =
+      Coord(offsetOutline + v.droppedElemIndexPath.len * offsetOutline * 2) + 6
     c.drawRect(newRect(offset, y, v.bounds.width - offset, 2))
     const circleRadius = 3
-    c.drawEllipseInRect(newRect(offset - circleRadius, y - circleRadius, circleRadius * 2, circleRadius * 2))
+    c.drawEllipseInRect(newRect(offset - circleRadius, y - circleRadius,
+      circleRadius * 2, circleRadius * 2))
 
   if n.expanded and n.children.len != 0:
     let lastIndex = indexPath.len
@@ -149,7 +154,8 @@ proc getExposingRowNum(v: OutlineView, indexPath: IndexPath): int =
 
 proc checkViewSize(v: OutlineView) =
   var size: Size
-  size.height = Coord(v.rootItem.getExposedRowsCount - 1) * rowHeight    # rootItem itself is invisible
+  # Note that rootItem itself is invisible
+  size.height = Coord(v.rootItem.getExposedRowsCount - 1) * rowHeight
   size.width = v.bounds.width
 
   if not v.superview.isNil:
@@ -185,7 +191,8 @@ proc expandBranch*(v: OutlineView, indexPath: openarray[int]) =
 proc collapseBranch*(v: OutlineView, indexPath: openarray[int]) =
   v.setBranchExpanded(false, indexPath)
 
-proc itemAtPos(v: OutlineView, n: ItemNode, p: Point, y: var Coord, indexPath: var IndexPath): ItemNode =
+proc itemAtPos(v: OutlineView, n: ItemNode, p: Point, y: var Coord,
+    indexPath: var IndexPath): ItemNode =
   y += rowHeight
   if p.y < y: return n
   if n.expanded and n.children.len != 0:
@@ -251,7 +258,9 @@ template selectionChanged(v: OutlineView) =
 proc scrollToSelection*(v: OutlineView) =
   let scrollView = v.enclosingViewOfType(ScrollView)
   if not scrollView.isNil:
-    var targetRect = newRect(newPoint(0, v.getExposingRowNum(v.selectedIndexPath).Coord * rowHeight), newSize(1, rowHeight))
+    var targetRect = newRect(
+      newPoint(0, v.getExposingRowNum(v.selectedIndexPath).Coord * rowHeight),
+      newSize(1, rowHeight))
     scrollView.scrollToRect(targetRect)
 
 proc selectItemAtIndexPath*(v: OutlineView, ip: seq[int], scroll: bool = true) =
@@ -296,7 +305,9 @@ method onTouchEv*(v: OutlineView, e: var Event): bool =
         v.selectedIndexPath = v.tempIndexPath
         v.selectionChanged()
 
-      if not v.onDragAndDrop.isNil and v.draggedElemIndexPath.len > 1 and v.droppedElemIndexPath.len > 1 and v.draggedElemIndexPath != v.droppedElemIndexPath:
+      if not v.onDragAndDrop.isNil and v.draggedElemIndexPath.len > 1 and
+          v.droppedElemIndexPath.len > 1 and
+          v.draggedElemIndexPath != v.droppedElemIndexPath:
         v.onDragAndDrop(v.draggedElemIndexPath, v.droppedElemIndexPath)
 
       v.setNeedsDisplay()
@@ -340,7 +351,8 @@ method onTouchEv*(v: OutlineView, e: var Event): bool =
 
   else: # Dragging
     let pos = e.localPosition
-    let dragLen = pow(abs(pos.x - v.dragStartLocation.x), 2) + pow(abs(pos.y - v.dragStartLocation.y), 2)
+    let dragLen = pow(abs(pos.x - v.dragStartLocation.x), 2) +
+      pow(abs(pos.y - v.dragStartLocation.y), 2)
     var y = 0.Coord
     var i = v.itemAtPos(pos, v.tempIndexPath, y)
 
@@ -358,7 +370,8 @@ method onTouchEv*(v: OutlineView, e: var Event): bool =
       elif sqrt(dragLen) > 10:
         v.droppedElemIndexPath = v.tempIndexPath
         v.dropAfterItem = i
-        # When mouse hovers over the row, the drop target may be one of the following:
+        # When mouse hovers over the row, the drop target may be one of
+        # the following:
         # 1. The next simbling of the row
         # 2. The first child of the row
         # 3. If the row is last child, it may be:
@@ -367,7 +380,8 @@ method onTouchEv*(v: OutlineView, e: var Event): bool =
         #       aa. The next sibling of row's parent's parent.
         #       bb. Recursion continues down to root.
         # The correct variant is determined by mouse.x location.
-        let offset = Coord(offsetOutline + v.droppedElemIndexPath.len * offsetOutline * 2) + 6
+        let offset =
+          Coord(offsetOutline + v.droppedElemIndexPath.len * offsetOutline * 2) + 6
         var levelsDiff = int((e.localPosition.x - offset) / (offsetOutline * 2))
 
         if i.expanded and i.children.len > 0:

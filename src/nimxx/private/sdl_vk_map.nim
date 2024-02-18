@@ -173,4 +173,5 @@ const virtualKeyMapping: Table[Scancode, VirtualKey] = {
   SDL_SCANCODE_KBDILLUMUP:       VirtualKey.IlluminateUp
 }.toTable()
 
-template virtualKeyFromNative*(kc: cint): VirtualKey = virtualKeyMapping.getOrDefault(cast[Scancode](kc))
+template virtualKeyFromNative*(kc: cint): VirtualKey =
+  virtualKeyMapping.getOrDefault(cast[Scancode](kc))

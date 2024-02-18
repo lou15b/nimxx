@@ -75,7 +75,8 @@ proc requiredHeightForRow(v: TableView, row: int): Coord {.inline.} =
   else:
     result = v.heightOfRowUsingDelegate(row)
 
-proc getRowsAtHeights(v: TableView, heights: openarray[Coord], rows: var openarray[int], startRow : int = 0, startCoord : Coord = 0) =
+proc getRowsAtHeights(v: TableView, heights: openarray[Coord], rows: var openarray[int],
+    startRow : int = 0, startCoord : Coord = 0) =
   let rowsCount = v.numberOfRows()
   if v.heightOfRow.isNil:
     for i in 0 ..< rows.len:
@@ -135,10 +136,10 @@ proc visibleRect(v: View): Rect = # TODO: This can be more generic. Move to view
     result = v.bounds
 
 # method draw*(v: TableView, r: Rect) =
-#     let c = v.window.renderingContext
-#     c.fillColor = blackColor()
-#     let r = inset(visibleRect(v), 5, 5)
-#     c.drawRect(r)
+#   let c = v.window.renderingContext
+#   c.fillColor = blackColor()
+#   let r = inset(visibleRect(v), 5, 5)
+#   c.drawRect(r)
 
 proc containsFirstResponder(cell: View): bool =
   let w = cell.window
@@ -165,7 +166,8 @@ proc configureRow(r: TableRow, top: Coord) {.inline.} =
   r.topConstraint = r.layout.vars.top == superPHS.top + top
   r.addConstraint(r.topConstraint)
 
-proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int, top, height: Coord): TableRow {.gcsafe.} =
+proc dequeueReusableRow(v: TableView, cells: var seq[TableRow], row: int,
+    top, height: Coord): TableRow {.gcsafe.} =
   var needToAdd = false
   if cells.len > 0:
     result = cells[0]
@@ -240,7 +242,8 @@ proc updateCellsInVisibleRect(v: TableView) {.inline, gcsafe.} =
     if minVisibleRow != -1:
       var y = v.topCoordOfRow(minVisibleRow)
 
-      # 2. Go through visible rows and create or reuse cells for rows with missing cells
+      # 2. Go through visible rows and create or reuse cells for rows with missing
+      #    cells
       for i in minVisibleRow .. maxVisibleRow:
         var cell = visibleRows[i - minVisibleRow]
         let h = v.requiredHeightForRow(i)

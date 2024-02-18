@@ -40,8 +40,9 @@ type Event* = object
   text*: string
   modifiers*: ModifiersSet
 
-proc newEvent*(kind: EventType, position: Point = zeroPoint, keyCode: VirtualKey = VirtualKey.Unknown,
-    buttonState: ButtonState = bsUnknown, pointerId : int = 0, timestamp : uint32 = 0): Event =
+proc newEvent*(kind: EventType, position: Point = zeroPoint,
+    keyCode: VirtualKey = VirtualKey.Unknown, buttonState: ButtonState = bsUnknown,
+    pointerId : int = 0, timestamp : uint32 = 0): Event =
   result.kind = kind
   result.position = position
   result.localPosition = position
@@ -58,13 +59,15 @@ proc newMouseMoveEvent*(position: Point, tstamp : uint32): Event =
 proc newMouseMoveEvent*(position: Point): Event =
   newEvent(etMouse, position, VirtualKey.Unknown, bsUnknown, 0, 0)
 
-proc newMouseButtonEvent*(position: Point, button: VirtualKey, state: ButtonState, tstamp : uint32): Event =
+proc newMouseButtonEvent*(position: Point, button: VirtualKey, state: ButtonState,
+    tstamp : uint32): Event =
   newEvent(etMouse, position, button, state, 0, tstamp)
 
 proc newMouseButtonEvent*(position: Point, button: VirtualKey, state: ButtonState): Event =
   newEvent(etMouse, position, button, state, 0, 0)
 
-proc newTouchEvent*(position: Point, state: ButtonState, pointerId : int, tstamp : uint32): Event =
+proc newTouchEvent*(position: Point, state: ButtonState, pointerId : int,
+    tstamp : uint32): Event =
   newEvent(etTouch, position, VirtualKey.Unknown, state, pointerId, tstamp)
 
 proc newMouseDownEvent*(position: Point, button: VirtualKey): Event =
@@ -73,7 +76,8 @@ proc newMouseDownEvent*(position: Point, button: VirtualKey): Event =
 proc newMouseUpEvent*(position: Point, button: VirtualKey): Event =
   newMouseButtonEvent(position, button, bsUp,0)
 
-proc newKeyboardEvent*(keyCode: VirtualKey, buttonState: ButtonState, repeat: bool = false): Event =
+proc newKeyboardEvent*(keyCode: VirtualKey, buttonState: ButtonState,
+    repeat: bool = false): Event =
   result = newEvent(etKeyboard, zeroPoint, keyCode, buttonState)
   result.repeat = repeat
 
@@ -82,7 +86,8 @@ proc isPointingEvent*(e: Event) : bool =
 proc isButtonDownEvent*(e: Event): bool = e.buttonState == bsDown
 proc isButtonUpEvent*(e: Event): bool = e.buttonState == bsUp
 
-proc isMouseMoveEvent*(e: Event): bool = e.buttonState == bsUnknown and e.kind == etMouse
+proc isMouseMoveEvent*(e: Event): bool =
+  e.buttonState == bsUnknown and e.kind == etMouse
 
 # Operations are atomic, so no lock needed
 var activeTouches: Atomic[int]

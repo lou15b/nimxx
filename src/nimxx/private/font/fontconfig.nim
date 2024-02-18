@@ -51,8 +51,10 @@ when useLibfontconfig:
       configSubstitute: proc(c: Config, p: Pattern, kind: cint): cint {.cdecl, gcsafe.}
       defaultSubstitute: proc(p: Pattern) {.cdecl, gcsafe.}
       fontMatch: proc(c: Config, p: Pattern, res: ptr cint): Pattern {.cdecl, gcsafe.}
-      patternGetString: proc(p: Pattern, obj: cstring, n: cint, s: var cstring): cint {.cdecl, gcsafe.}
-      patternGetInteger: proc(p: Pattern, obj: cstring, n: cint, s: var cint): cint {.cdecl, gcsafe.}
+      patternGetString: proc(p: Pattern, obj: cstring, n: cint,
+        s: var cstring):cint {.cdecl, gcsafe.}
+      patternGetInteger: proc(p: Pattern, obj: cstring, n: cint,
+        s: var cint): cint {.cdecl, gcsafe.}
       patternDestroy: proc(p: Pattern) {.cdecl, gcsafe.}
       configAppFontAddDir: proc(c: Config, d: cstring): cint {.cdecl, gcsafe.}
 

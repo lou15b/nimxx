@@ -38,7 +38,9 @@ proc `items=`*(b: PopupButton, items: openarray[string]) =
         b.sendAction(Event(kind: etUnknown))
         b.setNeedsDisplay()
 
-proc newPopupButton*(parent: View = nil, position: Point = newPoint(0, 0), size: Size = newSize(100, 20), items: openarray[string]=[], selectedIndex: int=0): PopupButton =
+proc newPopupButton*(parent: View = nil, position: Point = newPoint(0, 0),
+    size: Size = newSize(100, 20), items: openarray[string]=[],
+    selectedIndex: int=0): PopupButton =
   result = newPopupButton(newRect(position.x, position.y, size.width, size.height))
   result.mSelectedIndex = selectedIndex
   result.items = items
@@ -81,7 +83,8 @@ void compose() {
     uFillColorEnd);
   drawShape(sdAnd(fill, sdRect(buttonRect)), buttonColor);
 
-  drawShape(sdRegularPolygon(vec2(buttonRect.x + buttonRect.z / 2.0, buttonRect.y + buttonRect.w / 2.0 - 1.0), 4.0, 3, PI/2.0), vec4(1.0));
+  drawShape(sdRegularPolygon(vec2(buttonRect.x + buttonRect.z / 2.0,
+    buttonRect.y + buttonRect.w / 2.0 - 1.0), 4.0, 3, PI/2.0), vec4(1.0));
 }
 """
 
@@ -93,7 +96,8 @@ method draw(b: PopupButton, r: Rect) =
   if b.mSelectedIndex >= 0 and b.mSelectedIndex < b.mItems.len:
     c.fillColor = blackColor()
     let font = systemFont()
-    c.drawText(font, newPoint(4, b.bounds.y + (b.bounds.height - font.height) / 2), b.mItems[b.mSelectedIndex].title)
+    c.drawText(font, newPoint(4, b.bounds.y + (b.bounds.height - font.height) / 2),
+      b.mItems[b.mSelectedIndex].title)
 
 method onTouchEv(b: PopupButton, e: var Event): bool =
   if b.mItems.len > 0:
@@ -102,5 +106,6 @@ method onTouchEv(b: PopupButton, e: var Event): bool =
       var menu : MenuItem
       menu.new()
       menu.items = b.mItems
-      menu.popupAtPoint(b, newPoint(0, -b.mSelectedIndex.Coord * 20.0), newSize(b.bounds.size.width, 20.0))
+      menu.popupAtPoint(b, newPoint(0, -b.mSelectedIndex.Coord * 20.0),
+        newSize(b.bounds.size.width, 20.0))
     else: discard

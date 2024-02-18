@@ -64,15 +64,18 @@ proc centerPoint*(r: Rect) : Point =
 
 const zeroRect* = newRect(zeroPoint, zeroSize)
 
-proc inset*(r: Rect, dx, dy: Coord): Rect = newRect(r.x + dx, r.y + dy, r.width - dx * 2, r.height - dy * 2)
+proc inset*(r: Rect, dx, dy: Coord): Rect =
+  newRect(r.x + dx, r.y + dy, r.width - dx * 2, r.height - dy * 2)
 proc inset*(r: Rect, d: Coord): Rect = inset(r, d, d)
 
 proc newColor*(r, g, b: ColorComponent, a: ColorComponent = 1.0): Color =
   (r: r, g: g, b: b, a: a)
 
-template newColorB*(r, g, b: int, a: int = 255): Color = newColor(r / 255, g / 255, b / 255, a / 255)
+template newColorB*(r, g, b: int, a: int = 255): Color =
+  newColor(r / 255, g / 255, b / 255, a / 255)
 
-proc newGrayColor*(g: ColorComponent, a: ColorComponent = 1.0): Color = newColor(g, g, g, a)
+proc newGrayColor*(g: ColorComponent, a: ColorComponent = 1.0): Color =
+  newColor(g, g, g, a)
 
 proc whiteColor*(): Color = newGrayColor(1)
 proc blackColor*(): Color = newGrayColor(0)
@@ -150,7 +153,8 @@ proc centerInRect*(s: Size, r: Rect): Point =
 
 proc centerInRect*(centerThis: Rect, inThis: Rect): Rect =
   # Returns `centerThis` centered in `inThis`
-  # The result may be outside of rect `inThis`, if `centerInThis` is bigger than size of `inThis`.
+  # The result may be outside of rect `inThis`, if `centerInThis` is
+  # bigger than size of `inThis`.
   result.size = centerThis.size
   result.origin = centerInRect(centerThis.size, inThis)
 

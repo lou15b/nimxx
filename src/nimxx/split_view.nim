@@ -59,8 +59,10 @@ proc rebuildConstraints(v: SplitView) =
       v.constraints.add(v.layout.vars.top == v.subviews[0].layout.vars.top)
       v.constraints.add(v.layout.vars.bottom == v.subviews[^1].layout.vars.bottom)
       for i in 1 ..< numViews:
-        v.constraints.add(v.subviews[i - 1].layout.vars.bottom == v.separatorPositions[i - 1] + v.layout.vars.top)
-        v.constraints.add(v.subviews[i].layout.vars.top == v.subviews[i - 1].layout.vars.bottom)
+        v.constraints.add(
+          v.subviews[i - 1].layout.vars.bottom == v.separatorPositions[i - 1] + v.layout.vars.top)
+        v.constraints.add(
+          v.subviews[i].layout.vars.top == v.subviews[i - 1].layout.vars.bottom)
 
       # Horizontal constraints
       for s in v.subviews:
@@ -72,8 +74,11 @@ proc rebuildConstraints(v: SplitView) =
       v.constraints.add(v.layout.vars.leading == v.subviews[0].layout.vars.leading)
       v.constraints.add(v.layout.vars.trailing == v.subviews[^1].layout.vars.trailing)
       for i in 1 ..< numViews:
-        v.constraints.add(v.subviews[i - 1].layout.vars.trailing == v.separatorPositions[i - 1] + v.layout.vars.leading)
-        v.constraints.add(v.subviews[i].layout.vars.leading == v.subviews[i - 1].layout.vars.trailing)
+        v.constraints.add(
+          v.subviews[i - 1].layout.vars.trailing ==
+            v.separatorPositions[i - 1] + v.layout.vars.leading)
+        v.constraints.add(
+          v.subviews[i].layout.vars.leading == v.subviews[i - 1].layout.vars.trailing)
 
       # Vertical constraints
       for s in v.subviews:

@@ -27,7 +27,8 @@ let green = newColor(0, 1, 0)
 let blue = newColor(0, 0, 1)
 let yellow = newColor(1, 1, 0)
 
-var testLayoutRegistry {.threadvar.}: seq[tuple[name: string, createProc, testProc: proc(wnd: Window) {.gcsafe.}]]
+var testLayoutRegistry {.threadvar.}:
+  seq[tuple[name: string, createProc, testProc: proc(wnd: Window) {.gcsafe.}]]
 
 template reg(name: string, body: untyped) =
   block:

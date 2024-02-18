@@ -18,7 +18,8 @@ void compose() {
   vec4 strokeColor = newGrayColor(0.78);
 
   if (bounds.z > bounds.w) { // Horizontal
-    float knobPos = clamp(bounds.x + bounds.z * uPosition, knobRadius + 0.5, bounds.x + bounds.z - knobRadius - 0.5);
+    float knobPos = clamp(bounds.x + bounds.z * uPosition, knobRadius + 0.5,
+      bounds.x + bounds.z - knobRadius - 0.5);
 
     float y = bounds.y + (bounds.w - lineWidth) / 2.0;
 
@@ -32,7 +33,8 @@ void compose() {
     drawShape(sdCircle(center, knobRadius - 1.0), newGrayColor(1.0));
   }
   else { // Vertical
-    float knobPos = clamp(bounds.y + bounds.w * uPosition, knobRadius + 0.5, bounds.y + bounds.w - knobRadius - 0.5);
+    float knobPos = clamp(bounds.y + bounds.w * uPosition, knobRadius + 0.5,
+      bounds.y + bounds.w - knobRadius - 0.5);
 
     float x = bounds.x + (bounds.z - lineWidth) / 2.0;
 

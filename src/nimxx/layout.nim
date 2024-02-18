@@ -9,11 +9,13 @@ export layout_vars
 proc isViewDescNodeAux(n: NimNode): bool =
   n.kind == nnkPrefix and $n[0] == "-"
 
-proc identOrSym(n: NimNode): bool = n.kind in {nnkIdent, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice}
+proc identOrSym(n: NimNode): bool =
+  n.kind in {nnkIdent, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice}
 
 proc isViewDescNode(n: NimNode): bool =
   isViewDescNodeAux(n) or
-    (n.kind == nnkInfix and n.len == 4 and n[0].identOrSym and $n[0] == "as" and isViewDescNodeAux(n[1]) and n[2].identOrSym)
+    (n.kind == nnkInfix and n.len == 4 and n[0].identOrSym and $n[0] == "as" and
+      isViewDescNodeAux(n[1]) and n[2].identOrSym)
 
 proc isPropertyNode(n: NimNode): bool =
   n.kind == nnkCall and n.len == 2# and n[0].identOrSym
@@ -26,7 +28,8 @@ proc isConstraintNode(n: NimNode): bool =
     result = op in ["==", ">=", "<="]
 
 proc isDiscardNode(n: NimNode): bool =
-  n.kind == nnkDiscardStmt or (n.kind == nnkStmtList and n.len == 1 and n[0].kind == nnkDiscardStmt)
+  n.kind == nnkDiscardStmt or
+    (n.kind == nnkStmtList and n.len == 1 and n[0].kind == nnkDiscardStmt)
 
 proc getIdFromViewDesc(n: NimNode): NimNode =
   if n.kind == nnkInfix: # - View as v:
@@ -36,7 +39,8 @@ proc getIdFromViewDesc(n: NimNode): NimNode =
   #     result = header[1]
 
 proc getInitializerFromViewDesc(n: NimNode): NimNode =
-  ## Returns initializer node. It is either a type or expression that returns a view
+  ## Returns initializer node. It is either a type or expression that returns
+  ## a view
 
   if n.kind == nnkPrefix: # - Initializer:
     result = n[1]
@@ -53,7 +57,8 @@ proc getBodyFromViewDesc(n: NimNode): NimNode =
   else:
     assert(false, "Invalid node")
 
-proc collectAllViewNodes(body: NimNode, allViews: var seq[NimNode], childParentRelations: var seq[int]) =
+proc collectAllViewNodes(body: NimNode, allViews: var seq[NimNode],
+    childParentRelations: var seq[int]) =
   var parentId = allViews.len - 1
   for c in body:
     if c.isViewDescNode():
@@ -135,7 +140,8 @@ proc layoutAux(rootView: NimNode, body: NimNode): NimNode =
   let numViews = views.len
 
   var initializers = newSeq[NimNode](numViews)
-  for i in 1 ..< numViews: initializers[i] = getInitializerFromViewDesc(views[i])
+  for i in 1 ..< numViews:
+    initializers[i] = getInitializerFromViewDesc(views[i])
 
   var ids = newSeq[NimNode](numViews)
   ids[0] = rootView
@@ -157,7 +163,8 @@ proc layoutAux(rootView: NimNode, body: NimNode): NimNode =
   for i in 1 ..< numViews:
     if initializers[i].identOrSym:
       # Explicit type. Need to create with new(). init() is called later.
-      idDefinitions.add(newIdentDefs(ids[i], newEmptyNode(), newCall("new", initializers[i])))
+      idDefinitions.add(newIdentDefs(ids[i], newEmptyNode(),
+        newCall("new", initializers[i])))
     else:
       idDefinitions.add(newIdentDefs(ids[i], newEmptyNode(), initializers[i]))
   result.add(idDefinitions)
@@ -183,7 +190,8 @@ proc layoutAux(rootView: NimNode, body: NimNode): NimNode =
             result.add(newCall(bindSym"setControlHandlerBlock", ids[i], p[0], p[1]))
         else:
           # It looks like newer nim doesn't require nnkDo to nnkProc conversion,
-          # moreover it there will be a weird compilation error: "overloaded :anonymous leads to ambiguous calls"
+          # moreover if the conversion is called there will be a weird
+          # compilation error: "overloaded :anonymous leads to ambiguous calls"
           # if p[1].kind == nnkDo:
           #     p[1] = convertDoToProc(p[1])
           result.add(newAssignment(newDotExpr(ids[i], p[0]), p[1]))
@@ -203,7 +211,8 @@ proc layoutAux(rootView: NimNode, body: NimNode): NimNode =
         if expression[1].identOrSym:
           subject = expression[1]
 
-        result.add(newCall(bindSym"addConstraintWithStrength", ids[i], transformConstraintNode(expression, subject), strength))
+        result.add(newCall(bindSym"addConstraintWithStrength", ids[i],
+          transformConstraintNode(expression, subject), strength))
       elif p.isDiscardNode():
         discard
       elif p.isViewDescNode():

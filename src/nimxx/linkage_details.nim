@@ -1,6 +1,7 @@
 
 template sdlMain*() =
-  ## Redefines the C main() function on iOS and android so that it is called by SDL
+  ## Redefines the C main() function on iOS and android so that it is
+  ## called by SDL
   when defined(ios) or defined(android):
     when not compileOption("noMain"):
       {.error: "Please run Nim with --noMain flag.".}
@@ -135,7 +136,8 @@ when defined(macosx) or defined(ios):
       result.add parseStmt("passToCAndL(\"-framework " & n[i].strVal & "\")")
 
 when defined(ios):
-  useFrameworks("OpenGLES", "UIKit", "GameController", "CoreMotion", "Metal", "AVFoundation", "CoreBluetooth")
+  useFrameworks("OpenGLES", "UIKit", "GameController", "CoreMotion", "Metal",
+    "AVFoundation", "CoreBluetooth")
   when not defined(simulator):
     when hostCPU == "arm":
       {.passC:"-arch armv7".}
@@ -144,7 +146,8 @@ when defined(ios):
       {.passC:"-arch arm64".}
       {.passL:"-arch arm64".}
 elif defined(macosx):
-  useFrameworks("OpenGL", "AppKit", "AudioUnit", "ForceFeedback", "IOKit", "Carbon", "CoreServices", "ApplicationServices", "Metal")
+  useFrameworks("OpenGL", "AppKit", "AudioUnit", "ForceFeedback", "IOKit",
+    "Carbon", "CoreServices", "ApplicationServices", "Metal")
 
 when defined(macosx) or defined(ios):
   useFrameworks("AudioToolbox", "CoreAudio", "CoreGraphics", "QuartzCore")

@@ -38,7 +38,8 @@ proc pushQualifier*(p: var PropertyVisitor, q: string) =
 proc popQualifier*(p: var PropertyVisitor) =
   p.qualifiers.setLen(p.qualifiers.len - 1)
 
-template visitProperty*(p: PropertyVisitor, propName: string, s: untyped, defFlags: set[PropertyFlag] = { pfEditable, pfAnimatable }) =
+template visitProperty*(p: PropertyVisitor, propName: string, s: untyped,
+    defFlags: set[PropertyFlag] = { pfEditable, pfAnimatable }) =
   if (defFlags * p.flags) != {}:
     when s is enum:
       var sng : SetterAndGetter[EnumValue]
@@ -65,7 +66,8 @@ template visitProperty*(p: PropertyVisitor, propName: string, s: untyped, defFla
     p.setterAndGetter = newVariant(sng)
     p.commit()
 
-template visitProperty*(p: PropertyVisitor, propName: string, s: untyped, onChange: proc() {.gcsafe.} ) {.deprecated.} =
+template visitProperty*(p: PropertyVisitor, propName: string, s: untyped,
+    onChange: proc() {.gcsafe.} ) {.deprecated.} =
   var defFlags = { pfEditable, pfAnimatable }
   if (defFlags * p.flags) != {}:
     when s is enum:

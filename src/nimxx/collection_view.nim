@@ -43,7 +43,8 @@ method getClassName*(v: CollectionView): string =
 
 proc updateLayout*(v: CollectionView)
 
-proc newCollectionView*(r: Rect, itemSize: Size, layoutDirection: LayoutDirection, layoutWidth: int = LayoutWidthAuto): CollectionView =
+proc newCollectionView*(r: Rect, itemSize: Size, layoutDirection: LayoutDirection,
+    layoutWidth: int = LayoutWidthAuto): CollectionView =
   ## CollectionView constructor
   result.new()
   result.layoutDirection = layoutDirection
@@ -61,11 +62,17 @@ proc columnCount*(v: CollectionView): int =
   ## Get horizontal number of items which depends on view settings
   var layoutWidth: int = 0
   if v.layoutDirection == LayoutDirection.LeftToRight:
-    layoutWidth = if v.layoutWidth == 0: int(v.frame.height / (v.itemSize.height + v.offset)) else: v.layoutWidth
+    layoutWidth =
+      if v.layoutWidth == 0:
+        int(v.frame.height / (v.itemSize.height + v.offset))
+      else: v.layoutWidth
     if layoutWidth == 0: layoutWidth = 1
     return ceil(v.numberOfItems() / layoutWidth).int
   else:
-    layoutWidth = if v.layoutWidth == 0: int(v.frame.width / (v.itemSize.width + v.offset)) else: v.layoutWidth
+    layoutWidth =
+      if v.layoutWidth == 0:
+        int(v.frame.width / (v.itemSize.width + v.offset))
+      else: v.layoutWidth
     if layoutWidth == 0: layoutWidth = 1
     return layoutWidth
 
@@ -76,11 +83,17 @@ proc rowCount*(v: CollectionView): int =
   ## Get vertical number of items
   var layoutWidth: int = 0
   if v.layoutDirection == LayoutDirection.TopDown:
-    layoutWidth = if v.layoutWidth == 0: int(v.frame.width / (v.itemSize.width + v.offset)) else: v.layoutWidth
+    layoutWidth =
+      if v.layoutWidth == 0:
+        int(v.frame.width / (v.itemSize.width + v.offset))
+      else: v.layoutWidth
     if layoutWidth == 0: layoutWidth = 1
     return ceil(v.numberOfItems() / layoutWidth).int
   else:
-    layoutWidth = if v.layoutWidth == 0: int(v.frame.height / (v.itemSize.height + v.offset)) else: v.layoutWidth
+    layoutWidth =
+      if v.layoutWidth == 0:
+        int(v.frame.height / (v.itemSize.height + v.offset))
+      else: v.layoutWidth
     if layoutWidth == 0: layoutWidth = 1
     return layoutWidth
 
@@ -100,10 +113,14 @@ proc visibleRangeOfItems(v: CollectionView): RangeCache =
     let visibleRect = v.visibleRectOfItems()
     if v.layoutDirection == LayoutDirection.LeftToRight:
       v.rangeCache.start = int(visibleRect.x / v.itemSize.width) * v.rowCount()
-      v.rangeCache.finish = min(ceil(visibleRect.width / v.itemSize.width + 1).int * v.rowCount() + v.rangeCache.start, v.numberOfItems() - 1)
+      v.rangeCache.finish = min(
+        ceil(visibleRect.width / v.itemSize.width + 1).int * v.rowCount() + v.rangeCache.start,
+        v.numberOfItems() - 1)
     else:
       v.rangeCache.start = int(visibleRect.y / v.itemSize.height) * v.columnCount()
-      v.rangeCache.finish = min(ceil(visibleRect.height / v.itemSize.height + 1).int * v.columnCount() + v.rangeCache.start, v.numberOfItems() - 1)
+      v.rangeCache.finish = min(
+        ceil(visibleRect.height / v.itemSize.height + 1).int * v.columnCount() + v.rangeCache.start,
+        v.numberOfItems() - 1)
 
   return v.rangeCache
 
@@ -128,11 +145,14 @@ proc pushToCollection(v: CollectionView, s: View) =
 
 proc reloadData(v: CollectionView) =
   if v.numberOfItems.isNil() or v.viewForItem.isNil():
-    raise newException(Exception, "`numberOfItems` or `viewForItem` callback[s] are not set for CollectionView")
+    raise newException(Exception,
+      "`numberOfItems` or `viewForItem` callback[s] are not set for CollectionView")
 
   let oldCache = v.rangeCache
   let rangeCache = v.visibleRangeOfItems()
-  if oldCache.start == rangeCache.start and oldCache.finish == rangeCache.finish and (not oldCache.dirty):
+  if oldCache.start == rangeCache.start and
+      oldCache.finish == rangeCache.finish and
+      (not oldCache.dirty):
     return
   else:
     while v.subviews.len() > 0:
@@ -148,15 +168,23 @@ proc update(v: CollectionView)=
   let r = v.visibleRectOfItems()
   let rangeCache = v.visibleRangeOfItems()
   for i in rangeCache.start .. rangeCache.finish:
-    let posX = if v.layoutDirection == LayoutDirection.LeftToRight:
-            -(r.x.int mod v.itemSize.width.int).Coord + ((i - v.rangeCache.start) div v.rowCount()).Coord * (v.itemSize.width + v.offset) + v.offset
-          else:
-            ((i - rangeCache.start) mod v.columnCount()).Coord * (v.itemSize.width + v.offset) + v.offset
+    let posX =
+      if v.layoutDirection == LayoutDirection.LeftToRight:
+        -(r.x.int mod v.itemSize.width.int).Coord +
+          ((i - v.rangeCache.start) div v.rowCount()).Coord *
+            (v.itemSize.width + v.offset) +
+          v.offset
+      else:
+        ((i - rangeCache.start) mod v.columnCount()).Coord * (v.itemSize.width + v.offset) +
+          v.offset
 
-    let posY = if v.layoutDirection == LayoutDirection.LeftToRight:
-            ((i - rangeCache.start) mod v.rowCount()).Coord * (v.itemSize.height + v.offset) + v.offset
-          else:
-            -(r.y.int mod v.itemSize.height.int).Coord + ((i - v.rangeCache.start) div v.columnCount()).Coord * (v.itemSize.height + v.offset) + v.offset
+    let posY =
+      if v.layoutDirection == LayoutDirection.LeftToRight:
+        ((i - rangeCache.start) mod v.rowCount()).Coord * (v.itemSize.height + v.offset) + v.offset
+      else:
+        -(r.y.int mod v.itemSize.height.int).Coord +
+          ((i - v.rangeCache.start) div v.columnCount()).Coord * (v.itemSize.height + v.offset) +
+        v.offset
     v.subviews[i - rangeCache.start].setFrameOrigin(newPoint(posX, posY))
 
   v.setNeedsDisplay()
@@ -175,15 +203,27 @@ method init*(v: CollectionView, r: Rect) =
 
 method onTapDown(ls: CollectionScrollListener, e : var Event) =
   ls.p = newPoint(
-    if ls.v.layoutDirection == LayoutDirection.LeftToRight: ls.v.scrollOffset else: 0,
-    if ls.v.layoutDirection == LayoutDirection.TopDown: ls.v.scrollOffset else: 0
+    if ls.v.layoutDirection == LayoutDirection.LeftToRight:
+      ls.v.scrollOffset
+    else: 0,
+    if ls.v.layoutDirection == LayoutDirection.TopDown:
+      ls.v.scrollOffset
+    else: 0
   )
 
 method onScrollProgress(ls: CollectionScrollListener, dx, dy : float32, e : var Event) =
   if ls.v.layoutDirection == LayoutDirection.LeftToRight:
-    ls.v.scrollOffset = min(max(0, ls.p.x - dx), if ls.v.widthFull() - ls.v.frame.width >= 0: ls.v.widthFull() - ls.v.frame.width else: 0)
+    ls.v.scrollOffset = min(
+      max(0, ls.p.x - dx),
+      if ls.v.widthFull() - ls.v.frame.width >= 0:
+        ls.v.widthFull() - ls.v.frame.width
+      else: 0)
   else:
-    ls.v.scrollOffset = min(max(0, ls.p.y - dy), if ls.v.heightFull() - ls.v.frame.height >= 0: ls.v.heightFull() - ls.v.frame.height else: 0)
+    ls.v.scrollOffset = min(
+      max(0, ls.p.y - dy),
+      if ls.v.heightFull() - ls.v.frame.height >= 0:
+        ls.v.heightFull() - ls.v.frame.height
+      else: 0)
   ls.v.update()
 
 method onTapUp(ls: CollectionScrollListener, dx, dy : float32, e : var Event) =
@@ -207,7 +247,8 @@ CollectionView.properties:
   layoutWidth
   itemSize
 
-const collectionCreator = proc(): RootRef = newCollectionView(zeroRect, zeroSize, LeftToRight)
+const collectionCreator =
+  proc(): RootRef = newCollectionView(zeroRect, zeroSize, LeftToRight)
 registerClass(CollectionView, collectionCreator)
 genVisitorCodeForView(CollectionView)
 genSerializeCodeForView(CollectionView)

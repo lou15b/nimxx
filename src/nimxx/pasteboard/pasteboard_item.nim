@@ -10,4 +10,5 @@ proc newPasteboardItem*(kind, data: string): PasteboardItem =
   result.kind = kind
   result.data = data
 
-proc newPasteboardItem*(s: string): PasteboardItem = newPasteboardItem(PboardKindString, s)
+proc newPasteboardItem*(s: string): PasteboardItem =
+  newPasteboardItem(PboardKindString, s)

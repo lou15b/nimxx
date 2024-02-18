@@ -32,7 +32,8 @@ method init*(i: InspectorPanel, r: Rect) =
   title.text = "Properties"
   i.addSubview(title)
   i.autoresizingMask = { afFlexibleMaxX }
-  i.inspectorView = InspectorView.new(newRect(0, i.titleHeight, r.width, r.height - i.titleHeight))
+  i.inspectorView =
+    InspectorView.new(newRect(0, i.titleHeight, r.width, r.height - i.titleHeight))
   i.inspectorView.autoresizingMask = {afFlexibleWidth, afFlexibleMaxY}
   i.inspectorView.onPropertyChanged = proc(name: string) {.gcsafe.} =
     if not i.mOnPropertyChanged.isNil:

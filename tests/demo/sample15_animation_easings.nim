@@ -1,6 +1,7 @@
 import std/strutils
 import ./sample_registry
-import nimxx / [ view, context, animation, window, button, progress_indicator, text_field, font, types ]
+import nimxx / [ view, context, animation, window, button, progress_indicator,
+          text_field, font, types ]
 import nimxx/editor/bezier_view
 
 
@@ -56,7 +57,8 @@ method init*(v: AnimationEasing, r: Rect) =
 
   discard newLabel(v, newPoint(10, 20), newSize(10, 20), "bezier(")
 
-  discard newLabel(v, newPoint(10, 50), newSize(500, 50), "To drag first point use left mouse button, second - right")
+  discard newLabel(v, newPoint(10, 50), newSize(500, 50),
+    "To drag first point use left mouse button, second - right")
 
   for i in 0 .. 3:
     var tf1 = newTextField(newRect(70 * (i + 1).float, 20, 65, 20))
@@ -75,7 +77,8 @@ method init*(v: AnimationEasing, r: Rect) =
   startStopButton.title = "Go"
   startStopButton.onAction do():
 
-    v.animationCurved.timingFunction = bezierTimingFunction(bezierWp[0], bezierWp[1], bezierWp[2], bezierWp[3])
+    v.animationCurved.timingFunction =
+      bezierTimingFunction(bezierWp[0], bezierWp[1], bezierWp[2], bezierWp[3])
     v.animationLinear.timingFunction = linear
 
     v.window.addAnimation(v.animationLinear)
@@ -118,8 +121,10 @@ method draw(v: AnimationEasing, r: Rect) =
 
   c.fillColor = blackColor()
   c.strokeWidth = 1
-  c.drawLine(newPoint(offsetX, v.progress.frame.y + 30.0), newPoint(offsetX, v.progress.frame.y + 140.0))
-  c.drawLine(newPoint(600, v.progress.frame.y + 30.0), newPoint(600, v.progress.frame.y + 140.0))
+  c.drawLine(newPoint(offsetX, v.progress.frame.y + 30.0),
+    newPoint(offsetX, v.progress.frame.y + 140.0))
+  c.drawLine(newPoint(600, v.progress.frame.y + 30.0),
+    newPoint(600, v.progress.frame.y + 140.0))
 
   c.drawText(font, centerInRect(sizeOfString(font, "curved"), cr), "curved")
   c.drawText(font, centerInRect(sizeOfString(font, "linear"), lr), "linear")

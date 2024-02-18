@@ -2,7 +2,8 @@ import std/unicode
 import ../font, ../composition, ../context, ../types
 import ../opengl_etc
 
-# The value in this global (bool) is retrieved and set atomically, so doesn't need a lock
+# The value in this global (bool) is retrieved and set atomically, so it doesn't
+# need a lock
 var textSubpixelDrawing = true
 proc enableTextSubpixelDrawing*(state: bool) =
   textSubpixelDrawing = state
@@ -36,7 +37,8 @@ float thresholdFunc(float glyphScale)
   float baseDev = 0.065;
   float devScaleMin = 0.15;
   float devScaleMax = 0.3;
-  return base - ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) / (devScaleMax - devScaleMin) * -baseDev + baseDev);
+  return base - ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) /
+    (devScaleMax - devScaleMin) * -baseDev + baseDev);
 }
 
 float spreadFunc(float glyphScale)
@@ -147,7 +149,8 @@ float thresholdFunc(float glyphScale)
   float baseDev = 0.065;
   float devScaleMin = 0.15;
   float devScaleMax = 0.3;
-  return base - ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) / (devScaleMax - devScaleMin) * -baseDev + baseDev);
+  return base - ((clamp(glyphScale, devScaleMin, devScaleMax) - devScaleMin) /
+    (devScaleMax - devScaleMin) * -baseDev + baseDev);
 }
 
 float spreadFunc(float glyphScale)
@@ -207,7 +210,8 @@ proc drawTextBase*(c: GraphicsContext, font: Font, pt: var Point, text: string) 
 
   template flush() =
     const componentCount = 4
-    copyDataToGLBuffer(GL_ARRAY_BUFFER, c.vertexes, componentCount * n * 4, GL_DYNAMIC_DRAW)
+    copyDataToGLBuffer(GL_ARRAY_BUFFER, c.vertexes, componentCount * n * 4,
+      GL_DYNAMIC_DRAW)
     vertexGLAttribPointer(saPosition.GLuint, componentCount, cGL_FLOAT, false, 0, 0)
     drawGLElements(GL_TRIANGLES, n * 6, GL_UNSIGNED_SHORT)
 
@@ -245,7 +249,8 @@ proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
   let preScale = 1.0 / 320.0 # magic constant...
 
   if subpixelDraw:
-    if getGLParami(GL_BLEND_SRC_ALPHA) != GL_SRC_ALPHA.GLint or getGLParami(GL_BLEND_DST_ALPHA) != GL_ONE_MINUS_SRC_ALPHA.GLint:
+    if getGLParami(GL_BLEND_SRC_ALPHA) != GL_SRC_ALPHA.GLint or
+        getGLParami(GL_BLEND_DST_ALPHA) != GL_ONE_MINUS_SRC_ALPHA.GLint:
       subpixelDraw = false
 
   if subpixelDraw:
@@ -270,7 +275,8 @@ proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
   c.drawTextBase(font, pt, text)
 
   if subpixelDraw:
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
+      GL_ONE_MINUS_SRC_ALPHA)
 
 proc drawText*(c: GraphicsContext, font: Font, pt: Point, text: string) {.gcsafe.}=
   var p = pt

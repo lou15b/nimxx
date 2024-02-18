@@ -1,7 +1,8 @@
 #!/usr/local/bin/nim c -r --threads:on
 import ./ [ sample_registry, autotest_runner ]
 
-import nimxx / [ view, scroll_view, table_view, text_field, autotest, window, linear_layout ]
+import nimxx / [ view, scroll_view, table_view, text_field, autotest, window,
+                linear_layout ]
 import std / [ sequtils, intsets ]
 import pkg/malebolgia/lockers
 
@@ -35,7 +36,8 @@ proc startApplication() =
 
   mainWindow.title = "NimX Sample"
 
-  var currentView = View.new(newRect(0, 0, mainWindow.bounds.width - 100, mainWindow.bounds.height))
+  var currentView = View.new(newRect(0, 0, mainWindow.bounds.width - 100,
+    mainWindow.bounds.height))
 
   let splitView = newHorizontalLayout(mainWindow.bounds)
   splitView.resizingMask = "wh"

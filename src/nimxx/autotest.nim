@@ -68,16 +68,19 @@ proc collectAutotestSteps(result, body: NimNode) =
     if n.kind == nnkStmtList:
       collectAutotestSteps(result, n)
     else:
-      let procDef = newProc(body = newStmtList().add(n), procType = nnkLambda)
+      let procDef =
+        newProc(body = newStmtList().add(n), procType = nnkLambda)
 
-      let step = newCall(bindSym"makeStep", procDef, toStrLit(n), newLit(n.lineinfo))
+      let step =
+        newCall(bindSym"makeStep", procDef, toStrLit(n), newLit(n.lineinfo))
       result.add(step)
 
 proc testSuiteDefinitionWithNameAndBody(name, body: NimNode): NimNode =
   result = newNimNode(nnkBracket)
   collectAutotestSteps(result, body)
   return newNimNode(nnkLetSection).add(
-    newNimNode(nnkIdentDefs).add(name, bindSym"UITestSuite", newCall(bindSym"newTestSuite", newLit($name), result)))
+    newNimNode(nnkIdentDefs).add(name, bindSym"UITestSuite",
+      newCall(bindSym"newTestSuite", newLit($name), result)))
 
 macro uiTest*(name: untyped, body: typed): untyped =
   result = testSuiteDefinitionWithNameAndBody(name, body)
@@ -192,7 +195,8 @@ proc startTest*(runner: TestRunner, t: UITestSuite, onComplete: proc() {.gcsafe.
 
   var tim : Timer
   tim = setInterval(0.5) do():
-    info t.steps[runner.context.curStep].lineinfo, ": RUNNING ", t.steps[runner.context.curStep].astrepr
+    info t.steps[runner.context.curStep].lineinfo, ": RUNNING ",
+      t.steps[runner.context.curStep].astrepr
     t.steps[runner.context.curStep].code()
     inc runner.context.curStep
     if runner.context.curStep == t.steps.len:

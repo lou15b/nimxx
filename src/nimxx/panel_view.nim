@@ -17,7 +17,11 @@ template titleHeight*(v: PanelView): Coord = Coord(27)
 
 proc `collapsed=`*(v: PanelView, f: bool) =
   v.mCollapsed = f
-  v.setFrameSize(newSize(v.frame.size.width, if v.mCollapsed: v.titleHeight else: v.titleHeight + v.contentHeight))
+  v.setFrameSize(newSize(v.frame.size.width,
+    if v.mCollapsed:
+      v.titleHeight
+    else:
+      v.titleHeight + v.contentHeight))
   v.setNeedsDisplay()
 
 template collapsed*(v: PanelView): bool = v.mCollapsed
@@ -41,7 +45,8 @@ method init*(v: PanelView, r: Rect) =
   # Enable collapsibility
   v.addGestureDetector(newTapGestureDetector(proc(tapPoint: Point) =
     let innerPoint = tapPoint - v.frame.origin
-    if innerPoint.x > 0 and innerPoint.x < v.titleHeight and innerPoint.y > 0 and innerPoint.y < v.titleHeight:
+    if innerPoint.x > 0 and innerPoint.x < v.titleHeight and innerPoint.y > 0 and
+        innerPoint.y < v.titleHeight:
       if v.collapsible:
         v.collapsed = not v.collapsed
   ))

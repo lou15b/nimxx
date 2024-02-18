@@ -33,7 +33,8 @@ proc getClipboardData(uFormat: UINT):Handle {.user32, importc: "GetClipboardData
 #   _In_     UINT   uFormat,
 #   _In_opt_ HANDLE hMem
 # );
-proc setClipboardData(uFormat: UINT, hMem: Handle = 0): Handle {.user32, importc: "SetClipboardData".}
+proc setClipboardData(uFormat: UINT, hMem: Handle = 0): Handle {.user32,
+  importc: "SetClipboardData".}
 
 # BOOL WINAPI EmptyClipboard(void);
 proc emptyClipboard(): WINBOOL {.user32, importc: "EmptyClipboard".}
@@ -41,25 +42,29 @@ proc emptyClipboard(): WINBOOL {.user32, importc: "EmptyClipboard".}
 # BOOL WINAPI IsClipboardFormatAvailable(
 #   _In_ UINT format
 # );
-proc isClipboardFormatAvailable(format: UINT): WINBOOL {.user32, importc: "IsClipboardFormatAvailable".}
+proc isClipboardFormatAvailable(format: UINT): WINBOOL {.user32,
+  importc: "IsClipboardFormatAvailable".}
 
 # UINT WINAPI RegisterClipboardFormat(
 #   _In_ LPCTSTR lpszFormat
 # );
-proc registerClipboardFormat(lpszFormat: pointer): UINT {.user32, importc: "RegisterClipboardFormatW".}
+proc registerClipboardFormat(lpszFormat: pointer): UINT {.user32,
+  importc: "RegisterClipboardFormatW".}
 
 # int WINAPI GetClipboardFormatName(
 #   _In_  UINT   format,
 #   _Out_ LPTSTR lpszFormatName,
 #   _In_  int    cchMaxCount
 # );
-proc getClipboardFormatName(uFormat: UINT, lpszFormatName: pointer, cchMaxCount: int32): int32 {.user32, importc: "GetClipboardFormatNameW".}
+proc getClipboardFormatName(uFormat: UINT, lpszFormatName: pointer,
+  cchMaxCount: int32): int32 {.user32, importc: "GetClipboardFormatNameW".}
 
 # HGLOBAL WINAPI GlobalAlloc(
 #   _In_ UINT   uFlags,
 #   _In_ SIZE_T dwBytes
 # );
-proc globalAlloc(uFlags: UINT, dwBytes: csize_t): Handle {.kernel32, importc: "GlobalAlloc".}
+proc globalAlloc(uFlags: UINT, dwBytes: csize_t): Handle {.kernel32,
+  importc: "GlobalAlloc".}
 
 # HGLOBAL WINAPI GlobalFree(
 #   _In_ HGLOBAL hMem
