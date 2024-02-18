@@ -441,6 +441,14 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
           tw.setNeedsDisplay()
     of KeymapChanged:
       discard # What should we do with it?
+    of ClipboardUpdate:
+      # This event occurs when the clipboard has been updated (for example,
+      # when the user presses ctrl-C), *including* in another window.
+      # Attempting to do anything from here, however, messes up this library's
+      # pasteboard functionality. That includes querying whether the
+      # sdl2 clipboard contains any text by calling hasClipboardText().
+      # So the event is discarded.
+      discard
     of QuitEvent:
       discard     # Used directly, doesn't need conversion
     else:
