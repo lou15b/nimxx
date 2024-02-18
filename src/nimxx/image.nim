@@ -519,7 +519,7 @@ registerAssetLoader(["png", "jpg", "jpeg", "gif", "tif", "tiff", "tga", "pvr", "
 
     loadingQueue.addTask(loadResourceThreaded, cast[pointer](ctx))
   else:
-    openStreamForURL(url) do(s: Stream, err: string):
+    openStreamForUrl(url) do(s: Stream, err: string):
       let i = newSelfContainedImage()
       i.initWithStream(s)
       i.setFilePath(url)

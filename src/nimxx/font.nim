@@ -167,7 +167,7 @@ proc newFontWithFace*(face: string, size: float): Font =
       let path = face & ".ttf"
       let url = "res://" & path
       var s: Stream
-      openStreamForURL(url) do(st: Stream, err: string):
+      openStreamForUrl(url) do(st: Stream, err: string):
         s = st
       if not s.isNil:
         s.close()
