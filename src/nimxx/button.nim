@@ -13,7 +13,6 @@ type ButtonStyle* = enum
   bsRegular
   bsCheckbox
   bsRadiobox
-  bsImage {.deprecated.}
 
 type ButtonBehavior* = enum
   bbMomentaryLight

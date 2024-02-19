@@ -222,10 +222,6 @@ proc removeObserver*(nc: NotificationCenter, ev: string, observerId: ref | SomeO
     if o.len == 0:
       nc.observers.del(ev)
 
-# use removeObserver*(nc: NotificationCenter, ev: string, observerId: ref | SomeOrdinal)
-proc removeObserver*(nc: NotificationCenter,ev: string) {.deprecated.} =
-  nc.observers.del(ev)
-
 proc removeObserverInOldDeprecatedWay(nc: NotificationCenter, obsId: ObserverId) =
   var toRemoveKeys = newSeq[string]()
 

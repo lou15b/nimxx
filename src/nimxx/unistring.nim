@@ -10,9 +10,6 @@ proc uniInsert*(dest: var string, src: string, position: int) =
     inc charPos
   dest.insert(src, bytePos)
 
-proc insert*(dest: var string, position: int, src: string) {.deprecated.} =
-  dest.uniInsert(src, position)
-
 proc uniDelete*(subj: var string, start, stop: int) =
   var charPos = 0
   var byteStartPos = 0

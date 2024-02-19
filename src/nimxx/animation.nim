@@ -290,16 +290,6 @@ proc animateValue*[T](fromValue, toValue: T, cb: proc(value: T)): AnimationFunct
   result = proc(progress: float) =
     cb((toValue - fromValue) * progress)
 
-proc chainOnAnimate*(a: Animation, oa: proc(p: float) {.gcsafe.}) {.deprecated.} =
-  ## use addOnAnimate instead of this proc
-  if a.onAnimate.isNil:
-    a.onAnimate = oa
-  else:
-    let oldProc = a.onAnimate
-    a.onAnimate = proc(p: float) =
-      oldProc(p)
-      oa(p)
-
 proc addOnAnimate*(a: Animation, oa: proc(p: float) {.gcsafe.}): Animation =
   result.new()
   result.numberOfLoops = a.numberOfLoops
@@ -475,14 +465,6 @@ method onProgress*(m: CompositAnimation, p: float) {.gcsafe.} =
 
 
 ## --------------------------- META ANIMATION ------------------------------ ##
-proc newMetaAnimation*(anims: varargs[Animation]): MetaAnimation {.deprecated.} =
-  result.new()
-  result.numberOfLoops = -1
-  result.loopPattern = lpStartToEnd
-  result.animations = @anims
-  result.curIndex = -1
-  result.loopDuration = 1.0
-
 proc nextIndex(a: MetaAnimation) =
   if a.loopPattern == lpStartToEnd:
     if a.currentLoopPattern != lpStartToEnd:

@@ -8,8 +8,6 @@ type
     bStencil: bool
     skipClear: bool
 
-  GlFrameState* {.deprecated.} = RTIContext
-
   ImageRenderTarget* = ref ImageRenderTargetObj
   ImageRenderTargetObj = object
     framebuffer*: FramebufferGLRef

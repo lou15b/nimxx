@@ -175,13 +175,6 @@ proc newFontWithFace*(face: string, size: float): Font =
 
 proc systemFontSize*(): float = 16
 
-proc setGlyphMargin*(f: Font, margin: int32) {.deprecated.} =
-  if margin == f.glyphMargin:
-    return
-
-  f.glyphMargin = margin
-  f.impl = cachedImplForFont(f.filePath, f.size)
-
 proc systemFontOfSize*(size: float): Font =
   for f in preferredFonts:
     result = newFontWithFace(f, size)
@@ -360,36 +353,3 @@ proc sizeOfString*(f: Font, s: string): Size =
       pt.x += f.horizontalSpacing
     pt.x += f.getAdvanceForRune(ch)
   result = newSize(pt.x, f.height)
-
-proc getClosestCursorPositionToPointInString*(f: Font, s: string, p: Point,
-    position: var int, offset: var Coord) {.deprecated.} =
-  var pt = zeroPoint
-  var closestPoint = zeroPoint
-  var quad: array[16, Coord]
-  var i = 0
-  var tex: TextureGLRef
-  for ch in s.runes:
-    f.getQuadDataForRune(ch, quad, tex, pt)
-    if (f.isHorizontal and (abs(p.x - pt.x) < abs(p.x - closestPoint.x))) or
-        (not f.isHorizontal and (abs(p.y - pt.y) < abs(p.y - closestPoint.y))):
-      closestPoint = pt
-      position = i + 1
-    pt.x += f.horizontalSpacing
-    inc i
-  offset = if f.isHorizontal: closestPoint.x else: closestPoint.y
-  if offset == 0: position = 0
-
-proc cursorOffsetForPositionInString*(f: Font, s: string, position: int): Coord {.deprecated.} =
-  var pt = zeroPoint
-  var quad: array[16, Coord]
-  var i = 0
-  var tex: TextureGLRef
-
-  for ch in s.runes:
-    if i == position:
-      break
-    inc i
-
-    f.getQuadDataForRune(ch, quad, tex, pt)
-    pt.x += f.horizontalSpacing
-  result = if f.isHorizontal: pt.x else: pt.y

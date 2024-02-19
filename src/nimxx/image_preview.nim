@@ -20,7 +20,6 @@ const minSize = 128.0
 type ImagePreview* = ref object of PanelView
   image*: Image
   title*: string
-  contentView* {.deprecated.}: View
   imgScale*: float
   imageRect*: Rect
 

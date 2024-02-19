@@ -9,8 +9,6 @@ type MenuItem* = ref object of RootObj
   # customView*: View
   action*: proc() {.gcsafe.}
 
-type Menu* {.deprecated.}  = MenuItem
-
 proc newMenuItem*(title: string): MenuItem =
   result.new()
   result.title = title

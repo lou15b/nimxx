@@ -27,7 +27,6 @@ type
 
     name*: string
     commit*: proc() {.gcsafe.}
-    onChangeCallback* {.deprecated.}: proc()
 
 proc clear*(p: var PropertyVisitor) =
   p.setterAndGetter = newVariant()
@@ -64,34 +63,4 @@ template visitProperty*(p: PropertyVisitor, propName: string, s: untyped,
     if p.requireName:
       p.name = propName
     p.setterAndGetter = newVariant(sng)
-    p.commit()
-
-template visitProperty*(p: PropertyVisitor, propName: string, s: untyped,
-    onChange: proc() {.gcsafe.} ) {.deprecated.} =
-  var defFlags = { pfEditable, pfAnimatable }
-  if (defFlags * p.flags) != {}:
-    when s is enum:
-      var sng : SetterAndGetter[EnumValue]
-    else:
-      var sng : SetterAndGetter[type(s)]
-
-    if p.requireSetter:
-      when s is enum:
-        sng.setter = proc(v: EnumValue) {.gcsafe.} =
-          s = type(s)(v.curValue)
-      else:
-        sng.setter = proc(v: type(s)) {.gcsafe.} = s = v
-    if p.requireGetter:
-      when s is enum:
-        sng.getter = proc(): EnumValue =
-          result.possibleValues = initTable[string, int]()
-          for i in low(type(s)) .. high(type(s)):
-            result.possibleValues[$i] = ord(i)
-          result.curValue = ord(s)
-      else:
-        sng.getter = proc(): type(s) = s
-    if p.requireName:
-      p.name = propName
-    p.setterAndGetter = newVariant(sng)
-
     p.commit()

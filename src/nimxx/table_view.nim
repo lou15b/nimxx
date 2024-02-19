@@ -8,11 +8,6 @@ import pkg/kiwi
 
 export view, table_view_cell
 
-type SelectionKind* {.pure, deprecated.} = enum
-  Nothing = 0
-  Row
-  Column
-
 type
   SelectionMode* = enum
     smNone
