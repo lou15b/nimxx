@@ -303,17 +303,16 @@ method onTouchEv*(t: TextField, e: var Event): bool =
     if t.selectable:
       if not t.isFirstResponder():
         result = t.makeFirstResponder()
-        t.isSelecting = false
       else:
         result = true
-        t.isSelecting = true
-        if t.mText.isNil:
-          t.cursorPos = 0
-          t.cursorOffset = 0
-        else:
-          t.mText.getClosestCursorPositionToPoint(pt, t.cursorPos, t.cursorOffset)
-          t.textSelection = t.cursorPos .. t.cursorPos
-        t.bumpCursorVisibility()
+      t.isSelecting = true
+      if t.mText.isNil:
+        t.cursorPos = 0
+        t.cursorOffset = 0
+      else:
+        t.mText.getClosestCursorPositionToPoint(pt, t.cursorPos, t.cursorOffset)
+        t.textSelection = t.cursorPos .. t.cursorPos
+      t.bumpCursorVisibility()
 
   of bsUp:
     if t.selectable and t.isSelecting:
