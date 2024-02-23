@@ -9,7 +9,7 @@ import ./notification_center
 export types
 export animation_runner, class_registry
 
-const NimxFristResponderChangedInWindow* = "NimxFristResponderChangedInWindow"
+const NimxFirstResponderChangedInWindow* = "NimxFirstResponderChangedInWindow"
 
 type AutoresizingFlag* = enum
   afFlexibleMinX
@@ -37,12 +37,12 @@ type
     constraints: seq[ConstraintWithPrototype]
 
   View* = ref object of RootRef
-    window*: Window
+    window* {.cursor.}: Window
     name*: string
     frame: Rect           ## view rect in superview coordinate system
     bounds: Rect          ## view rect in its own coordinate system, starting from 0,0
     subviews*: seq[View]
-    superview*: View
+    superview* {.cursor.}: View
     autoresizingMask*: set[AutoresizingFlag]
     backgroundColor*: Color
     gestureDetectors*: seq[GestureDetector]
@@ -259,7 +259,7 @@ proc makeFirstResponder*(w: Window, responder: View): bool =
   if shouldChange:
     w.firstResponder = r
     r.viewDidBecomeFirstResponder()
-    sharedNotificationCenter().postNotification(NimxFristResponderChangedInWindow,
+    sharedNotificationCenter().postNotification(NimxFirstResponderChangedInWindow,
       newVariant(r))
     result = true
 
