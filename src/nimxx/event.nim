@@ -40,6 +40,13 @@ type Event* = object
   text*: string
   modifiers*: ModifiersSet
 
+proc `=destroy`(e: Event) =
+  `=destroy`(e.text)
+  try:
+    `=destroy`(e.window)
+  except Exception as e:
+    echo "Exception encountered destroying Event window:", e.msg
+
 proc newEvent*(kind: EventType, position: Point = zeroPoint,
     keyCode: VirtualKey = VirtualKey.Unknown, buttonState: ButtonState = bsUnknown,
     pointerId : int = 0, timestamp : uint32 = 0): Event =

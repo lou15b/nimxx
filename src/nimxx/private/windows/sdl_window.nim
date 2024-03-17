@@ -20,8 +20,9 @@ when not x11Platform and not appkitPlatform:
 when defined(nimxAsyncRunloop):
   import std/asyncdispatch
 
+var sdlInitialized = false
+
 proc initSDLIfNeeded() =
-  var sdlInitialized {.global.} = false
   if not sdlInitialized:
     if sdl2.init(INIT_VIDEO) != SdlSuccess:
       error "sdl2.init(INIT_VIDEO): ", getError()
@@ -54,6 +55,14 @@ type SdlWindow* = ref object of Window
   impl: WindowPtr
   sdlGlContext: GlContextPtr
   isFullscreen: bool
+
+proc `=destroy`*(w:  typeof SdlWindow()[]) =
+  try:
+    destroyWindow(w.impl)
+    glDeleteContext(w.sdlGlContext)
+  except Exception as e:
+    echo "Exception encountered destroying SdlWindowObj contents:", e.msg
+  `=destroy`((typeof Window()[])(w))
 
 method getClassName*(v: SdlWindow): string =
   result = "SdlWindow"
@@ -578,7 +587,16 @@ proc runUntilQuit*() =
         drain(timeout = 0)
     nextEvent(evt)
     if evt.kind == QuitEvent:
+      # SDL has detected that its last window has been closed
       break
+  
+  # echo "#### QuitEvent has been detected"
+  withRLockGCsafe(mainAppLock):
+    `=destroy`(mainApp)
+  if sdlInitialized:
+    # echo "#### Asking sdl to quit"
+    quitSubSystem(INIT_VIDEO)
+    sdl2.quit()
 
 template runApplication*(body: typed) =
   sdlMain()

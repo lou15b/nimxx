@@ -34,7 +34,8 @@ proc startApplication() =
     else:
       newWindow(newRect(40, 40, 800, 600))
 
-  mainWindow.title = "NimX Sample"
+  mainWindow.title = "NimXX Sample"
+  mainWindow.name = "NimXX Sample"
 
   var currentView = View.new(newRect(0, 0, mainWindow.bounds.width - 100,
     mainWindow.bounds.height))
@@ -96,3 +97,5 @@ proc startApplication() =
 
 runApplication:
   startApplication()
+
+GC_fullCollect()

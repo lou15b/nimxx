@@ -70,6 +70,47 @@ type
     mAnimationEnabled*: bool
     renderingContext*: GraphicsContext
 
+proc `=destroy`(cp: ConstraintWithPrototype) =
+  # Remove ".addr[]" below and take out of try/except when Constraint
+  # has a destructor
+  try:
+    `=destroy`(cp.proto.addr[])
+    `=destroy`(cp.inst.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying ConstraintWithPrototype contents:", e.msg
+
+proc `=destroy`(x: LayoutInfo) =
+  `=destroy`(x.vars)
+  `=destroy`(x.constraints)
+
+proc `=destroy`*(v: typeof View()[]) =
+  `=destroy`(v.name)
+  `=destroy`(v.subviews)
+  `=destroy`(v.gestureDetectors)
+  `=destroy`(v.touchTarget)
+  `=destroy`(v.layout)
+
+proc `=destroy`*(w: typeof Window()[]) =
+  try:
+    `=destroy`(w.firstResponder)
+  except Exception as e:
+    echo "Exception encountered destroying Window firstResponder:", e.msg
+  `=destroy`(w.animationRunners)
+  `=destroy`(w.mouseOverListeners)
+  try:
+    `=destroy`(w.renderingContext)
+  except Exception as e:
+    echo "Exception encountered destroying Window renderingContext:", e.msg
+  `=destroy`(w.onClose.addr[])
+  try:
+    # Remove ".addr[]" and take out of try block when Solver has a destructor
+    `=destroy`(w.layoutSolver.addr[])
+    `=destroy`(w.mCurrentTouches.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying Window contents:", e.msg
+  `=destroy`((typeof View()[])(w))
+
+
 proc init(i: var LayoutInfo) =
   i.vars.init()
 

@@ -25,6 +25,8 @@ type TestRunnerObj = object
 type TestRunner* = ref TestRunnerObj
 
 proc `=destroy`(x: UITestSuiteStep) =
+  if not isNil(x.code):
+    `=destroy`(x.code.addr[])
   `=destroy`(x.astrepr)
   `=destroy`(x.lineinfo)
 
@@ -33,8 +35,13 @@ proc `=destroy`(x: UITestSuiteObj) =
   `=destroy`(x.steps)
 
 proc `=destroy`(x: TestRunnerObj) =
-  # No destructor call needed for x.context, its fields are numbers
+  # (????) No destructor call needed for x.context, its fields are numbers
   `=destroy`(x.registeredTests)
+  try:
+    GC_fullCollect()
+  except Exception as e:
+    echo "Exception encountered in GC_fullCollect() while  destroying TestRunner object:",
+      e.msg
 
 proc init(context: var TestRunnerContext, curTimeout: float = 0.5, waitTries: int = -1) =
   context.curStep = 0
@@ -84,6 +91,8 @@ proc testSuiteDefinitionWithNameAndBody(name, body: NimNode): NimNode =
 
 macro uiTest*(name: untyped, body: typed): untyped =
   result = testSuiteDefinitionWithNameAndBody(name, body)
+  # echo "Generated code from uiTest macro:"
+  # echo repr(result)
 
 macro registeredUiTest*(name: untyped, body: typed): untyped =
   result = newStmtList()

@@ -37,6 +37,9 @@ type ProgressHandler = object
   progress: float
   callIfCancelled: bool
 
+proc `=destroy`(x: ProgressHandler) =
+  `=destroy`(x.handler.addr[])
+
 type
   Animation* = ref object of RootObj
     startTime*: float
@@ -72,6 +75,25 @@ type
     curIndex*: int
     parallelMode*: bool
     currentLoopPattern: LoopPattern
+
+proc `=destroy`*(x: typeof Animation()[]) =
+  `=destroy`(x.timingFunction.addr[])
+  `=destroy`(x.onAnimate.addr[])
+  `=destroy`(x.tag)
+  `=destroy`(x.loopProgressHandlers)
+  `=destroy`(x.totalProgressHandlers)
+
+proc `=destroy`*(x: typeof ComposeMarker()[]) =
+  `=destroy`(x.onMarkerActive.addr[])
+  `=destroy`(x.animation)
+
+proc `=destroy`*(x: typeof CompositAnimation()[]) =
+  `=destroy`(x.mMarkers)
+  `=destroy`((typeof Animation()[])(x))
+
+proc `=destroy`*(x: typeof MetaAnimation()[]) =
+  `=destroy`(x.animations)
+  `=destroy`((typeof Animation()[])(x))
 
 proc init*(a: Animation) =
   a.numberOfLoops = -1

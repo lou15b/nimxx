@@ -80,6 +80,15 @@ type GraphicsContext* = ref object of RootObj
   sharedBuffer*: BufferGLRef
   vertexes*: array[4 * 4 * 128, Coord]
 
+proc `=destroy`*(gc: typeof GraphicsContext()[]) =
+  try:
+    deleteGLBuffer(gc.quadIndexBuffer)
+    deleteGLBuffer(gc.gridIndexBuffer4x4)
+    deleteGLBuffer(gc.singleQuadBuffer)
+    deleteGLBuffer(gc.singleQuadBuffer)
+  except Exception as e:
+    echo "Exception encountered destroying GraphicsContext contents:", e.msg
+
 proc transformToRef(t: Transform3D): Transform3DRef =
   {.emit: "`result` = `t`;".}
 

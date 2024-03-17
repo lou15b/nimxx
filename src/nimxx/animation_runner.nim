@@ -13,6 +13,11 @@ type AnimationRunner* = ref object
   onAnimationRemoved*: proc() {.gcsafe.}
   paused: bool
 
+proc `=destroy`*(x: typeof AnimationRunner()[]) =
+  `=destroy`(x.animations)
+  `=destroy`(x.onAnimationAdded.addr[])
+  `=destroy`(x.onAnimationRemoved.addr[])
+
 proc newAnimationRunner*(): AnimationRunner = AnimationRunner()
 
 proc pushAnimation*(ar: AnimationRunner, a: Animation) =
