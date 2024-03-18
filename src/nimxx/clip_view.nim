@@ -3,6 +3,9 @@ import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
 type ClipView* = ref object of View
 
+proc `=destroy`*(x: typeof ClipView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 proc newClipView*(r: Rect): ClipView =
   result.new()
   result.init(r)

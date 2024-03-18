@@ -26,6 +26,23 @@ type
     dirtyBoundsOrigin : Point
     itemClick: proc(pos : int) {.gcsafe.}
 
+proc `=destroy`(x: typeof ViewWrapper()[]) =
+  try:
+    `=destroy`(x.v)
+  except Exception as e:
+    echo "Exception encountered destroying ViewWrapper v:", e.msg
+
+proc `=destroy`*(x: typeof HorizontalListView()[]) =
+  `=destroy`(x.adapter)
+  `=destroy`(x.items)
+  `=destroy`(x.cleared)
+  `=destroy`(x.itemClick.addr[])
+  `=destroy`((typeof ClipView()[])(x))
+
+proc `=destroy`(x: typeof ListScrollListener()[]) =
+  `=destroy`(x.view)
+  # `=destroy`((typeof OnScrollListener()[])(x))    # Base type is empty
+
 proc newViewWrapper(view : View, pos: int): ViewWrapper =
   result.new
   result.v = view
