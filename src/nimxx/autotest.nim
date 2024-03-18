@@ -24,17 +24,17 @@ type TestRunnerObj = object
 
 type TestRunner* = ref TestRunnerObj
 
-proc `=destroy`(x: UITestSuiteStep) =
+proc `=destroy`*(x: UITestSuiteStep) =
   if not isNil(x.code):
     `=destroy`(x.code.addr[])
   `=destroy`(x.astrepr)
   `=destroy`(x.lineinfo)
 
-proc `=destroy`(x: UITestSuiteObj) =
+proc `=destroy`*(x: UITestSuiteObj) =
   `=destroy`(x.name)
   `=destroy`(x.steps)
 
-proc `=destroy`(x: TestRunnerObj) =
+proc `=destroy`*(x: TestRunnerObj) =
   # (????) No destructor call needed for x.context, its fields are numbers
   `=destroy`(x.registeredTests)
   try:

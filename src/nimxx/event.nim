@@ -40,7 +40,7 @@ type Event* = object
   text*: string
   modifiers*: ModifiersSet
 
-proc `=destroy`(e: Event) =
+proc `=destroy`*(e: Event) =
   `=destroy`(e.text)
   try:
     `=destroy`(e.window)
