@@ -47,9 +47,15 @@ method filePath*(i: SelfContainedImage): string = i.mFilePath
 const IMAGES = "Images"
 sharedProfiler[IMAGES] = 0
 
-proc `=destroy`(i: SelfContainedImageObj) {.raises: [GLerror].} =
+# ???? Image and FixedTexCoordSpriteImage do not require explicit destructors ????
+proc `=destroy`*(i: SelfContainedImageObj) =
   if i.texture != invalidGLTexture:
-    glDeleteTextures(1, addr i.texture)
+    try:
+      glDeleteTextures(1, addr i.texture)
+    except Exception as e:
+      echo "Exception raised by glDeleteTextures in SelfContainedImageObj destructor: ",
+        e.msg
+
   withRLockGCsafe(sharedProfilerLock):
     try:
       dec sharedProfiler[IMAGES]
@@ -61,6 +67,7 @@ proc newSelfContainedImage(): SelfContainedImage {.inline.} =
     inc sharedProfiler[IMAGES]
   result = SelfContainedImage()
 
+# This type contains the proc to free the contained data, which is called explicitly
 type DecodedImageData = object
   data: pointer
   freeDataProc: proc(b: var DecodedImageData) {.nimcall, gcsafe.}

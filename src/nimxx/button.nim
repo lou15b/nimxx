@@ -36,6 +36,21 @@ type
   Checkbox* = ref object of Button
   Radiobox* = ref object of Button
 
+proc `=destroy`*(x: typeof Button()[]) =
+  `=destroy`(x.title)
+  try:
+    `=destroy`(x.image)
+  except Exception as e:
+    echo "Exception raised by image in Button destructor: ", e.msg
+  `=destroy`((typeof Control()[])(x))
+
+proc `=destroy`*(x: typeof Checkbox()[]) =
+  `=destroy`((typeof Button()[])(x))
+
+proc `=destroy`*(x: typeof Radiobox()[]) =
+  `=destroy`((typeof Button()[])(x))
+
+
 Button.properties:
   title
   style
@@ -343,9 +358,9 @@ const checkBox = proc(): RootRef =
   newCheckbox(zeroRect)
 registerClass(Checkbox, checkBox)
 
-const radiButton = proc(): RootRef =
+const radioButton = proc(): RootRef =
   newRadiobox(zeroRect)
-registerClass(Radiobox, radiButton)
+registerClass(Radiobox, radioButton)
 
 genVisitorCodeForView(Button)
 genVisitorCodeForView(Checkbox)

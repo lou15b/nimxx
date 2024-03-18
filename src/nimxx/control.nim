@@ -6,6 +6,10 @@ type Control* = ref object of View
   actionHandler: proc(e: Event) {.gcsafe.}
   clickable*: bool
 
+proc `=destroy`*(x: typeof Control()[]) =
+  `=destroy`(x.actionHandler.addr[])
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: Control): string =
   result = "Control"
 
