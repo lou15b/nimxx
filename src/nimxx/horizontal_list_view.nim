@@ -41,7 +41,7 @@ proc `=destroy`*(x: typeof HorizontalListView()[]) =
 
 proc `=destroy`(x: typeof ListScrollListener()[]) =
   `=destroy`(x.view)
-  # `=destroy`((typeof OnScrollListener()[])(x))    # Base type is empty
+  `=destroy`((typeof OnScrollListener()[])(x))
 
 proc newViewWrapper(view : View, pos: int): ViewWrapper =
   result.new

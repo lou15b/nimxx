@@ -25,6 +25,33 @@ type
   FixedTexCoordSpriteImage* = ref object of Image
     spriteSheet: Image
 
+proc `=destroy`*(x: typeof Image()[]) =
+  discard    # No contents that need destruction - yet
+
+proc `=destroy`*(x: typeof FixedTexCoordSpriteImage()[]) =
+  `=destroy`(x.spriteSheet)
+  `=destroy`((typeof Image()[])(x))
+
+# This counts the total number of SelfContainedImage objects in the application
+const IMAGES = "Images"
+sharedProfiler[IMAGES] = 0
+
+# ???? Image and FixedTexCoordSpriteImage do not require explicit destructors ????
+proc `=destroy`*(i: SelfContainedImageObj) =
+  if i.texture != invalidGLTexture:
+    try:
+      glDeleteTextures(1, addr i.texture)
+    except Exception as e:
+      echo "Exception raised by glDeleteTextures in SelfContainedImageObj destructor: ",
+        e.msg
+  `=destroy`(i.mFilePath)
+
+  withRLockGCsafe(sharedProfilerLock):
+    try:
+      dec sharedProfiler[IMAGES]
+    except Exception as e:
+      echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
+
 template setupTexParams() =
   when defined(android) or defined(ios):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -42,25 +69,6 @@ method setFilePath*(i: SelfContainedImage, path: string) =
 
 method filePath*(i: Image): string {.base, gcsafe.} = discard
 method filePath*(i: SelfContainedImage): string = i.mFilePath
-
-# This counts the total number of SelfContainedImage objects in the application
-const IMAGES = "Images"
-sharedProfiler[IMAGES] = 0
-
-# ???? Image and FixedTexCoordSpriteImage do not require explicit destructors ????
-proc `=destroy`*(i: SelfContainedImageObj) =
-  if i.texture != invalidGLTexture:
-    try:
-      glDeleteTextures(1, addr i.texture)
-    except Exception as e:
-      echo "Exception raised by glDeleteTextures in SelfContainedImageObj destructor: ",
-        e.msg
-
-  withRLockGCsafe(sharedProfilerLock):
-    try:
-      dec sharedProfiler[IMAGES]
-    except Exception as e:
-      echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
 
 proc newSelfContainedImage(): SelfContainedImage {.inline.} =
   withRLockGCsafe(sharedProfilerLock):

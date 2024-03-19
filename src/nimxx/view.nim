@@ -70,6 +70,12 @@ type
     mAnimationEnabled*: bool
     renderingContext*: GraphicsContext
 
+proc `=destroy`*(x: typeof GestureDetector()[]) =
+  discard    # Type is empty
+
+proc `=destroy`*(x: typeof DragDestinationDelegate()[]) =
+  discard    # Type is empty
+
 proc `=destroy`(cp: ConstraintWithPrototype) =
   # Remove ".addr[]" below and take out of try/except when Constraint
   # has a destructor

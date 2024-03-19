@@ -49,40 +49,49 @@ type
     flingListener* : OnFlingListener
     prev_ev, this_ev: Event
 
+proc `=destroy`*(x: typeof BaseGestureDetector()[]) =
+  `=destroy`((typeof GestureDetector()[])(x))
+
+proc `=destroy`*(x: typeof OnScrollListener()[]) =
+  discard    # Type is empty
+
 proc `=destroy`*(x: typeof BaseScrollListener()[]) =
   `=destroy`(x.tapDownDelegate.addr[])
   `=destroy`(x.scrollProgressDelegate.addr[])
   `=destroy`(x.tapUpDelegate.addr[])
-  # `=destroy`((typeof OnScrollListener()[])(x))    # Base type is empty
+  `=destroy`((typeof OnScrollListener()[])(x))
 
 proc `=destroy`*(x: typeof ScrollDetector()[]) =
   `=destroy`(x.listener)
   `=destroy`(x.pointers)
-  # `=destroy`((typeof BaseGestureDetector()[])(x))    # Base type is empty
+  `=destroy`((typeof BaseGestureDetector()[])(x))
 
 proc `=destroy`*(x: typeof TapGestureDetector()[]) =
   `=destroy`(x.tapListener.addr[])
-  # `=destroy`((typeof BaseGestureDetector()[])(x))    # Base type is empty
+  `=destroy`((typeof BaseGestureDetector()[])(x))
 
 proc `=destroy`*(x: typeof ZoomGestureDetector()[]) =
   `=destroy`(x.pointers)
   `=destroy`(x.listener)
-  # `=destroy`((typeof BaseGestureDetector()[])(x))    # Base type is empty
+  `=destroy`((typeof BaseGestureDetector()[])(x))
 
 proc `=destroy`*(x: typeof RotateGestureDetector()[]) =
   `=destroy`(x.pointers)
   `=destroy`(x.listener)
-  # `=destroy`((typeof BaseGestureDetector()[])(x))    # Base type is empty
+  `=destroy`((typeof BaseGestureDetector()[])(x))
+
+proc `=destroy`*(x: typeof OnFlingListener()[]) =
+  discard    # Type is empty
 
 proc `=destroy`*(x: typeof BaseFlingListener()[]) =
   `=destroy`(x.flingDelegate.addr[])
-  # `=destroy`((typeof OnFlingListener()[])(x))    # Base type is empty
+  `=destroy`((typeof OnFlingListener()[])(x))
 
 proc `=destroy`*(x: typeof FlingGestureDetector()[]) =
   `=destroy`(x.flingListener)
   `=destroy`(x.prev_ev)
   `=destroy`(x.this_ev)
-  # `=destroy`((typeof BaseGestureDetector()[])(x))    # Base type is empty
+  `=destroy`((typeof BaseGestureDetector()[])(x))
 
 method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
 
