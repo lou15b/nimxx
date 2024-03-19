@@ -37,6 +37,14 @@ type
 const
   LayoutWidthAuto*: int = 0
 
+proc `=destroy`(x: type CollectionView()[]) =
+  `=destroy`(x.viewForItem.addr[])
+  `=destroy`(x.numberOfItems.addr[])
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`(x: type CollectionScrollListener()[]) =
+  `=destroy`(x.v)
+  `=destroy`((typeof OnScrollListener()[])(x))
 
 method getClassName*(v: CollectionView): string =
   result = "CollectionView"
