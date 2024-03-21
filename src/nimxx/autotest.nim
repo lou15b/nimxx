@@ -37,11 +37,6 @@ proc `=destroy`*(x: UITestSuiteObj) =
 proc `=destroy`*(x: TestRunnerObj) =
   # (????) No destructor call needed for x.context, its fields are numbers
   `=destroy`(x.registeredTests)
-  try:
-    GC_fullCollect()
-  except Exception as e:
-    echo "Exception encountered in GC_fullCollect() while  destroying TestRunner object:",
-      e.msg
 
 proc init(context: var TestRunnerContext, curTimeout: float = 0.5, waitTries: int = -1) =
   context.curStep = 0
@@ -124,6 +119,11 @@ when true:
       # Hopefully we're using nimx automated testing in Firefox
       info "---AUTO-TEST-QUIT---"
     else:
+      # The call to quit() bypasses any graceful shutdown/cleanup done before
+      # going out of scope in the main program, so
+      # we invoke GC_fullCollect() here to trigger least some of that.
+      echo "invoking GC_fullCollect"
+      GC_fullCollect()
       quit()
 
   proc waitUntil*(runner: TestRunner, e: bool) =

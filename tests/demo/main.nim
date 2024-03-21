@@ -98,4 +98,8 @@ proc startApplication() =
 runApplication:
   startApplication()
 
+echo "destroying global testRunner"
+`=destroy`(testRunner)
+echo "invoking GC_fullCollect"
 GC_fullCollect()
+echo "...Done"

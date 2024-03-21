@@ -23,7 +23,7 @@ type
 
   ProfilerDataSourceBase* {.inheritable, pure.} = ref ProfilerDataSourceBaseObj
 
-  ProfilerDataSourceObj[T: SourceDataType] = object of ProfilerDataSourceBase
+  ProfilerDataSourceObj[T: SourceDataType] = object of ProfilerDataSourceBaseObj
     mValue: T
 
   ProfilerDataSource[T: SourceDataType] = ref ProfilerDataSourceObj[T]
@@ -32,13 +32,18 @@ type
     values: Table[string, ProfilerDataSourceBase]
     enabled*: bool
 
+  # A SharedPtr is used here in anticipation that a Profiler could be accessed
+  # from multiple threads
   Profiler* = SharedPtr[ProfilerObj]
 
 proc `=destroy`(x: ProfilerDataSourceBaseObj) =
   `=destroy`(x.stringifiedValue)
+  `=destroy`(x.syncStringifiedValue.addr[])
+  `=destroy`(x.incValue.addr[])
+  `=destroy`(x.decValue.addr[])
 
 proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
-  when T is string:
+  when T is string or T is ref:
     `=destroy`(x.mvalue)
   `=destroy`(x.ProfilerDataSourceBaseObj)
 
