@@ -73,6 +73,48 @@ type
     # Callbacks
     onColorSelected*: proc(c: Color) {.gcsafe.}
 
+proc `=destroy`*(x: typeof ColorView()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof ColorPickerCircle()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof ColorPickerH()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof ColorPickerS()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof ColorPickerV()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof ColorComponentTextField()[]) =
+  `=destroy`((typeof TextField()[])(x))
+
+proc `=destroy`*(x: typeof ColorPickerView()[]) =
+  `=destroy`(x.colorHistory)
+  `=destroy`(x.circle)
+  try:
+    `=destroy`(x.paletteChooser)
+  except Exception as e:
+    echo "Exception encountered destroying ColorPickerView paletteChooser:", e.msg
+  try:
+    `=destroy`(x.chosenColorView)
+  except Exception as e:
+    echo "Exception encountered destroying ColorPickerView chosenColorView:", e.msg
+  `=destroy`(x.cpH)
+  `=destroy`(x.cpS)
+  `=destroy`(x.cpV)
+  try:
+    `=destroy`(x.tfH)
+    `=destroy`(x.tfS)
+    `=destroy`(x.tfV)
+  except Exception as e:
+    echo "Exception encountered destroying ColorPickerView tfH, tfS, or tfV:", e.msg
+  `=destroy`(x.onColorSelected.addr[])
+  `=destroy`((typeof View()[])(x))
+
+
 method getClassName*(v: ColorView): string =
   result = "ColorView"
 

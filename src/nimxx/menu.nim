@@ -9,6 +9,11 @@ type MenuItem* = ref object of RootObj
   # customView*: View
   action*: proc() {.gcsafe.}
 
+proc `=destroy`*(x: typeof MenuItem()[]) =
+  `=destroy`(x.title)
+  `=destroy`(x.children)
+  `=destroy`(x.action.addr[])
+
 proc newMenuItem*(title: string): MenuItem =
   result.new()
   result.title = title
@@ -67,6 +72,20 @@ type
 
   TriangleView = ref object of View
   SeparatorView = ref object of View
+
+proc `=destroy`*(x: typeof MenuView()[]) =
+  try:
+    `=destroy`(x.item)
+  except Exception as e:
+    echo "Exception encountered destroying MenuView item:", e.msg
+  `=destroy`(x.submenu)
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof TriangleView()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof SeparatorView()[]) =
+  `=destroy`((typeof View()[])(x))
 
 const menuItemHeight = 20.Coord
 

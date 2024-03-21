@@ -11,6 +11,11 @@ type StbTtfGlyphProvider* = ref object
   fontInfo: stbtt_fontinfo
   glyphMargin*: int32
 
+proc `=destroy`*(x: typeof StbTtfGlyphProvider()[]) =
+  `=destroy`(x.path)
+  `=destroy`(x.fontData)
+  # Don't know how (or whether) to destroy x.fontInfo
+
 proc setPath*(p: StbTtfGlyphProvider, path: string) =
   p.path = path
 

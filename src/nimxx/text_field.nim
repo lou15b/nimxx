@@ -26,6 +26,20 @@ type
 
   Label* = ref object of TextField
 
+proc `=destroy`*(x: typeof TextField()[]) =
+  try:
+    `=destroy`(x.mText)
+  except Exception as e:
+    echo "Exception encountered destroying TextField mText:", e.msg
+  try:
+    `=destroy`(x.mFont)
+  except Exception as e:
+    echo "Exception encountered destroying TextField mFont:", e.msg
+  `=destroy`((typeof Control()[])(x))
+
+proc `=destroy`*(x: typeof Label()[]) =
+  `=destroy`((typeof TextField()[])(x))
+
 method getClassName*(v: TextField): string =
   result = "TextField"
 

@@ -4,7 +4,6 @@ import ./ [ types, timer, opengl_etc ]
 import ./private/font/font_data
 
 import ./private/font/stb_ttf_glyph_provider
-type GlyphProvider = StbTtfGlyphProvider
 
 import std/os
 import pkg/malebolgia/lockers
@@ -15,6 +14,9 @@ import ./private/simple_table
 when defined(android):
   import ./assets/url_stream
 
+# No destructor needed for GlyphProvider, because it is an alias
+type GlyphProvider = StbTtfGlyphProvider  
+
 type Baseline* = enum
   bTop
   bAlphabetic
@@ -24,8 +26,17 @@ type CharInfo = ref object
   data: GlyphData
   texture: TextureGLRef
 
+proc `=destroy`(x: typeof CharInfo()[]) =
+  `=destroy`(x.data)
+  if x.texture != invalidGLTexture:
+    try:
+      deleteGLTexture(x.texture)
+    except Exception as e:
+      echo "Exception encountered destroying CharInfo texture:", e.msg
+
 template bakedChars(ci: CharInfo): GlyphMetrics = ci.data.glyphMetrics
 
+# No destructor needed for FastString, because it is an alias
 type FastString = string
 
 
@@ -44,6 +55,10 @@ type FontImpl = ref object
   glyphProvider: GlyphProvider
   ascent: float32
   descent: float32
+
+proc `=destroy`(x: typeof FontImpl()[]) =
+  `=destroy`(x.chars.addr[])
+  `=destroy`(x.glyphProvider)
 
 var fontCache =
   initLocker(newSimpleTable(FastString, FontImpl))
@@ -73,6 +88,14 @@ type Font* = ref object
   shadowX*, shadowY*, shadowBlur*: float32
   glyphMargin: int32
   baseline*: Baseline # Beware! Experinmetal!
+
+proc `=destroy`*(x: typeof Font()[]) =
+  try:
+    `=destroy`(x.impl)
+  except Exception as e:
+    echo "Exception encountered destroying Font impl:", e.msg
+  `=destroy`(x.filePath)
+  `=destroy`(x.face)
 
 proc `size=`*(f: Font, s: float) =
   f.mSize = s

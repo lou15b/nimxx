@@ -24,5 +24,9 @@ type GlyphData* = object
   dfDoneForGlyph*: seq[bool]
   bitmapWidth*, bitmapHeight*: uint16
 
+proc `=destroy`*(x: GlyphData) =
+  `=destroy`(x.bitmap)
+  `=destroy`(x.dfDoneForGlyph)
+
 template isPrintableCodePoint*(c: int): bool =
   not (i <= 0x1f or i == 0x7f or (i >= 0x80 and i <= 0x9F))

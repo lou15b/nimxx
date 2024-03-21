@@ -69,6 +69,22 @@ type
     haCenter
     haJustify
 
+proc `=destroy`(x:Attributes) =
+  try:
+    `=destroy`(x.font)
+  except Exception as e:
+    echo "Exception encountered destroying Attributes font:", e.msg
+
+proc `=destroy`*(x:LineInfo) =
+  discard   # No destructor logic needed yet
+
+proc `=destroy`*(x: typeof FormattedText()[]) =
+  `=destroy`(x.mText)
+  `=destroy`(x.mAttributes)
+  `=destroy`(x.lines)
+  `=destroy`(x.shadowAttrs)
+  `=destroy`(x.strokeAttrs)
+
 proc defaultAttributes(): Attributes =
   result.font = systemFont()
   result.textColor = blackColor()

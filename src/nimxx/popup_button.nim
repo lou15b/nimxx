@@ -10,6 +10,10 @@ type PopupButton* = ref object of Control
   mItems: seq[MenuItem]
   mSelectedIndex: int
 
+proc `=destroy`*(x: typeof PopupButton()[]) =
+  `=destroy`(x.mItems)
+  `=destroy`((typeof Control()[])(x))
+
 method getClassName*(v: PopupButton): string =
   result = "PopupButton"
 
