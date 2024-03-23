@@ -7,6 +7,10 @@ import std/tables
 type FormView* = ref object of View
   labelsMap: Table[string, int]
 
+proc `=destroy`*(x: typeof FormView()[]) =
+  `=destroy`(x.labelsMap.addr[])
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: FormView): string =
   result = "FormView"
 
