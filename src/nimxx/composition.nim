@@ -288,11 +288,17 @@ type
 
 proc `=destroy`(x: PostEffectObj) =
   `=destroy`(x.source)
+  `=destroy`(x.setupProc.addr[])
   `=destroy`(x.mainProcName)
   `=destroy`(x.argTypes)
 
 proc `=destroy`(x: CompiledCompositionObj) =
-  `=destroy`(x.uniformLocations)
+  if x.program != invalidGLProgram:
+    try:
+      glDeleteProgram(x.program)
+    except Exception as e:
+      echo "Exception encountered destroying CompiledCompositionObj program:", e.msg
+  `=destroy`(x.uniformLocations)  # How to clean up UniformGLLocation entries?
 
 proc `=destroy`(x: Composition) =
   `=destroy`(x.definition)
@@ -375,6 +381,10 @@ template newCompositionWithNimsl*(mainProc: typed): Composition =
 type PostEffectStackElem = object
   postEffect: PostEffect
   setupProc*: proc(cc: CompiledComposition) {.gcsafe.}
+
+proc `=destroy`(x:PostEffectStackElem) =
+  `=destroy`(x.postEffect)
+  `=destroy`(x.setupProc.addr[])
 
 type PostEffectStack = object
   postEffects: seq[PostEffectStackElem]

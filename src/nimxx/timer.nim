@@ -37,17 +37,21 @@ when profileTimers or defined(debugLeaks):
   const TIMERS = "Timers"
   sharedProfiler[TIMERS] = 0
 
-  proc `=destroy`(t: TimerObj) =
+proc `=destroy`(t: TimerObj) =
+  `=destroy`(t.callback.addr[])
+  `=destroy`(t.origCallback.addr[])
+  when profileTimers or defined(debugLeaks):
     withRLockGCsafe(sharedProfilerLock):
       try:
         dec sharedProfiler[TIMERS]
       except Exception as e:
         echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
-    when defined(debugLeaks):
-      let p = cast[pointer](addr t)
-      let i = allTimers.find(p)
-      assert(i != -1)
-      allTimers.del(i)
+  when defined(debugLeaks):
+    `=destroy`(t.instantiationStackTrace)
+    let p = cast[pointer](addr t)
+    let i = allTimers.find(p)
+    assert(i != -1)
+    allTimers.del(i)
 
 when defined(macosx):
   type

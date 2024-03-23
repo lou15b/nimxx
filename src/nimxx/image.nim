@@ -40,17 +40,20 @@ sharedProfiler[IMAGES] = 0
 proc `=destroy`*(i: SelfContainedImageObj) =
   if i.texture != invalidGLTexture:
     try:
-      glDeleteTextures(1, addr i.texture)
+      deleteGLTexture(i.texture)
     except Exception as e:
       echo "Exception raised by glDeleteTextures in SelfContainedImageObj destructor: ",
         e.msg
   `=destroy`(i.mFilePath)
 
+  # Decrement the images count in the (global) sharedProfiler
   withRLockGCsafe(sharedProfilerLock):
     try:
       dec sharedProfiler[IMAGES]
     except Exception as e:
       echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
+  
+  `=destroy`((typeof Image()[])(i))
 
 template setupTexParams() =
   when defined(android) or defined(ios):
@@ -76,6 +79,7 @@ proc newSelfContainedImage(): SelfContainedImage {.inline.} =
   result = SelfContainedImage()
 
 # This type contains the proc to free the contained data, which is called explicitly
+# Explicit destructor proc not used
 type DecodedImageData = object
   data: pointer
   freeDataProc: proc(b: var DecodedImageData) {.nimcall, gcsafe.}
@@ -425,6 +429,9 @@ when asyncResourceLoad:
   var threadCtx : GlContextPtr
   var loadingQueue {.threadvar.}: WorkerQueue
 
+  # Note that a *pointer* form of this object's reference is transferred between
+  # different threads. So its life cycle is explicitly managed with calls to
+  # GC_ref/GC_unref
   type ImageLoadingCtx = ref object
     url: string
     completionCallback: proc(i: Image)
@@ -434,24 +441,38 @@ when asyncResourceLoad:
       texCoords: array[4, GLfloat]
       size: Size
       texture: TextureGLRef
-      glCtx: GlContextPtr
-      wnd: WindowPtr
+      glCtx: GlContextPtr  # Not ref counted, so not in destructor
+      wnd: WindowPtr  # Not ref counted, so not in destructor
       texWidth, texHeight: int16
+  
+  proc `=destroy`(x: typeof ImageLoadingCtx()[]) =
+    `=destroy`(x.url)
+    `=destroy`(x.completionCallback.addr[])
+    when loadAsyncTextureInMainThread:
+      # Do we need to destroy decodedData? No destructor for DecodedImageData (yet)
+      discard
+    else:
+      if x.texture != invalidGLTexture:
+        try:
+          deleteGLTexture(x.texture)
+        except Exception as e:
+          echo "Exception encountered destroying ImageLoadingCtx texture:", e.msg
 
   proc loadComplete(ctx: pointer) {.cdecl.} =
     let c = cast[ImageLoadingCtx](ctx)
-    GC_unref(c)
     var i = newSelfContainedImage()
     when loadAsyncTextureInMainThread:
       i.initWithDecodedData(c.decodedData)
     else:
       i.texture = c.texture
+      c.texture = invalidGLTexture  # The texture reference has been **moved**
       i.texCoords = c.texCoords
       i.mSize = c.size
       i.texWidth = c.texWidth
       i.texHeight = c.texHeight
     i.setFilePath(c.url)
     c.completionCallback(i)
+    GC_unref(c)
 
   var ctxIsCurrent = false
 

@@ -44,7 +44,7 @@ proc `=destroy`(x: ProfilerDataSourceBaseObj) =
 
 proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
   when T is string or T is ref:
-    `=destroy`(x.mvalue)
+    `=destroy`(x.mValue)
   `=destroy`(x.ProfilerDataSourceBaseObj)
 
 proc `=destroy`(x: ProfilerObj) =

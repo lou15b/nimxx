@@ -1,12 +1,12 @@
 import ./ [ image, types, context, opengl_etc ]
 
 type
-  RTIContext* = tuple
-    clearColor: array[4, GLfloat]
-    viewportSize: array[4, GLint]
-    framebuffer: FramebufferGLRef
-    bStencil: bool
-    skipClear: bool
+  RTIContext* = object
+    clearColor*: array[4, GLfloat]
+    viewportSize*: array[4, GLint]
+    framebuffer*: FramebufferGLRef
+    bStencil*: bool
+    skipClear*: bool
 
   ImageRenderTarget* = ref ImageRenderTargetObj
   ImageRenderTargetObj = object
@@ -18,7 +18,15 @@ type
     texWidth*, texHeight*: int16
     needsDepthStencil*: bool
 
-proc `=destroy`(r: ImageRenderTargetObj) {.raises: [GLerror].} =
+proc `=destroy`*(r: RTIContext) =
+  if r.framebuffer != invalidGLFrameBuffer:
+    try:
+      deleteGLFramebuffer(r.framebuffer)
+    except Exception as e:
+      echo "Exception encountered destroying RTIContext framebuffer:", e.msg
+
+
+proc `=destroy`*(r: ImageRenderTargetObj) {.raises: [GLerror].} =
   if r.framebuffer != invalidGLFrameBuffer:
     deleteGLFramebuffer(r.framebuffer)
   if r.depthbuffer != invalidGLRenderbuffer:

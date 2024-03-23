@@ -7,7 +7,11 @@ import pkg/darwin/app_kit
 type MacPasteboard = object of Pasteboard
   p: NSPasteboard
 
-proc `=destroy`(p: MacPasteboard) {.raises: [Exception].} = p.p.release()
+proc `=destroy`(p: MacPasteboard) =
+  try:
+    p.p.release()
+  except Exception as e:
+    echo "Exception raised by p.release() in MacPasteboard destructor: ", e.msg
 
 proc nativePboardName(n: string): NSString =
   case n

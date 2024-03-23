@@ -77,8 +77,7 @@ proc `=destroy`*(x: typeof DragDestinationDelegate()[]) =
   discard    # Type is empty
 
 proc `=destroy`(cp: ConstraintWithPrototype) =
-  # Remove ".addr[]" below and take out of try/except when Constraint
-  # has a destructor
+  # Remove ".addr[]" and try/except below when Constraint has a destructor
   try:
     `=destroy`(cp.proto.addr[])
     `=destroy`(cp.inst.addr[])
@@ -94,6 +93,7 @@ proc `=destroy`*(v: typeof View()[]) =
   `=destroy`(v.subviews)
   `=destroy`(v.gestureDetectors)
   `=destroy`(v.touchTarget)
+  `=destroy`(v.dragDestination)
   `=destroy`(v.layout)
 
 proc `=destroy`*(w: typeof Window()[]) =

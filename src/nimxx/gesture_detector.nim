@@ -70,10 +70,16 @@ proc `=destroy`*(x: typeof TapGestureDetector()[]) =
   `=destroy`(x.tapListener.addr[])
   `=destroy`((typeof BaseGestureDetector()[])(x))
 
+proc `=destroy`*(x: typeof OnZoomListener()[]) =
+  discard    # Type is empty
+
 proc `=destroy`*(x: typeof ZoomGestureDetector()[]) =
   `=destroy`(x.pointers)
   `=destroy`(x.listener)
   `=destroy`((typeof BaseGestureDetector()[])(x))
+
+proc `=destroy`*(x: typeof OnRotateListener()[]) =
+  discard    # Type is empty
 
 proc `=destroy`*(x: typeof RotateGestureDetector()[]) =
   `=destroy`(x.pointers)

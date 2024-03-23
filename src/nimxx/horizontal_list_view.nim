@@ -26,6 +26,9 @@ type
     dirtyBoundsOrigin : Point
     itemClick: proc(pos : int) {.gcsafe.}
 
+proc `=destroy`*(x: typeof Adapter()[]) =
+  discard    # Type is empty
+
 proc `=destroy`(x: typeof ViewWrapper()[]) =
   try:
     `=destroy`(x.v)
