@@ -5,6 +5,10 @@ type ExpandButton* = ref object of Button
   expanded*: bool
   onExpandAction*: proc(state: bool) {.gcsafe.}
 
+proc `=destroy`*(x: typeof ExpandButton()[]) =
+  `=destroy`(x.onExpandAction.addr[])
+  `=destroy`((typeof Button()[])(x))
+
 method getClassName*(v: ExpandButton): string =
   result = "ExpandButton"
 

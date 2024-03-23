@@ -23,6 +23,18 @@ type ExpandingView* = ref object of View
   titleBarColor*: Color
   titleTextColor*: Color
 
+proc `=destroy`*(x: typeof ExpandingView()[]) =
+  `=destroy`(x.title)
+  try:
+    `=destroy`(x.contentView)
+  except Exception as e:
+    echo "Exception encountered destroying ExpandingView contentView:", e.msg
+  try:
+    `=destroy`(x.expandBut)
+  except Exception as e:
+    echo "Exception encountered destroying ExpandingView expandBut:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: ExpandingView): string =
   result = "ExpandingView"
 
