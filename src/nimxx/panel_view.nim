@@ -13,6 +13,9 @@ type PanelView* = ref object of View
   mCollapsed: bool
   contentHeight*: Coord
 
+proc `=destroy`*(x: typeof PanelView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 template titleHeight*(v: PanelView): Coord = Coord(27)
 
 proc `collapsed=`*(v: PanelView, f: bool) =

@@ -23,6 +23,14 @@ type ImagePreview* = ref object of PanelView
   imgScale*: float
   imageRect*: Rect
 
+proc `=destroy`*(x: typeof ImagePreview()[]) =
+  try:
+    `=destroy`(x.image)
+  except Exception as e:
+    echo "Exception encountered destroying ImagePreview image:", e.msg
+  `=destroy`(x.title)
+  `=destroy`((typeof PanelView()[])(x))
+
 method getClassName*(v: ImagePreview): string =
   result = "ImagePreview"
 

@@ -9,6 +9,14 @@ type InspectorPanel* = ref object of PanelView
   inspectorView: InspectorView
   mOnPropertyChanged: proc(name: string) {.gcsafe.}
 
+proc `=destroy`*(x: typeof InspectorPanel()[]) =
+  try:
+    `=destroy`(x.inspectorView)
+  except Exception as e:
+    echo "Exception encountered destroying InspectorPanel inspectorView:", e.msg
+  `=destroy`(x.mOnPropertyChanged.addr[])
+  `=destroy`((typeof PanelView()[])(x))
+
 
 method getClassName*(v: InspectorPanel): string =
   result = "InspectorPanel"
