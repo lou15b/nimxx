@@ -5,6 +5,9 @@ import ./linear_layout
 
 type Toolbar* = ref object of LinearLayout
 
+proc `=destroy`*(x: typeof Toolbar()[]) =
+  `=destroy`((typeof LinearLayout()[])(x))
+
 method getClassName*(v: Toolbar): string =
   result = "Toolbar"
 

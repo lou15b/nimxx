@@ -16,6 +16,9 @@ type
     initialDragPos: Point
     draggingDivider: int
 
+proc `=destroy`*(x: typeof LinearLayout()[]) =
+  `=destroy`((typeof View()[])(x))
+
 proc newHorizontalLayout*(r: Rect): LinearLayout =
   result = LinearLayout.new(r)
   result.name = "HorizontalLayout"

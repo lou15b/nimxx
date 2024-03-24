@@ -9,6 +9,10 @@ export linear_layout
 type InspectorView* = ref object of LinearLayout
   onPropertyChanged*: proc(name: string) {.gcsafe.}
 
+proc `=destroy`*(x: typeof InspectorView()[]) =
+  `=destroy`(x.onPropertyChanged.addr[])
+  `=destroy`((typeof LinearLayout()[])(x))
+
 method getClassName*(v: InspectorView): string =
   result = "InspectorView"
 
