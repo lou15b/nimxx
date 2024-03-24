@@ -21,6 +21,18 @@ type ItemNode = ref object
   item: Variant
   cell: TableViewCell
 
+proc `=destroy`*(x: typeof ItemNode()[]) =
+  `=destroy`(x.children)
+  when defined(gcDestructors):
+    try:
+      `=destroy`(x.item.addr[])
+    except Exception as e:
+      echo "Exception encountered destroying ItemNode item:", e.msg
+  try:
+    `=destroy`(x.cell)
+  except Exception as e:
+    echo "Exception encountered destroying ItemNode cell:", e.msg
+
 type
   OutlineView* = ref object of View
     rootItem: ItemNode
@@ -42,6 +54,32 @@ type
     dragStartLocation: Point
 
   IndexPath* = seq[int]
+
+proc `=destroy`*(x: typeof OutlineView()[]) =
+  try:
+    `=destroy`(x.rootItem)
+  except Exception as e:
+    echo "Exception encountered destroying OutlineView rootItem:", e.msg
+  `=destroy`(x.selectedIndexPath)
+  `=destroy`(x.numberOfChildrenInItem.addr[])
+  `=destroy`(x.mDisplayFilter.addr[])
+  `=destroy`(x.childOfItem.addr[])
+  `=destroy`(x.createCell.addr[])
+  `=destroy`(x.configureCell.addr[])
+  `=destroy`(x.onSelectionChanged.addr[])
+  `=destroy`(x.onDragAndDrop.addr[])
+  `=destroy`(x.tempIndexPath)
+  `=destroy`(x.draggedElemIndexPath)
+  `=destroy`(x.droppedElemIndexPath)
+  try:
+    `=destroy`(x.dropAfterItem)
+  except Exception as e:
+    echo "Exception encountered destroying OutlineView dropAfterItem:", e.msg
+  try:
+    `=destroy`(x.dropInsideItem)
+  except Exception as e:
+    echo "Exception encountered destroying OutlineView dropInsideItem:", e.msg
+  `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: OutlineView): string =
   result = "OutlineView"

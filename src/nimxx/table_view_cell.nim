@@ -7,6 +7,9 @@ type TableViewCell* = ref object of View
   row*, col*: int
   selected*: bool
 
+proc `=destroy`*(x: typeof TableViewCell()[]) =
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: TableViewCell): string =
   result = "TableViewCell"
 
