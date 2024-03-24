@@ -21,6 +21,13 @@ type
     imageMarginTop*: Coord
     imageMarginBottom*: Coord
 
+proc `=destroy`*(x: typeof ImageView()[]) =
+  try:
+    `=destroy`(x.image)
+  except Exception as e:
+    echo "Exception encountered destroying ImageView image:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 proc newImageView*(r: Rect, image: Image = nil, fillRule = ImageFillRule.NoFill): ImageView =
   result.new
   result.image = image
