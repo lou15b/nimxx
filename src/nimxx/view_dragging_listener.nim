@@ -7,6 +7,14 @@ type DraggingScrollListener = ref object of OnScrollListener
   view: View
   start: Point
 
+proc `=destroy`*(x: typeof DraggingScrollListener()[]) =
+  try:
+    `=destroy`(x.view)
+  except Exception as e:
+    echo "Exception encountered destroying DraggingScrollListener view:", e.msg
+  `=destroy`((typeof OnScrollListener()[])(x))
+
+
 method onTapDown(ls: DraggingScrollListener, e: var Event) =
   ls.start = ls.view.frame.origin
 
@@ -21,9 +29,19 @@ proc enableDraggingByBackground*(v: View) =
 
 type ResizingKnob = ref object of View
 
+proc `=destroy`*(x: typeof ResizingKnob()[]) =
+  `=destroy`((typeof View()[])(x))
+
 type ResizingScrollListener = ref object of OnScrollListener
   view: View
   originalSize: Size
+
+proc `=destroy`*(x: typeof ResizingScrollListener()[]) =
+  try:
+    `=destroy`(x.view)
+  except Exception as e:
+    echo "Exception encountered destroying ResizingScrollListener view:", e.msg
+  `=destroy`((typeof OnScrollListener()[])(x))
 
 method onTapDown(ls: ResizingScrollListener, e: var Event) =
   ls.originalSize = ls.view.superview.frame.size
