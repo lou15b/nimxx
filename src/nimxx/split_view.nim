@@ -14,6 +14,11 @@ type SplitView* = ref object of View
   draggingDivider: int
   initialDragPos: Point
 
+proc `=destroy`*(x: typeof SplitView()[]) =
+  `=destroy`(x.constraints)
+  `=destroy`(x.separatorPositions)
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: SplitView): string =
   result = "SplitView"
 

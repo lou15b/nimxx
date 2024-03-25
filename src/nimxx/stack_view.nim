@@ -2,6 +2,9 @@ import ./ [ button, view, types, color ]
 
 type StackView* = ref object of View
 
+proc `=destroy`*(x: typeof StackView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: StackView): string =
   result = "StackView"
 
