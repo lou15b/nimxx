@@ -31,6 +31,15 @@ type
     initiallyClickedRow: int
     constraints: seq[Constraint]
 
+proc `=destroy`*(x: typeof TableView()[]) =
+  `=destroy`(x.numberOfRows.addr[])
+  `=destroy`(x.mCreateCell.addr[])
+  `=destroy`(x.configureCell.addr[])
+  `=destroy`(x.heightOfRow.addr[])
+  `=destroy`(x.onSelectionChange.addr[])
+  `=destroy`(x.constraints)
+  `=destroy`((typeof View()[])(x))
+
 proc `createCell=`*(v: TableView, p: proc(): TableViewCell {.gcsafe.}) =
   v.mCreateCell = proc(c: int): TableViewCell =
     p()
@@ -161,6 +170,15 @@ proc topCoordOfRow(v: TableView, row: int): Coord {.inline.} =
 
 type TableRow = ref object of View
   topConstraint, heightConstraint: Constraint
+
+proc `=destroy`*(x: typeof TableRow()[]) =
+  # Remove ".addr[]" when Constraint has a destructor
+  try:
+    `=destroy`(x.topConstraint.addr[])
+    `=destroy`(x.heightConstraint.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying TableRow contents:", e.msg
+  `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: TableRow): string =
   result = "TableRow"
