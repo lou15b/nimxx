@@ -13,6 +13,13 @@ type ProgressIndicator* = ref object of View
   mIndeterminate: bool
   animation: Animation
 
+proc `=destroy`*(x: typeof ProgressIndicator()[]) =
+  try:
+    `=destroy`(x.animation)
+  except Exception as e:
+    echo "Exception encountered destroying ProgressIndicator animation:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 const piComposition = newComposition """
 uniform float uPosition;
 

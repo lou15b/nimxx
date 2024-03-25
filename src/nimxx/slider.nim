@@ -8,6 +8,9 @@ import ./view_event_handling
 type Slider* = ref object of Control
   mValue: Coord
 
+proc `=destroy`*(x: typeof Slider()[]) =
+  `=destroy`((typeof Control()[])(x))
+
 const sliderComposition = newComposition """
 uniform float uPosition;
 

@@ -12,6 +12,33 @@ type ScrollView* = ref object of View
   constraints: seq[Constraint]
   xPos, yPos: Variable # Scroll positions
 
+proc `=destroy`*(x: typeof ScrollView()[]) =
+  try:
+    `=destroy`(x.mContentView)
+  except Exception as e:
+    echo "Exception encountered destroying ScrollView mContentView:", e.msg
+  try:
+    `=destroy`(x.clipView)
+  except Exception as e:
+    echo "Exception encountered destroying ScrollView clipView:", e.msg
+  try:
+    `=destroy`(x.mHorizontalScrollBar)
+  except Exception as e:
+    echo "Exception encountered destroying ScrollView mHorizontalScrollBar:", e.msg
+  try:
+    `=destroy`(x.mVerticalScrollBar)
+  except Exception as e:
+    echo "Exception encountered destroying ScrollView mVerticalScrollBar:", e.msg
+  `=destroy`(x.mOnScrollCallback.addr[])
+  `=destroy`(x.constraints)
+  # Remove ".addr[] when Variable has a destructor
+  try:
+    `=destroy`(x.xPos.addr[])
+    `=destroy`(x.yPos.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying ScrollView xPos and yPos:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 const scrollBarWidth = 12.Coord
 
 method getClassName*(v: ScrollView): string =
