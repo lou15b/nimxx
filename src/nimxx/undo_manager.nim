@@ -10,6 +10,14 @@ type
     undo: proc() {.gcsafe.}
     description: string
 
+proc `=destroy`*(x: UndoAction) =
+  `=destroy`(x.redo.addr[])
+  `=destroy`(x.undo.addr[])
+  `=destroy`(x.description)
+
+proc `=destroy`*(x: typeof UndoManager()[]) =
+  `=destroy`(x.actions)
+
 proc newUndoManager*(): UndoManager =
   result.new()
   result.actions = @[]
