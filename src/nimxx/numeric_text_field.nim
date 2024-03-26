@@ -11,6 +11,13 @@ type NumericTextField* = ref object of TextField
   touchAnim: Animation
   directionLeft: bool
 
+proc `=destroy`*(x: typeof NumericTextField()[]) =
+  try:
+    `=destroy`(x.touchAnim)
+  except Exception as e:
+    echo "Exception encountered destroying NumericTextField touchAnim:", e.msg
+  `=destroy`((typeof TextField()[])(x))
+
 method getClassName*(v: NumericTextField): string =
   result = "NumericTextField"
 

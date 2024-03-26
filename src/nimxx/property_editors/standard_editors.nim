@@ -94,6 +94,11 @@ type ColorComponentTextField = ref object of NumericTextField
   onBecomeFirstResponder: proc() {.gcsafe.}
   onResignFirstResponder: proc() {.gcsafe.}
 
+proc `=destroy`(x: typeof ColorComponentTextField()[]) =
+  `=destroy`(x.onBecomeFirstResponder.addr[])
+  `=destroy`(x.onResignFirstResponder.addr[])
+  `=destroy`((typeof NumericTextField()[])(x))
+
 method getClassName*(v: ColorComponentTextField): string =
   result = "ColorComponentTextField"
 
