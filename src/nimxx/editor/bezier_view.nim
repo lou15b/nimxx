@@ -8,6 +8,10 @@ type
     key: bool
     mOnAction: proc() {.gcsafe.}
 
+proc `=destroy`*(x: typeof BezierView()[]) =
+  `=destroy`(x.mOnAction.addr[])
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: BezierView): string =
   result = "BezierView"
 
