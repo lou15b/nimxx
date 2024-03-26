@@ -11,6 +11,10 @@ type
   TabDraggingView = ref object of View
     title: string
 
+proc `=destroy`*(x: typeof TabDraggingView()[]) =
+  `=destroy`(x.title)
+  `=destroy`((typeof View()[])(x))
+
 type TabView* = ref object of View
   tabs: seq[Tab]
   tabBarThickness: Coord
@@ -24,6 +28,19 @@ type TabView* = ref object of View
   onRemove*: proc(v: TabView) {.gcsafe.}
   onClose*: proc(v: View) {.gcsafe.}
   subviewConstraintProtos: seq[Constraint]
+
+proc `=destroy`*(x: typeof TabView()[]) =
+  `=destroy`(x.tabs)
+  `=destroy`(x.mouseTracker.addr[])
+  try:
+    `=destroy`(x.configurationButton)
+  except Exception as e:
+    echo "Exception encountered destroying TabView configurationButton:", e.msg
+  `=destroy`(x.onSplit.addr[])
+  `=destroy`(x.onRemove.addr[])
+  `=destroy`(x.onClose.addr[])
+  `=destroy`(x.subviewConstraintProtos)
+  `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: TabDraggingView): string =
   result = "TabDraggingView"
