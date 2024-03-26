@@ -17,6 +17,11 @@ type
     getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
   RegistryTableEntry = proc(editedObject: Variant, v: Variant): PropertyEditorView {.gcsafe.}
 
+proc `=destroy`*(x: typeof PropertyEditorView()[]) =
+  `=destroy`(x.onChange.addr[])
+  `=destroy`(x.changeInspector.addr[])
+  `=destroy`((typeof View()[])(x))
+
 var propEditors = initLocker(initTable[TypeId, RegistryTableEntry]())
 
 method getClassName*(v: PropertyEditorView): string =

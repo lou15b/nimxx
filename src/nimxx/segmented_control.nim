@@ -19,6 +19,11 @@ type SegmentedControl* = ref object of Control
   clickedSegmentRect: Rect
   clickedSegment: int
 
+proc `=destroy`*(x: typeof SegmentedControl()[]) =
+  `=destroy`(x.mSegments)
+  `=destroy`(x.widths)
+  `=destroy`((typeof Control()[])(x))
+
 const scComposition = newComposition """
 uniform vec4 uSelectedRect;
 uniform vec4 uTrackedRect;
