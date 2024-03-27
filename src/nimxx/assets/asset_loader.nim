@@ -13,6 +13,16 @@ type AssetLoader* = ref object
   when debugResCache:
     assetsToLoad: seq[string]
 
+proc `=destroy`*(x: typeof AssetLoader()[]) =
+  `=destroy`(x.onComplete.addr[])
+  `=destroy`(x.onProgress.addr[])
+  try:
+    `=destroy`(x.assetCache.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying AssetLoader assetCache:", e.msg
+  when debugResCache:
+    `=destroy`(x.assetsToLoad)
+
 proc newAssetLoader*(): AssetLoader {.inline.} =
   result.new()
 

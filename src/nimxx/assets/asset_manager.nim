@@ -17,6 +17,14 @@ type
     mDefaultAssetBundle: AssetBundle
     defaultCache: AssetCache
 
+proc `=destroy`*(x: typeof AssetManager()[]) =
+  `=destroy`(x.mounts)
+  `=destroy`(x.mDefaultAssetBundle)
+  try:
+    `=destroy`(x.defaultCache.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying AssetManager defaultCache:", e.msg
+
 
 template newAssetCache(): AssetCache = newTable[string, Variant]()
 

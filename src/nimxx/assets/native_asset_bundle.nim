@@ -12,6 +12,10 @@ proc setNativeAssetBasePath*(basePath: string) =
 type NativeAssetBundle* = ref object of AssetBundle
   mBaseUrl: string
 
+proc `=destroy`*(x: typeof NativeAssetBundle()[]) =
+  `=destroy`(x.mBaseUrl)
+  `=destroy`((typeof AssetBundle()[])(x))
+
 proc newNativeAssetBundle*(): NativeAssetBundle =
   result.new()
   lock nativeAssetBasePath as nabp:

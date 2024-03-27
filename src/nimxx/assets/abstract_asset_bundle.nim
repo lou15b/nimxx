@@ -1,6 +1,9 @@
 type
   AssetBundle* = ref object of RootObj
 
+proc `=destroy`*(x: typeof AssetBundle()[]) =
+  discard    # Type is empty
+
 proc abstractMethod() = raise newException(Exception, "Abstract method called")
 
 method allAssets*(ab: AssetBundle): seq[string] {.base.} = abstractMethod()
