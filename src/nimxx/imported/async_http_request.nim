@@ -18,12 +18,12 @@ type ErrorHandler* = proc (e: ref Exception) {.gcsafe.}
 import std / [ httpclient, parseutils, uri ]
 export HttpMethod
 
-type AsyncHttpRequestError* = object of CatchableError
+type AsyncHttpRequestError* = object of CatchableError  # No destructor
 
 when defined(ssl):
   import std/net
 else:
-  type SSLContext = ref object
+  type SSLContext = ref object  # Locally used, no contents - so no destructor
 var defaultSslContext {.threadvar.}: SSLContext
 
 # TODO: Remove the "used" pragma when this proc actually gets called
