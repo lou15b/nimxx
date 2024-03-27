@@ -9,6 +9,15 @@ type ImageSampleView = ref object of View
   generatedImage: Image
   httpImage: Image
 
+proc `=destroy`*(x: typeof ImageSampleView()[]) =
+  try:
+    `=destroy`(x.image)
+    `=destroy`(x.generatedImage)
+    `=destroy`(x.httpImage)
+  except Exception as e:
+    echo "Exception encountered destroying ImageSampleView contents:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: ImageSampleView): string =
   result = "ImageSampleView"
 

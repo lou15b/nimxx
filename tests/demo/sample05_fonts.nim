@@ -9,6 +9,14 @@ type FontsView = ref object of View
   curFontSize: float
   baseline: Baseline
 
+proc `=destroy`*(x: typeof FontsView()[]) =
+  try:
+    `=destroy`(x.curFont)
+  except Exception as e:
+    echo "Exception encountered destroying FontsView curFont:", e.msg
+  `=destroy`(x.caption)
+  `=destroy`((typeof View()[])(x))
+
 template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord,
     val: typed) =
   let lb = newLabel(newRect(20, y, 120, 20))

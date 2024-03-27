@@ -10,7 +10,17 @@ const welcomeMessage = "Welcome to nimX"
 type WelcomeView = ref object of View
   welcomeFont: Font
 
+proc `=destroy`*(x: typeof WelcomeView()[]) =
+  try:
+    `=destroy`(x.welcomeFont)
+  except Exception as e:
+    echo "Exception encountered destroying WelcomeView welcomeFont:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 type CustomControl* = ref object of Control
+
+proc `=destroy`*(x: typeof CustomControl()[]) =
+  `=destroy`((typeof Control()[])(x))
 
 method getClassName*(v: WelcomeView): string =
   result = "WelcomeView"

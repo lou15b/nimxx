@@ -6,9 +6,16 @@ type
   DataItem = ref object
     name: string
     children: seq[DataItem]
-    parent: DataItem
+    parent {.cursor.}: DataItem
+
+proc `=destroy`*(x: typeof DataItem()[]) =
+  `=destroy`(x.name)
+  `=destroy`(x.children)
 
 type OutlineSampleView = ref object of View
+
+proc `=destroy`*(x: typeof OutlineSampleView()[]) =
+  `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: OutlineSampleView): string =
   result = "OutlineSampleView"

@@ -25,6 +25,33 @@ type
   DraggedButton = ref object of View
     clickPos: Point
 
+proc `=destroy`*(x: typeof EventsPriorityView()[]) =
+  try:
+    `=destroy`(x.welcomeFont)
+  except Exception as e:
+    echo "Exception encountered destroying EventsPriorityView welcomeFont:", e.msg
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof CustomControl()[]) =
+  `=destroy`((typeof Control()[])(x))
+
+proc `=destroy`*(x: typeof ContentView()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof MyScrollListener()[]) =
+  `=destroy`(x.updatedView)
+  `=destroy`((typeof OnScrollListener()[])(x))
+
+proc `=destroy`*(x: typeof DraggedButton()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof MyDragListener()[]) =
+  `=destroy`(x.updatedView)
+  `=destroy`((typeof OnScrollListener()[])(x))
+
+proc `=destroy`*(x: typeof ScissorView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 
 method getClassName*(v: EventsPriorityView): string =
   result = "EventsPriorityView"

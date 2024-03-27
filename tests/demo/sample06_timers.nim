@@ -6,6 +6,17 @@ type TimersSampleView = ref object of View
   timer: Timer
   intervalTextField: TextField
 
+proc `=destroy`*(x: typeof TimersSampleView()[]) =
+  try:
+    `=destroy`(x.timer)
+  except Exception as e:
+    echo "Exception encountered destroying TimersSampleView timer:", e.msg
+  try:
+    `=destroy`(x.intervalTextField)
+  except Exception as e:
+    echo "Exception encountered destroying TimersSampleView intervalTextField:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: TimersSampleView): string =
   result = "TimersSampleView"
 

@@ -6,6 +6,13 @@ type AnimationSampleView = ref object of View
   rotation: Coord
   animation: Animation
 
+proc `=destroy`*(x: typeof AnimationSampleView()[]) =
+  try:
+    `=destroy`(x.animation)
+  except Exception as e:
+    echo "Exception encountered destroying ImageSampleView animation:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: AnimationSampleView): string =
   result = "AnimationSampleView"
 

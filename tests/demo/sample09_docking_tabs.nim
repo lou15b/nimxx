@@ -6,6 +6,9 @@ import nimxx/editor/tab_view
 type DockingTabsSampleView = ref object of View
   tabNameIndex: int
 
+proc `=destroy`*(x: typeof DockingTabsSampleView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: DockingTabsSampleView): string =
   result = "DockingTabsSampleView"
 

@@ -3,6 +3,9 @@ import nimxx / [ view, menu, button, text_field ]
 
 type MenuSampleView = ref object of View
 
+proc `=destroy`*(x: typeof MenuSampleView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: MenuSampleView): string =
   result = "MenuSampleView"
 

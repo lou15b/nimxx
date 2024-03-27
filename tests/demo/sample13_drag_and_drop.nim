@@ -10,6 +10,15 @@ type DragAndDropView = ref object of View
 type MyDropDelegate* = ref object of DragDestinationDelegate
 type DraggedView* = ref object of View
 
+proc `=destroy`*(x: typeof DragAndDropView()[]) =
+  `=destroy`((typeof View()[])(x))
+
+proc `=destroy`*(x: typeof MyDropDelegate()[]) =
+  `=destroy`((typeof DragDestinationDelegate()[])(x))
+
+proc `=destroy`*(x: typeof DraggedView()[]) =
+  `=destroy`((typeof View()[])(x))
+
 const PboardSampleDrag* = "nimx.sample.drag"
 
 method getClassName*(v: DragAndDropView): string =

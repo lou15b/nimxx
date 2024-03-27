@@ -5,6 +5,13 @@ import nimxx / [ view, font, button, expanding_view, stack_view ]
 type ExpandingSampleView = ref object of View
   welcomeFont: Font
 
+proc `=destroy`*(x: typeof ExpandingSampleView()[]) =
+  try:
+    `=destroy`(x.welcomeFont)
+  except Exception as e:
+    echo "Exception encountered destroying ExpandingSampleView welcomeFont:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: ExpandingSampleView): string =
   result = "ExpandingSampleView"
 

@@ -13,6 +13,18 @@ type AnimationEasing = ref object of View
   animationCurved: Animation
   animationLinear: Animation
 
+proc `=destroy`*(x: typeof AnimationEasing()[]) =
+  try:
+    `=destroy`(x.progress)
+  except Exception as e:
+    echo "Exception encountered destroying AnimationEasing progress:", e.msg
+  try:
+    `=destroy`(x.animationCurved)
+    `=destroy`(x.animationLinear)
+  except Exception as e:
+    echo "Exception encountered destroying AnimationEasing animations:", e.msg
+  `=destroy`((typeof View()[])(x))
+
 method getClassName*(v: AnimationEasing): string =
   result = "AnimationEasing"
 
