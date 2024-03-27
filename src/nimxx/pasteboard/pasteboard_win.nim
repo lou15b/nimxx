@@ -101,6 +101,9 @@ proc getClipboardFormatByString(str: string): UINT =
 
 type WindowsPasteboard = object of Pasteboard
 
+proc `=destroy`*(x: WindowsPasteboard) =
+  `=destroy`(x.Pasteboard)
+
 proc getPasteboardItem(k: UINT, lpstr: LPVOID, lpdat: Handle): PasteboardItem =
   var lpdatLen = globalSize(lpdat)
   if not *lpdatLen: error()

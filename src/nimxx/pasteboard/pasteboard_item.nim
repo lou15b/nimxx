@@ -3,6 +3,10 @@ type PasteboardItem* = ref object
     kind*: string
     data*: string
 
+proc `=destroy`*(x: typeof PasteboardItem()[]) =
+  `=destroy`(x.kind)
+  `=destroy`(x.data)
+
 const PboardKindString* = "string"
 
 proc newPasteboardItem*(kind, data: string): PasteboardItem =
