@@ -12,6 +12,27 @@ type
   UIResourceDeserializer = ref object of JsonDeserializer
     deserTable: Table[UIResID, View]
 
+proc `=destroy`*(x: typeof UIResource()[]) =
+  try:
+    `=destroy`(x.mView)
+  except Exception as e:
+    echo "Exception encountered destroying UIResource mView:", e.msg
+  try:
+    `=destroy`(x.outlets.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying UIResource outlets:", e.msg
+  try:
+    `=destroy`(x.actions.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying UIResource actions:", e.msg
+
+proc `=destroy`*(x: typeof UIResourceDeserializer()[]) =
+  try:
+    `=destroy`(x.deserTable.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying UIResourceDeserializer deserTable:", e.msg
+  `=destroy`((typeof JsonDeserializer()[])(x))
+
 
 #[
     View loading from resources

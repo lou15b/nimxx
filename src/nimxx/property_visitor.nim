@@ -28,6 +28,19 @@ type
     name*: string
     commit*: proc() {.gcsafe.}
 
+proc `=destroy`*(x: EnumValue) =
+  `=destroy`(x.possibleValues.addr[])
+
+proc `=destroy`*(x: PropertyVisitor) =
+  `=destroy`(x.qualifiers)
+  # Remove ".addr[]" when Variant has a destructor
+  try:
+    `=destroy`(x.setterAndGetter.addr[])
+  except Exception as e:
+    echo "Exception encountered destroying PropertyVisitor setterAndGetter:", e.msg
+  `=destroy`(x.name)
+  `=destroy`(x.commit.addr[])
+
 proc clear*(p: var PropertyVisitor) =
   p.setterAndGetter = newVariant()
 

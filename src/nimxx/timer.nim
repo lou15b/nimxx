@@ -38,6 +38,7 @@ when profileTimers or defined(debugLeaks):
   sharedProfiler[TIMERS] = 0
 
 proc `=destroy`(t: TimerObj) =
+  discard removeTimer(t.timer)
   `=destroy`(t.callback.addr[])
   `=destroy`(t.origCallback.addr[])
   when profileTimers or defined(debugLeaks):

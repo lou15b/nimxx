@@ -286,13 +286,13 @@ type
   ProgramCache = object
     entries: Table[Hash, CompiledComposition]
 
-proc `=destroy`(x: PostEffectObj) =
+proc `=destroy`*(x: PostEffectObj) =
   `=destroy`(x.source)
   `=destroy`(x.setupProc.addr[])
   `=destroy`(x.mainProcName)
   `=destroy`(x.argTypes)
 
-proc `=destroy`(x: CompiledCompositionObj) =
+proc `=destroy`*(x: CompiledCompositionObj) =
   if x.program != invalidGLProgram:
     try:
       glDeleteProgram(x.program)
@@ -300,7 +300,7 @@ proc `=destroy`(x: CompiledCompositionObj) =
       echo "Exception encountered destroying CompiledCompositionObj program:", e.msg
   `=destroy`(x.uniformLocations)  # How to clean up UniformGLLocation entries?
 
-proc `=destroy`(x: Composition) =
+proc `=destroy`*(x: Composition) =
   `=destroy`(x.definition)
   `=destroy`(x.vsDefinition)
   `=destroy`(x.precision)

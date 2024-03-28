@@ -12,6 +12,20 @@ type DragSystem* = ref object
   prevTarget*: View
   image*: Image
 
+proc `=destroy`*(x: typeof DragSystem()[]) =
+  try:
+    `=destroy`(x.pItem)
+  except Exception as e:
+    echo "Exception encountered destroying DragSystem pItem:", e.msg
+  try:
+    `=destroy`(x.prevTarget)
+  except Exception as e:
+    echo "Exception encountered destroying DragSystem prevTarget:", e.msg
+  try:
+    `=destroy`(x.image)
+  except Exception as e:
+    echo "Exception encountered destroying DragSystem image:", e.msg
+
 # Only one object is being dragged at any one time, so only one
 # DragSystem object is ever needed
 var dragSystem* = initLocker(new(DragSystem))

@@ -19,6 +19,10 @@ type
   NCCallback = proc(args: Variant) {.gcsafe.} # legacy
   NCCallbackTable = TableRef[ObserverId, NCCallback] # legacy
 
+proc `=destroy`*(x: typeof NotificationCenter()[]) =
+  `=destroy`(x.notificationsMap.addr[])
+  `=destroy`(x.observers.addr[])
+
 
 var idCounter {.compileTime.} = 0
 

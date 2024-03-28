@@ -1,6 +1,10 @@
 import std/json
+
 type Serializer* = ref object of RootObj
   curKey*: string
+
+proc `=destroy`*(x: typeof Serializer()[]) =
+  `=destroy`(x.curKey)
 
 template abstractCall() = raise newException(Exception, "Abstract method called")
 
@@ -88,6 +92,9 @@ proc serialize*[T](s: Serializer, o: T) =
 type Deserializer* = ref object of RootObj
   curKey*: string
   curIndex*: int
+
+proc `=destroy`*(x: typeof Deserializer()[]) =
+  `=destroy`(x.curKey)
 
 # Methods to override
 method deserialize*(s: Deserializer, v: var bool) {.base, gcsafe.} = abstractCall()
@@ -195,6 +202,10 @@ type JsonSerializer* = ref object of Serializer
   nodeStack: seq[JsonNode]
   curIndex: int
 
+proc `=destroy`*(x: typeof JsonSerializer()[]) =
+  `=destroy`(x.nodeStack)
+  `=destroy`((typeof Serializer()[])(x))
+
 proc newJsonSerializer*(): JsonSerializer =
   result.new()
 
@@ -246,6 +257,10 @@ proc jsonNode*(s: JsonSerializer): JsonNode =
 type JsonDeserializer* = ref object of Deserializer
   nodeStack: seq[JsonNode]
   node: JsonNode
+
+proc `=destroy`*(x: typeof JsonDeserializer()[]) =
+  `=destroy`(x.nodeStack)
+  `=destroy`((typeof Deserializer()[])(x))
 
 method init*(s: JsonDeserializer, n: JsonNode) {.base.} =
   s.nodeStack = @[]
