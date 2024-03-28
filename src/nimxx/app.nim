@@ -20,7 +20,7 @@ type ApplicationObj* = object of RootObj
   modifiers: ModifiersSet
 type Application* = SharedPtr[ApplicationObj]
 
-proc `=destroy`(x: ApplicationObj) =
+proc `=destroy`*(x: ApplicationObj) =
   `=destroy`(x.windows)
   `=destroy`(x.eventFilters)
 

@@ -73,7 +73,7 @@ type
   TriangleView = ref object of View
   SeparatorView = ref object of View
 
-proc `=destroy`*(x: typeof MenuView()[]) =
+proc `=destroy`(x: typeof MenuView()[]) =
   try:
     `=destroy`(x.item)
   except Exception as e:
@@ -81,10 +81,10 @@ proc `=destroy`*(x: typeof MenuView()[]) =
   `=destroy`(x.submenu)
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof TriangleView()[]) =
+proc `=destroy`(x: typeof TriangleView()[]) =
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof SeparatorView()[]) =
+proc `=destroy`(x: typeof SeparatorView()[]) =
   `=destroy`((typeof View()[])(x))
 
 const menuItemHeight = 20.Coord

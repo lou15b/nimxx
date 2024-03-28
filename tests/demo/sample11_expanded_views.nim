@@ -5,7 +5,7 @@ import nimxx / [ view, font, button, expanding_view, stack_view ]
 type ExpandingSampleView = ref object of View
   welcomeFont: Font
 
-proc `=destroy`*(x: typeof ExpandingSampleView()[]) =
+proc `=destroy`(x: typeof ExpandingSampleView()[]) =
   try:
     `=destroy`(x.welcomeFont)
   except Exception as e:

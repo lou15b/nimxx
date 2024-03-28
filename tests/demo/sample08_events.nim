@@ -9,7 +9,7 @@ type
   EventsPriorityView = ref object of View
     welcomeFont: Font
 
-  CustomControl* = ref object of Control
+  CustomControl = ref object of Control
   MyScrollListener = ref object of OnScrollListener
     updatedView: ContentView
     curr_pos_y: float
@@ -25,31 +25,31 @@ type
   DraggedButton = ref object of View
     clickPos: Point
 
-proc `=destroy`*(x: typeof EventsPriorityView()[]) =
+proc `=destroy`(x: typeof EventsPriorityView()[]) =
   try:
     `=destroy`(x.welcomeFont)
   except Exception as e:
     echo "Exception encountered destroying EventsPriorityView welcomeFont:", e.msg
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof CustomControl()[]) =
+proc `=destroy`(x: typeof CustomControl()[]) =
   `=destroy`((typeof Control()[])(x))
 
-proc `=destroy`*(x: typeof ContentView()[]) =
+proc `=destroy`(x: typeof ContentView()[]) =
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof MyScrollListener()[]) =
+proc `=destroy`(x: typeof MyScrollListener()[]) =
   `=destroy`(x.updatedView)
   `=destroy`((typeof OnScrollListener()[])(x))
 
-proc `=destroy`*(x: typeof DraggedButton()[]) =
+proc `=destroy`(x: typeof DraggedButton()[]) =
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof MyDragListener()[]) =
+proc `=destroy`(x: typeof MyDragListener()[]) =
   `=destroy`(x.updatedView)
   `=destroy`((typeof OnScrollListener()[])(x))
 
-proc `=destroy`*(x: typeof ScissorView()[]) =
+proc `=destroy`(x: typeof ScissorView()[]) =
   `=destroy`((typeof View()[])(x))
 
 

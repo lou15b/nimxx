@@ -37,7 +37,7 @@ when profileTimers or defined(debugLeaks):
   const TIMERS = "Timers"
   sharedProfiler[TIMERS] = 0
 
-proc `=destroy`(t: TimerObj) =
+proc `=destroy`*(t: TimerObj) =
   discard removeTimer(t.timer)
   `=destroy`(t.callback.addr[])
   `=destroy`(t.origCallback.addr[])

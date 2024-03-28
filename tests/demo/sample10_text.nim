@@ -6,7 +6,7 @@ import nimxx / [ view, font, button, text_field, slider, popup_button,
 type TextView = ref object of View
   text: FormattedText
 
-proc `=destroy`*(x: typeof TextView()[]) =
+proc `=destroy`(x: typeof TextView()[]) =
   try:
     `=destroy`(x.text)
   except Exception as e:
@@ -15,7 +15,7 @@ proc `=destroy`*(x: typeof TextView()[]) =
 
 type TextSampleView = ref object of View
 
-proc `=destroy`*(x: typeof TextSampleView()[]) =
+proc `=destroy`(x: typeof TextSampleView()[]) =
   `=destroy`((typeof View()[])(x))
 
 const textSample = """Nim is statically typed, with a simple syntax. It supports compile-time metaprogramming features such as syntactic macros and term rewriting macros.

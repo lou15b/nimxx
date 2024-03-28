@@ -46,7 +46,7 @@ when useAppKit:
     of ckNotAllowed: operationNotAllowedCursor()
     of ckHand: pointingHandCursor()
 
-  proc `=destroy`(c: Cursor) =
+  proc `=destroy`*(c: Cursor) =
     cast[NSCursor](c.c).release()
 else:
   proc cursorKindToSdl(c: CursorKind): SystemCursor =
@@ -64,7 +64,7 @@ else:
     of ckNotAllowed: SDL_SYSTEM_CURSOR_NO
     of ckHand: SDL_SYSTEM_CURSOR_HAND
 
-  proc `=destroy`(c: Cursor) =
+  proc `=destroy`*(c: Cursor) =
     freeCursor(c.c)
 
 proc newCursor*(k: CursorKind): ref Cursor =

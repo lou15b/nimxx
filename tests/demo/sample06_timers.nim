@@ -6,7 +6,7 @@ type TimersSampleView = ref object of View
   timer: Timer
   intervalTextField: TextField
 
-proc `=destroy`*(x: typeof TimersSampleView()[]) =
+proc `=destroy`(x: typeof TimersSampleView()[]) =
   try:
     `=destroy`(x.timer)
   except Exception as e:

@@ -26,7 +26,7 @@ proc `=destroy`*(x: typeof UIResource()[]) =
   except Exception as e:
     echo "Exception encountered destroying UIResource actions:", e.msg
 
-proc `=destroy`*(x: typeof UIResourceDeserializer()[]) =
+proc `=destroy`(x: typeof UIResourceDeserializer()[]) =
   try:
     `=destroy`(x.deserTable.addr[])
   except Exception as e:

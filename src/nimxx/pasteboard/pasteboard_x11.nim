@@ -8,7 +8,7 @@ import ../utils/lock_utils
 
 type X11Pasteboard = object of Pasteboard
 
-proc `=destroy`*(x: X11Pasteboard) =
+proc `=destroy`(x: X11Pasteboard) =
   `=destroy`(x.Pasteboard)
 
 const XINT_MAX = 32767

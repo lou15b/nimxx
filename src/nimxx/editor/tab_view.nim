@@ -11,7 +11,7 @@ type
   TabDraggingView = ref object of View
     title: string
 
-proc `=destroy`*(x: typeof TabDraggingView()[]) =
+proc `=destroy`(x: typeof TabDraggingView()[]) =
   `=destroy`(x.title)
   `=destroy`((typeof View()[])(x))
 

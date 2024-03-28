@@ -9,7 +9,7 @@ type FontsView = ref object of View
   curFontSize: float
   baseline: Baseline
 
-proc `=destroy`*(x: typeof FontsView()[]) =
+proc `=destroy`(x: typeof FontsView()[]) =
   try:
     `=destroy`(x.curFont)
   except Exception as e:

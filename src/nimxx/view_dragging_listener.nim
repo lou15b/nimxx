@@ -7,7 +7,7 @@ type DraggingScrollListener = ref object of OnScrollListener
   view: View
   start: Point
 
-proc `=destroy`*(x: typeof DraggingScrollListener()[]) =
+proc `=destroy`(x: typeof DraggingScrollListener()[]) =
   try:
     `=destroy`(x.view)
   except Exception as e:
@@ -29,14 +29,14 @@ proc enableDraggingByBackground*(v: View) =
 
 type ResizingKnob = ref object of View
 
-proc `=destroy`*(x: typeof ResizingKnob()[]) =
+proc `=destroy`(x: typeof ResizingKnob()[]) =
   `=destroy`((typeof View()[])(x))
 
 type ResizingScrollListener = ref object of OnScrollListener
   view: View
   originalSize: Size
 
-proc `=destroy`*(x: typeof ResizingScrollListener()[]) =
+proc `=destroy`(x: typeof ResizingScrollListener()[]) =
   try:
     `=destroy`(x.view)
   except Exception as e:

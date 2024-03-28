@@ -4,12 +4,12 @@ import nimxx / [ view, window, button, text_field, layout, scroll_view, table_vi
 
 type LayoutSampleView = ref object of View
 
-proc `=destroy`*(x: typeof LayoutSampleView()[]) =
+proc `=destroy`(x: typeof LayoutSampleView()[]) =
   `=destroy`((typeof View()[])(x))
 
 type TestView = ref object of View
 
-proc `=destroy`*(x: typeof TestView()[]) =
+proc `=destroy`(x: typeof TestView()[]) =
   `=destroy`((typeof View()[])(x))
 
 

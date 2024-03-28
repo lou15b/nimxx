@@ -8,7 +8,7 @@ import pkg/malebolgia/lockers
 
 type ControlsSampleView = ref object of View
 
-proc `=destroy`*(x: typeof ControlsSampleView()[]) =
+proc `=destroy`(x: typeof ControlsSampleView()[]) =
   `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: ControlsSampleView): string =

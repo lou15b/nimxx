@@ -9,7 +9,7 @@ type ImageSampleView = ref object of View
   generatedImage: Image
   httpImage: Image
 
-proc `=destroy`*(x: typeof ImageSampleView()[]) =
+proc `=destroy`(x: typeof ImageSampleView()[]) =
   try:
     `=destroy`(x.image)
     `=destroy`(x.generatedImage)

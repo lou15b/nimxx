@@ -88,7 +88,7 @@ proc `=destroy`*(x: typeof ColorPickerS()[]) =
 proc `=destroy`*(x: typeof ColorPickerV()[]) =
   `=destroy`((typeof View()[])(x))
 
-proc `=destroy`*(x: typeof ColorComponentTextField()[]) =
+proc `=destroy`(x: typeof ColorComponentTextField()[]) =
   `=destroy`((typeof TextField()[])(x))
 
 proc `=destroy`*(x: typeof ColorPickerView()[]) =

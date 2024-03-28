@@ -37,7 +37,7 @@ type
 const
   LayoutWidthAuto*: int = 0
 
-proc `=destroy`(x: type CollectionView()[]) =
+proc `=destroy`*(x: type CollectionView()[]) =
   `=destroy`(x.viewForItem.addr[])
   `=destroy`(x.numberOfItems.addr[])
   `=destroy`((typeof View()[])(x))

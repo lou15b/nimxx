@@ -167,7 +167,7 @@ proc topCoordOfRow(v: TableView, row: int): Coord {.inline.} =
 type TableRow = ref object of View
   topConstraint: Constraint
 
-proc `=destroy`*(x: typeof TableRow()[]) =
+proc `=destroy`(x: typeof TableRow()[]) =
   # Remove ".addr[]" when Constraint has a destructor
   try:
     `=destroy`(x.topConstraint.addr[])

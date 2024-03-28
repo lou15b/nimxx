@@ -4,7 +4,7 @@ import nimxx / [ collection_view, popup_button, slider, text_field, timer, view 
 
 type CollectionsSampleView = ref object of View
 
-proc `=destroy`*(x: typeof CollectionsSampleView()[]) =
+proc `=destroy`(x: typeof CollectionsSampleView()[]) =
   `=destroy`((typeof View()[])(x))
 
 method getClassName*(v: CollectionsSampleView): string =

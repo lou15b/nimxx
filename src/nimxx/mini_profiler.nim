@@ -36,7 +36,7 @@ type
   # from multiple threads
   Profiler* = SharedPtr[ProfilerObj]
 
-proc `=destroy`(x: ProfilerDataSourceBaseObj) =
+proc `=destroy`*(x: ProfilerDataSourceBaseObj) =
   `=destroy`(x.stringifiedValue)
   `=destroy`(x.syncStringifiedValue.addr[])
   `=destroy`(x.incValue.addr[])
@@ -47,7 +47,7 @@ proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
     `=destroy`(x.mValue)
   `=destroy`(x.ProfilerDataSourceBaseObj)
 
-proc `=destroy`(x: ProfilerObj) =
+proc `=destroy`*(x: ProfilerObj) =
   `=destroy`(x.values.addr[])
 
 proc setStringifiedValue(ds: ProfilerDataSourceBase, stringVal: string) =

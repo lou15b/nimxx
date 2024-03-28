@@ -6,7 +6,7 @@ type AnimationSampleView = ref object of View
   rotation: Coord
   animation: Animation
 
-proc `=destroy`*(x: typeof AnimationSampleView()[]) =
+proc `=destroy`(x: typeof AnimationSampleView()[]) =
   try:
     `=destroy`(x.animation)
   except Exception as e:

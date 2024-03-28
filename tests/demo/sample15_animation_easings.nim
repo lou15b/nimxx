@@ -13,7 +13,7 @@ type AnimationEasing = ref object of View
   animationCurved: Animation
   animationLinear: Animation
 
-proc `=destroy`*(x: typeof AnimationEasing()[]) =
+proc `=destroy`(x: typeof AnimationEasing()[]) =
   try:
     `=destroy`(x.progress)
   except Exception as e:

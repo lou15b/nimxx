@@ -21,7 +21,7 @@ type ItemNode = ref object
   item: Variant
   cell: TableViewCell
 
-proc `=destroy`*(x: typeof ItemNode()[]) =
+proc `=destroy`(x: typeof ItemNode()[]) =
   `=destroy`(x.children)
   when defined(gcDestructors):
     try:
