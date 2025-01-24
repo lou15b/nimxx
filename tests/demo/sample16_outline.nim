@@ -1,6 +1,7 @@
 import ./sample_registry
 import nimxx / [ view, outline_view, scroll_view, table_view_cell, text_field ]
 import pkg/variant
+import pkg/destructor
 
 type
   DataItem = ref object
@@ -8,14 +9,14 @@ type
     children: seq[DataItem]
     parent {.cursor.}: DataItem
 
-proc `=destroy`(x: typeof DataItem()[]) =
-  `=destroy`(x.name)
-  `=destroy`(x.children)
+DataItem.traceDestructor(tagfield = x.name):
+  DataItem.destroyFields(x.name, x.children)
 
 type OutlineSampleView = ref object of View
 
-proc `=destroy`(x: typeof OutlineSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+OutlineSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: OutlineSampleView): string =
   result = "OutlineSampleView"
@@ -50,40 +51,42 @@ method init*(v: OutlineSampleView, r: Rect) =
     else:
       return item.get(DataItem).children.len
 
-  outline.childOfItem = proc(item: Variant, indexPath: openArray[int]): Variant =
+  let outlinex {.cursor.} = outline
+
+  outlinex.childOfItem = proc(item: Variant, indexPath: openArray[int]): Variant =
     if indexPath.len == 1:
       return newVariant(rootDataItem)
     else:
       let node = item.get(DataItem).children[indexPath[^1]]
       return newVariant(node)
 
-  outline.createCell = proc(): TableViewCell =
+  outlinex.createCell = proc(): TableViewCell =
     result = newTableViewCell(
       newLabel(newRect(0, 0, 200, 20))
     )
 
-  outline.configureCell = proc(cell: TableViewCell, indexPath: openArray[int]) =
-    let node = outline.itemAtIndexPath(indexPath).get(DataItem)
+  outlinex.configureCell = proc(cell: TableViewCell, indexPath: openArray[int]) =
+    let node = outlinex.itemAtIndexPath(indexPath).get(DataItem)
     let textField = TextField(cell.subviews[0])
     textField.text = node.name
 
-  outline.onDragAndDrop = proc(fromPath, toPath: openArray[int]) =
+  outlinex.onDragAndDrop = proc(fromPath, toPath: openArray[int]) =
     echo fromPath, " >> ", toPath
     var parentPos = @toPath[0..^2]
-    let fromNode = outline.itemAtIndexPath(fromPath).get(DataItem)
-    let toNode = outline.itemAtIndexPath(parentPos).get(DataItem)
+    let fromNode = outlinex.itemAtIndexPath(fromPath).get(DataItem)
+    let toNode = outlinex.itemAtIndexPath(parentPos).get(DataItem)
 
     let fi = fromNode.parent.children.find(fromNode)
     fromNode.parent.children.delete(fi)
     fromNode.parent = toNode
     let toIndex = clamp(toPath[^1], 0, toNode.children.len)
     toNode.children.insert(fromNode, toIndex)
-    outline.reloadData()
+    outlinex.reloadData()
 
-  outline.onSelectionChanged = proc() =
-    let ip = outline.selectedIndexPath
+  outlinex.onSelectionChanged = proc() =
+    let ip = outlinex.selectedIndexPath
     let node = if ip.len > 0:
-          outline.itemAtIndexPath(ip).get(DataItem)
+          outlinex.itemAtIndexPath(ip).get(DataItem)
         else:
           nil
     if node.isNil:

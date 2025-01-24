@@ -5,6 +5,7 @@ import ./view_event_handling
 import ./gesture_detector
 import ./types
 import ./clip_view
+import pkg/destructor
 
 type
 
@@ -26,25 +27,17 @@ type
     dirtyBoundsOrigin : Point
     itemClick: proc(pos : int) {.gcsafe.}
 
-proc `=destroy`*(x: typeof Adapter()[]) =
+Adapter.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`(x: typeof ViewWrapper()[]) =
-  try:
-    `=destroy`(x.v)
-  except Exception as e:
-    echo "Exception encountered destroying ViewWrapper v:", e.msg
+ViewWrapper.traceDestructor():
+  ViewWrapper.destroyFields(x.v)
 
-proc `=destroy`*(x: typeof HorizontalListView()[]) =
-  `=destroy`(x.adapter)
-  `=destroy`(x.items)
-  `=destroy`(x.cleared)
-  `=destroy`(x.itemClick.addr[])
-  `=destroy`((typeof ClipView()[])(x))
+HorizontalListView.traceDestructor(tagfield = x.name):
+  HorizontalListView.destroyFields(x.adapter, x.items, x.cleared, x.itemClick)
 
-proc `=destroy`(x: typeof ListScrollListener()[]) =
-  `=destroy`(x.view)
-  `=destroy`((typeof OnScrollListener()[])(x))
+ListScrollListener.traceDestructor():
+  ListScrollListener.destroyFields(x.view)
 
 proc newViewWrapper(view : View, pos: int): ViewWrapper =
   result.new

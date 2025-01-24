@@ -1,17 +1,14 @@
 import std/math # for PI
 import ./sample_registry
 import nimxx / [ view, context, animation, window, button, progress_indicator ]
+import pkg/destructor
 
 type AnimationSampleView = ref object of View
   rotation: Coord
   animation: Animation
 
-proc `=destroy`(x: typeof AnimationSampleView()[]) =
-  try:
-    `=destroy`(x.animation)
-  except Exception as e:
-    echo "Exception encountered destroying ImageSampleView animation:", e.msg
-  `=destroy`((typeof View()[])(x))
+AnimationSampleView.traceDestructor(tagfield = x.name):
+  AnimationSampleView.destroyFields(x.animation)
 
 method getClassName*(v: AnimationSampleView): string =
   result = "AnimationSampleView"
@@ -23,31 +20,34 @@ method init*(v: AnimationSampleView, r: Rect) =
   # Start/Stop button
   let startStopButton = newButton(newRect(20, 20, 50, 50))
   startStopButton.title = "Stop"
-  startStopButton.onAction do():
-    if v.animation.finished:
-      v.window.addAnimation(v.animation)
-      startStopButton.title = "Stop"
+  let startStopButtonx {.cursor.} = startStopButton
+  let vx {.cursor.} = v
+  startStopButtonx.onAction do():
+    if vx.animation.finished:
+      vx.window.addAnimation(vx.animation)
+      startStopButtonx.title = "Stop"
     else:
-      v.animation.cancel()
+      vx.animation.cancel()
   v.addSubview(startStopButton)
 
   v.animation.timingFunction = bezierTimingFunction(0.53,-0.53,0.38,1.52)
-  v.animation.onAnimate = proc(p: float) =
-    v.rotation = p * PI * 2
+  vx.animation.onAnimate = proc(p: float) =
+    vx.rotation = p * PI * 2
   v.animation.loopDuration = 2.0
-  v.animation.onComplete do():
-    startStopButton.title = "Start"
+  vx.animation.onComplete do():
+    startStopButtonx.title = "Start"
   #v.animation.numberOfLoops = 2
 
   let playPauseButton = newButton(newRect(80, 20, 70, 50))
   playPauseButton.title = "Pause"
-  playPauseButton.onAction do():
-    if playPauseButton.title == "Pause":
-      v.animation.pause()
-      playPauseButton.title = "Resume"
+  let playPauseButtonx {.cursor.} = playPauseButton
+  playPauseButtonx.onAction do():
+    if playPauseButtonx.title == "Pause":
+      vx.animation.pause()
+      playPauseButtonx.title = "Resume"
     else:
-      v.animation.resume()
-      playPauseButton.title = "Pause"
+      vx.animation.resume()
+      playPauseButtonx.title = "Pause"
   v.addSubview(playPauseButton)
 
 
@@ -55,11 +55,12 @@ method init*(v: AnimationSampleView, r: Rect) =
   v.addSubview(progressBar)
 
   # Loop progress handlers are called when animation reaches specified loop progress.
+  let progressBarx {.cursor.} = progressBar
   v.animation.addLoopProgressHandler 1.0, false, proc() =
-    progressBar.value = 1.0
+    progressBarx.value = 1.0
 
   v.animation.addLoopProgressHandler 0.5, false, proc() =
-    progressBar.value = 0.5
+    progressBarx.value = 0.5
 
   v.animation.continueUntilEndOfLoopOnCancel = true
 

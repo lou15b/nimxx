@@ -1,6 +1,7 @@
 import ./animation
 import std/times
 import std/logging
+import pkg/destructor
 
 ##[
   Provides pause/resume/update control for a collection of Animations.
@@ -13,10 +14,8 @@ type AnimationRunner* = ref object
   onAnimationRemoved*: proc() {.gcsafe.}
   paused: bool
 
-proc `=destroy`*(x: typeof AnimationRunner()[]) =
-  `=destroy`(x.animations)
-  `=destroy`(x.onAnimationAdded.addr[])
-  `=destroy`(x.onAnimationRemoved.addr[])
+AnimationRunner.traceDestructor():
+  AnimationRunner.destroyFields(x.animations, x.onAnimationAdded, x.onAnimationRemoved)
 
 proc newAnimationRunner*(): AnimationRunner = AnimationRunner()
 

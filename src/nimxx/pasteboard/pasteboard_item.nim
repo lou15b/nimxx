@@ -1,11 +1,11 @@
+import pkg/destructor
 
 type PasteboardItem* = ref object
     kind*: string
     data*: string
 
-proc `=destroy`*(x: typeof PasteboardItem()[]) =
-  `=destroy`(x.kind)
-  `=destroy`(x.data)
+PasteboardItem.traceDestructor():
+  PasteboardItem.destroyFields(x.kind, x.data)
 
 const PboardKindString* = "string"
 

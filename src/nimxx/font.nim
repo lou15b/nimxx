@@ -7,6 +7,7 @@ import ./private/font/stb_ttf_glyph_provider
 
 import std/os
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 import pkg/ttf/edtaa3func
 import ./private/simple_table
@@ -26,8 +27,8 @@ type CharInfo = ref object
   data: GlyphData
   texture: TextureGLRef
 
-proc `=destroy`(x: typeof CharInfo()[]) =
-  `=destroy`(x.data)
+CharInfo.destructor():
+  CharInfo.destroyFields(x.data)
   if x.texture != invalidGLTexture:
     try:
       deleteGLTexture(x.texture)
@@ -56,9 +57,8 @@ type FontImpl = ref object
   ascent: float32
   descent: float32
 
-proc `=destroy`(x: typeof FontImpl()[]) =
-  `=destroy`(x.chars.addr[])
-  `=destroy`(x.glyphProvider)
+FontImpl.traceDestructor():
+  FontImpl.destroyFields(x.chars, x.glyphProvider)
 
 var fontCache =
   initLocker(newSimpleTable(FastString, FontImpl))
@@ -89,13 +89,8 @@ type Font* = ref object
   glyphMargin: int32
   baseline*: Baseline # Beware! Experinmetal!
 
-proc `=destroy`*(x: typeof Font()[]) =
-  try:
-    `=destroy`(x.impl)
-  except Exception as e:
-    echo "Exception encountered destroying Font impl:", e.msg
-  `=destroy`(x.filePath)
-  `=destroy`(x.face)
+Font.traceDestructor():
+  Font.destroyFields(x.impl, x.filePath, x.face)
 
 proc `size=`*(f: Font, s: float) =
   f.mSize = s

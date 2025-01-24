@@ -1,13 +1,13 @@
 import ./ [ view, context, button ]
 import std/math
+import pkg/destructor
 
 type ExpandButton* = ref object of Button
   expanded*: bool
   onExpandAction*: proc(state: bool) {.gcsafe.}
 
-proc `=destroy`*(x: typeof ExpandButton()[]) =
-  `=destroy`(x.onExpandAction.addr[])
-  `=destroy`((typeof Button()[])(x))
+ExpandButton.traceDestructor(tagfield = x.name):
+  ExpandButton.destroyFields(x.onExpandAction)
 
 method getClassName*(v: ExpandButton): string =
   result = "ExpandButton"

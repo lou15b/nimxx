@@ -3,6 +3,7 @@ import ./ [ font, types, unistring ]
 import ./opengl_etc
 import ./utils/lower_bound
 import ./private/text_drawing
+import pkg/destructor
 
 type
   FormattedText* = ref object
@@ -69,21 +70,15 @@ type
     haCenter
     haJustify
 
-proc `=destroy`(x:Attributes) =
-  try:
-    `=destroy`(x.font)
-  except Exception as e:
-    echo "Exception encountered destroying Attributes font:", e.msg
+Attributes.traceDestructor():
+  Attributes.destroyFields(x.font)
 
-proc `=destroy`*(x:LineInfo) =
-  discard   # No destructor logic needed yet
+LineInfo.traceDestructor():
+  discard   # All fields are numeric - No destructor logic needed
 
-proc `=destroy`*(x: typeof FormattedText()[]) =
-  `=destroy`(x.mText)
-  `=destroy`(x.mAttributes)
-  `=destroy`(x.lines)
-  `=destroy`(x.shadowAttrs)
-  `=destroy`(x.strokeAttrs)
+FormattedText.traceDestructor():
+  FormattedText.destroyFields(x.mText, x.mAttributes, x.lines, x.shadowAttrs,
+    x.strokeAttrs)
 
 proc defaultAttributes(): Attributes =
   result.font = systemFont()

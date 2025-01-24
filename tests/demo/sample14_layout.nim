@@ -1,16 +1,19 @@
 import ./sample_registry
 import nimxx / [ view, window, button, text_field, layout, scroll_view, table_view,
     split_view, context ]
+import pkg/destructor
 
 type LayoutSampleView = ref object of View
 
-proc `=destroy`(x: typeof LayoutSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+LayoutSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 type TestView = ref object of View
 
-proc `=destroy`(x: typeof TestView()[]) =
-  `=destroy`((typeof View()[])(x))
+TestView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 
 method getClassName*(v: LayoutSampleView): string =

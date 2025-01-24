@@ -6,6 +6,7 @@ import ./abstract_window
 import ./event
 import ./window_event_handling
 import std / [ rlocks, logging ]
+import pkg/destructor
 
 type EventFilterControl* = enum
   efcContinue
@@ -20,9 +21,8 @@ type ApplicationObj* = object of RootObj
   modifiers: ModifiersSet
 type Application* = SharedPtr[ApplicationObj]
 
-proc `=destroy`*(x: ApplicationObj) =
-  `=destroy`(x.windows)
-  `=destroy`(x.eventFilters)
+ApplicationObj.traceDestructor():
+  ApplicationObj.destroyFields(x.windows, x.eventFilters)
 
 proc pushEventFilter*(a: Application, f: EventFilter) = a[].eventFilters.add(f)
 

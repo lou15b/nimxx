@@ -5,6 +5,7 @@ import ./class_registry
 import ./serializers
 import pkg/kiwi
 import ./notification_center
+import pkg/destructor
 
 export types
 export animation_runner, class_registry
@@ -46,7 +47,7 @@ type
     autoresizingMask*: set[AutoresizingFlag]
     backgroundColor*: Color
     gestureDetectors*: seq[GestureDetector]
-    touchTarget*: View
+    touchTarget* {.cursor.}: View
     interceptEvents*: bool  ## when view starts to handle tap, this flag set to true
     mouseInside*: bool
     handleMouseOver: bool
@@ -70,51 +71,25 @@ type
     mAnimationEnabled*: bool
     renderingContext*: GraphicsContext
 
-proc `=destroy`*(x: typeof GestureDetector()[]) =
+GestureDetector.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`*(x: typeof DragDestinationDelegate()[]) =
+DragDestinationDelegate.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`(cp: ConstraintWithPrototype) =
-  # Remove ".addr[]" and try/except below when Constraint has a destructor
-  try:
-    `=destroy`(cp.proto.addr[])
-    `=destroy`(cp.inst.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying ConstraintWithPrototype contents:", e.msg
+ConstraintWithPrototype.traceDestructor():
+  ConstraintWithPrototype.destroyFields(x.proto, x.inst)
 
-proc `=destroy`(x: LayoutInfo) =
-  `=destroy`(x.vars)
-  `=destroy`(x.constraints)
+LayoutInfo.traceDestructor():
+  LayoutInfo.destroyFields(x.vars, x.constraints)
 
-proc `=destroy`*(v: typeof View()[]) =
-  `=destroy`(v.name)
-  `=destroy`(v.subviews)
-  `=destroy`(v.gestureDetectors)
-  `=destroy`(v.touchTarget)
-  `=destroy`(v.dragDestination)
-  `=destroy`(v.layout)
+View.traceDestructor(tagfield = x.name):
+  View.destroyFields(x.name, x.subviews, x.gestureDetectors, x.touchTarget,
+    x.dragDestination, x.layout)
 
-proc `=destroy`*(w: typeof Window()[]) =
-  try:
-    `=destroy`(w.firstResponder)
-  except Exception as e:
-    echo "Exception encountered destroying Window firstResponder:", e.msg
-  `=destroy`(w.animationRunners)
-  `=destroy`(w.mouseOverListeners)
-  try:
-    `=destroy`(w.renderingContext)
-  except Exception as e:
-    echo "Exception encountered destroying Window renderingContext:", e.msg
-  `=destroy`(w.onClose.addr[])
-  try:
-    # Remove ".addr[]" and take out of try block when Solver has a destructor
-    `=destroy`(w.layoutSolver.addr[])
-    `=destroy`(w.mCurrentTouches.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying Window contents:", e.msg
-  `=destroy`((typeof View()[])(w))
+Window.traceDestructor(tagfield = x.name):
+  Window.destroyFields(x.firstResponder, x.animationRunners, x.mouseOverListeners,
+    x.renderingContext, x.onClose, x.layoutSolver, x.mCurrentTouches)
 
 
 proc init(i: var LayoutInfo) =

@@ -1,7 +1,9 @@
+import pkg/destructor
+
 type
   AssetBundle* = ref object of RootObj
 
-proc `=destroy`*(x: typeof AssetBundle()[]) =
+AssetBundle.traceDestructor():
   discard    # Type is empty
 
 proc abstractMethod() = raise newException(Exception, "Abstract method called")

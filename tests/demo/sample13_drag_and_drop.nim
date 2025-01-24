@@ -5,19 +5,23 @@ import nimxx / [ view, view_event_handling, drag_and_drop, text_field, expanding
 import nimxx/pasteboard/pasteboard_item
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type DragAndDropView = ref object of View
 type MyDropDelegate = ref object of DragDestinationDelegate
 type DraggedView = ref object of View
 
-proc `=destroy`(x: typeof DragAndDropView()[]) =
-  `=destroy`((typeof View()[])(x))
+DragAndDropView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
-proc `=destroy`(x: typeof MyDropDelegate()[]) =
-  `=destroy`((typeof DragDestinationDelegate()[])(x))
+MyDropDelegate.traceDestructor():
+  # No fields that require destruction by Nim
+  discard
 
-proc `=destroy`(x: typeof DraggedView()[]) =
-  `=destroy`((typeof View()[])(x))
+DraggedView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 const PboardSampleDrag* = "nimx.sample.drag"
 

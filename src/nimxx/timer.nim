@@ -1,4 +1,5 @@
 import std / [ times, rlocks ]
+import pkg/destructor
 import ./mini_profiler
 import ./utils/lock_utils
 
@@ -12,7 +13,7 @@ type TimerState = enum
   tsRunning
   tsPaused
 
-when defined(debugLeaks):
+when defined(debugTimerLeaks):
   var allTimers {.threadvar.}: seq[pointer]
 
 type
@@ -26,30 +27,29 @@ type
     scheduleTime: float
     state: TimerState
     ready: bool
-    when defined(debugLeaks):
+    when defined(debugTimerLeaks):
       instantiationStackTrace*: string
 
 
 const profileTimers = not defined(release)
 
-when profileTimers or defined(debugLeaks):
+when profileTimers or defined(debugTimerLeaks):
   # This counts the total number of Timer objects in the Application
   const TIMERS = "Timers"
   sharedProfiler[TIMERS] = 0
 
-proc `=destroy`*(t: TimerObj) =
-  discard removeTimer(t.timer)
-  `=destroy`(t.callback.addr[])
-  `=destroy`(t.origCallback.addr[])
-  when profileTimers or defined(debugLeaks):
+TimerObj.destructor():
+  discard removeTimer(x.timer)
+  TimerObj.destroyFields(x.callback, x.origCallback)
+  when profileTimers or defined(debugTimerLeaks):
     withRLockGCsafe(sharedProfilerLock):
       try:
         dec sharedProfiler[TIMERS]
       except Exception as e:
         echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
-  when defined(debugLeaks):
-    `=destroy`(t.instantiationStackTrace)
-    let p = cast[pointer](addr t)
+  when defined(debugTimerLeaks):
+    TimerObj.destroyFields(x.instantiationStackTrace)
+    let p = cast[pointer](addr x)
     let i = allTimers.find(p)
     assert(i != -1)
     allTimers.del(i)
@@ -163,13 +163,13 @@ proc newTimer*(interval: float, repeat: bool, callback: proc() {.gcsafe.}): Time
   else:
     result.new()
 
-  when defined(debugLeaks):
+  when defined(debugTimerLeaks):
     result.instantiationStackTrace = getStackTrace()
     allTimers.add(cast[pointer](result))
 
   result.origCallback = callback
 
-  let t = result
+  let t {.cursor.} = result
   GC_ref(t)
   if repeat:
     t.callback = callback
@@ -214,11 +214,12 @@ proc resume*(t: Timer) =
     t.scheduleTime = epochTime() - (interval - t.scheduleTime)
     if t.isPeriodic:
       t.isPeriodic = false
+      let x {.cursor.} = t
       t.callback = proc() =
-        t.callback = t.origCallback
-        t.origCallback()
-        t.cancel()
-        t.schedule()
+        x.callback = x.origCallback
+        x.origCallback()
+        x.cancel()
+        x.schedule()
       t.schedule()
       t.isPeriodic = true
     else:
@@ -226,7 +227,7 @@ proc resume*(t: Timer) =
     t.interval = interval
     t.state = tsRunning
 
-when defined(debugLeaks):
+when defined(debugTimerLeaks):
   iterator activeTimers*(): Timer =
     for t in allTimers:
       yield cast[Timer](t)

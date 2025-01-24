@@ -2,6 +2,7 @@ import std/os
 import ./abstract_asset_bundle
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 var nativeAssetBasePath = initLocker(getAppDir())
 
@@ -12,9 +13,8 @@ proc setNativeAssetBasePath*(basePath: string) =
 type NativeAssetBundle* = ref object of AssetBundle
   mBaseUrl: string
 
-proc `=destroy`*(x: typeof NativeAssetBundle()[]) =
-  `=destroy`(x.mBaseUrl)
-  `=destroy`((typeof AssetBundle()[])(x))
+NativeAssetBundle.traceDestructor():
+  NativeAssetBundle.destroyFields(x.mBaseUrl)
 
 proc newNativeAssetBundle*(): NativeAssetBundle =
   result.new()

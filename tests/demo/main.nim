@@ -37,8 +37,9 @@ proc startApplication() =
   mainWindow.title = "NimXX Sample"
   mainWindow.name = "NimXX Sample"
 
-  var currentView = View.new(newRect(0, 0, mainWindow.bounds.width - 100,
+  var initialView = View.new(newRect(0, 0, mainWindow.bounds.width - 100,
     mainWindow.bounds.height))
+  initialView.name = "initialView"
 
   let splitView = newHorizontalLayout(mainWindow.bounds)
   splitView.resizingMask = "wh"
@@ -46,25 +47,32 @@ proc startApplication() =
   mainWindow.addSubview(splitView)
 
   let tableView = newTableView(newRect(0, 0, 120, mainWindow.bounds.height))
+  tableView.name = "**** main tableView ****"
   tableView.resizingMask = "rh"
   splitView.addSubview(newScrollView(tableView))
-  splitView.addSubview(currentView)
+  # splitView.addSubview(tableView)
+  splitView.addSubview(initialView)
   splitView.setDividerPosition(120, 0)
 
-  tableView.numberOfRows = proc: int = allSamples.len
-  tableView.createCell = proc (): TableViewCell =
+  let tableViewx {.cursor.} = tableView
+  tableViewx.numberOfRows = proc (): int = allSamples.len
+  tableViewx.createCell = proc (): TableViewCell =
     result = newTableViewCell(newLabel(newRect(0, 0, 120, 20)))
-  tableView.configureCell = proc (c: TableViewCell) =
+  tableViewx.configureCell = proc (c: TableViewCell) =
     TextField(c.subviews[0]).text = allSamples[c.row].name
-  tableView.onSelectionChange = proc() =
-    let selectedRows = toSeq(items(tableView.selectedRows))
+  var currentView {.cursor.} = initialView
+  let splitViewx {.cursor.} = splitView
+  tableViewx.onSelectionChange = proc() =
+    let selectedRows = toSeq(items(tableViewx.selectedRows))
     if selectedRows.len > 0:
       let firstSelectedRow = selectedRows[0]
       let nv = View(newObjectOfClass(allSamples[firstSelectedRow].className))
       nv.init(currentView.frame)
       nv.resizingMask = "wh"
-      splitView.replaceSubview(currentView, nv)
+      splitViewx.replaceSubview(currentView, nv)
       currentView = nv
+      # ####################
+      GC_fullCollect()
 
   tableView.reloadData()
   tableView.selectRow(0)

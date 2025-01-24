@@ -5,6 +5,8 @@ import ../ [
 
 import ./grid_drawing
 
+import pkg/destructor
+
 # TODO Rework this design
 type
   EventCatchingView* = ref object of View
@@ -56,50 +58,22 @@ type
   EditorWorkspace* = ref object of View
     gridSize*: Size
 
-proc `=destroy`*(x: typeof UIDocument()[]) =
-  try:
-    `=destroy`(x.view)
-  except Exception as e:
-    echo "Exception encountered destroying UIDocument view:", e.msg
-  try:
-    `=destroy`(x.undoManager)
-  except Exception as e:
-    echo "Exception encountered destroying UIDocument undoManager:", e.msg
-  `=destroy`(x.path)
-  `=destroy`(x.takenViewNames)
+UIDocument.traceDestructor():
+  UIDocument.destroyFields(x.view, x.undoManager, x.path, x.takenViewNames)
 
-proc `=destroy`*(x: typeof EditorWorkspace()[]) =
-  `=destroy`((typeof View()[])(x))
+EditorWorkspace.traceDestructor(tagfield = x.name):
+  # No fields to destroy
+  discard
 
-proc `=destroy`*(x: typeof Editor()[]) =
-  try:
-    `=destroy`(x.inspector)
-  except Exception as e:
-    echo "Exception encountered destroying Editor inspector:", e.msg
-  try:
-    `=destroy`(x.mSelectedView)
-  except Exception as e:
-    echo "Exception encountered destroying Editor mSelectedView:", e.msg
-  `=destroy`(x.document)
-  `=destroy`(x.workspace)
+Editor.traceDestructor():
+  Editor.destroyFields(x.inspector, x.mSelectedView, x.document, x.workspace)
 
-proc `=destroy`*(x: typeof EventCatchingView()[]) =
-  `=destroy`(x.keyUpDelegate.addr[])
-  `=destroy`(x.keyDownDelegate.addr[])
-  `=destroy`(x.mouseScrollDelegate.addr[])
-  try:
-    `=destroy`(x.panningView)
-  except Exception as e:
-    echo "Exception encountered destroying Editor mSelectedView panningView:", e.msg
-  `=destroy`(x.editor)
-  `=destroy`((typeof View()[])(x))
+EventCatchingView.traceDestructor(tagfield = x.name):
+  EventCatchingView.destroyFields(x.keyUpDelegate, x.keyDownDelegate,
+    x.mouseScrollDelegate, x.panningView, x.editor)
 
-proc `=destroy`*(x: typeof EditView()[]) =
-  try:
-    `=destroy`(x.editor)
-  except Exception as e:
-    echo "Exception encountered destroying Editor EditView editor:", e.msg
-  `=destroy`((typeof View()[])(x))
+EditView.traceDestructor(tagfield = x.name):
+  EditView.destroyFields(x.editor)
 
 method getClassName*(v: EventCatchingView): string =
   result = "EventCatchingView"

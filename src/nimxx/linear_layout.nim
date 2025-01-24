@@ -2,6 +2,7 @@ import ./ [ view, cursor, view_event_handling ]
 export view
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import pkg/destructor
 
 type
   LinearLayout* = ref object of View
@@ -16,8 +17,9 @@ type
     initialDragPos: Point
     draggingDivider: int
 
-proc `=destroy`*(x: typeof LinearLayout()[]) =
-  `=destroy`((typeof View()[])(x))
+LinearLayout.traceDestructor(tagfield = x.name):
+  # No fields require destruction by Nim
+  discard
 
 proc newHorizontalLayout*(r: Rect): LinearLayout =
   result = LinearLayout.new(r)

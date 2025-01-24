@@ -2,6 +2,7 @@ import ./types
 import std/unicode
 import ./abstract_window
 import std/atomics
+import pkg/destructor
 
 import ./keyboard
 export keyboard
@@ -40,12 +41,8 @@ type Event* = object
   text*: string
   modifiers*: ModifiersSet
 
-proc `=destroy`*(e: Event) =
-  `=destroy`(e.text)
-  try:
-    `=destroy`(e.window)
-  except Exception as e:
-    echo "Exception encountered destroying Event window:", e.msg
+Event.traceDestructor():
+  Event.destroyFields(x.text, x.window)
 
 proc newEvent*(kind: EventType, position: Point = zeroPoint,
     keyCode: VirtualKey = VirtualKey.Unknown, buttonState: ButtonState = bsUnknown,

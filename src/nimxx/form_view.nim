@@ -3,13 +3,13 @@ import ./view
 import ./text_field
 
 import std/tables
+import pkg/destructor
 
 type FormView* = ref object of View
   labelsMap: Table[string, int]
 
-proc `=destroy`*(x: typeof FormView()[]) =
-  `=destroy`(x.labelsMap.addr[])
-  `=destroy`((typeof View()[])(x))
+FormView.traceDestructor(tagfield = x.name):
+  FormView.destroyFields(x.labelsMap)
 
 method getClassName*(v: FormView): string =
   result = "FormView"

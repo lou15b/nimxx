@@ -10,6 +10,7 @@ import ./load_image_impl
 import ./write_image_impl
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type
   Image* = ref object of RootObj
@@ -17,34 +18,32 @@ type
     mSize: Size
     texWidth*, texHeight*: int16
 
-  SelfContainedImage* = ref SelfContainedImageObj
-  SelfContainedImageObj = object of Image
+  SelfContainedImage* = ref object of Image
     texture*: TextureGLRef
     mFilePath: string
 
   FixedTexCoordSpriteImage* = ref object of Image
     spriteSheet: Image
 
-proc `=destroy`*(x: typeof Image()[]) =
+Image.traceDestructor():
   discard    # No contents that need destruction - yet
 
-proc `=destroy`*(x: typeof FixedTexCoordSpriteImage()[]) =
-  `=destroy`(x.spriteSheet)
-  `=destroy`((typeof Image()[])(x))
+FixedTexCoordSpriteImage.traceDestructor():
+  FixedTexCoordSpriteImage.destroyFields(x.spriteSheet)
 
 # This counts the total number of SelfContainedImage objects in the application
 const IMAGES = "Images"
 sharedProfiler[IMAGES] = 0
 
 # ???? Image and FixedTexCoordSpriteImage do not require explicit destructors ????
-proc `=destroy`*(i: SelfContainedImageObj) =
-  if i.texture != invalidGLTexture:
+SelfContainedImage.destructor():
+  if x.texture != invalidGLTexture:
     try:
-      deleteGLTexture(i.texture)
+      deleteGLTexture(x.texture)
     except Exception as e:
       echo "Exception raised by glDeleteTextures in SelfContainedImageObj destructor: ",
         e.msg
-  `=destroy`(i.mFilePath)
+  SelfContainedImage.destroyFields(x.mFilePath)
 
   # Decrement the images count in the (global) sharedProfiler
   withRLockGCsafe(sharedProfilerLock):
@@ -53,7 +52,7 @@ proc `=destroy`*(i: SelfContainedImageObj) =
     except Exception as e:
       echo "Exception raised by dec in SelfContainedImageObj destructor: ", e.msg
   
-  `=destroy`((typeof Image()[])(i))
+  SelfContainedImage.destroyFields((typeof Image()[])(x))
 
 template setupTexParams() =
   when defined(android) or defined(ios):
@@ -445,9 +444,8 @@ when asyncResourceLoad:
       wnd: WindowPtr  # Not ref counted, so not in destructor
       texWidth, texHeight: int16
   
-  proc `=destroy`(x: typeof ImageLoadingCtx()[]) =
-    `=destroy`(x.url)
-    `=destroy`(x.completionCallback.addr[])
+  ImageLoadingCtx.destructor():
+    ImageLoadingCtx.destroyFields(x.url, x.completionCallback)
     when loadAsyncTextureInMainThread:
       # Do we need to destroy decodedData? No destructor for DecodedImageData (yet)
       discard

@@ -6,6 +6,7 @@ import ./context
 import ./font
 import ./view_event_handling
 import ./property_visitor
+import pkg/destructor
 
 type SegmentedControl* = ref object of Control
   mSegments: seq[string]
@@ -19,10 +20,8 @@ type SegmentedControl* = ref object of Control
   clickedSegmentRect: Rect
   clickedSegment: int
 
-proc `=destroy`*(x: typeof SegmentedControl()[]) =
-  `=destroy`(x.mSegments)
-  `=destroy`(x.widths)
-  `=destroy`((typeof Control()[])(x))
+SegmentedControl.traceDestructor(tagfield = x.name):
+  SegmentedControl.destroyFields(x.mSegments, x.widths)
 
 const scComposition = newComposition """
 uniform vec4 uSelectedRect;

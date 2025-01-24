@@ -3,6 +3,7 @@ export abstract_pasteboard
 import ./pasteboard_item
 import std/winlean
 import std/os
+import pkg/destructor
 
 {.pragma: user32, stdcall, dynlib: "user32" .}
 {.pragma: kernel32, stdcall, dynlib: "kernel32" .}
@@ -101,8 +102,8 @@ proc getClipboardFormatByString(str: string): UINT =
 
 type WindowsPasteboard = object of Pasteboard
 
-proc `=destroy`(x: WindowsPasteboard) =
-  `=destroy`(x.Pasteboard)
+WindowsPasteboard.traceDestructor():
+  discard   # No fields to destroy
 
 proc getPasteboardItem(k: UINT, lpstr: LPVOID, lpdat: Handle): PasteboardItem =
   var lpdatLen = globalSize(lpdat)

@@ -5,6 +5,7 @@ import ./image
 import ./pasteboard/pasteboard_item
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type DragSystem* = ref object
   itemPosition*: Point
@@ -12,19 +13,8 @@ type DragSystem* = ref object
   prevTarget*: View
   image*: Image
 
-proc `=destroy`*(x: typeof DragSystem()[]) =
-  try:
-    `=destroy`(x.pItem)
-  except Exception as e:
-    echo "Exception encountered destroying DragSystem pItem:", e.msg
-  try:
-    `=destroy`(x.prevTarget)
-  except Exception as e:
-    echo "Exception encountered destroying DragSystem prevTarget:", e.msg
-  try:
-    `=destroy`(x.image)
-  except Exception as e:
-    echo "Exception encountered destroying DragSystem image:", e.msg
+DragSystem.traceDestructor():
+  DragSystem.destroyFields(x.pItem, x.prevTarget, x.image)
 
 # Only one object is being dragged at any one time, so only one
 # DragSystem object is ever needed

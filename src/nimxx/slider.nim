@@ -4,12 +4,14 @@ export control
 import ./composition
 import ./context
 import ./view_event_handling
+import pkg/destructor
 
 type Slider* = ref object of Control
   mValue: Coord
 
-proc `=destroy`*(x: typeof Slider()[]) =
-  `=destroy`((typeof Control()[])(x))
+Slider.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 const sliderComposition = newComposition """
 uniform float uPosition;

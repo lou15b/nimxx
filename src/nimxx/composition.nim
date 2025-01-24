@@ -3,6 +3,7 @@ import ./private/helper_macros
 import std / [ strutils, tables, hashes ]
 import pkg/nimsl/nimsl
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 
 const commonDefinitions = """
@@ -286,27 +287,22 @@ type
   ProgramCache = object
     entries: Table[Hash, CompiledComposition]
 
-proc `=destroy`*(x: PostEffectObj) =
-  `=destroy`(x.source)
-  `=destroy`(x.setupProc.addr[])
-  `=destroy`(x.mainProcName)
-  `=destroy`(x.argTypes)
+PostEffectObj.traceDestructor(tagfield = x.mainProcName):
+  PostEffectObj.destroyFields(x.source, x.setupProc, x.mainProcName, x.argTypes)
 
-proc `=destroy`*(x: CompiledCompositionObj) =
+CompiledCompositionObj.destructor():
   if x.program != invalidGLProgram:
     try:
       glDeleteProgram(x.program)
     except Exception as e:
       echo "Exception encountered destroying CompiledCompositionObj program:", e.msg
-  `=destroy`(x.uniformLocations)  # How to clean up UniformGLLocation entries?
+  CompiledCompositionObj.destroyFields(x.uniformLocations)  # How to clean up the UniformGLLocation entries?
 
-proc `=destroy`*(x: Composition) =
-  `=destroy`(x.definition)
-  `=destroy`(x.vsDefinition)
-  `=destroy`(x.precision)
+Composition.traceDestructor():
+  Composition.destroyFields(x.definition, x.vsDefinition, x.precision)
 
-proc `=destroy`(x:ProgramCache) =
-  `=destroy`(x.entries.addr[])
+ProgramCache.traceDestructor():
+  ProgramCache.destroyFields(x.entries)
 
 var programCache = initLocker(ProgramCache.new())
 
@@ -382,17 +378,15 @@ type PostEffectStackElem = object
   postEffect: PostEffect
   setupProc*: proc(cc: CompiledComposition) {.gcsafe.}
 
-proc `=destroy`(x:PostEffectStackElem) =
-  `=destroy`(x.postEffect)
-  `=destroy`(x.setupProc.addr[])
+PostEffectStackElem.traceDestructor():
+  PostEffectStackElem.destroyFields(x.postEffect, x.setupProc)
 
 type PostEffectStack = object
   postEffects: seq[PostEffectStackElem]
   postEffectIds: seq[Hash]
 
-proc `=destroy`(x:PostEffectStack) =
-  `=destroy`(x.postEffects)
-  `=destroy`(x.postEffectIds)
+PostEffectStack.traceDestructor():
+  PostEffectStack.destroyFields(x.postEffects, x.postEffectIds)
 
 var postEffectStack = initLocker(PostEffectStack.new())
 

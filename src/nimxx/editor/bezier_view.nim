@@ -1,4 +1,5 @@
 import ../ [ types, view, context, event, view_event_handling, keyboard ]
+import pkg/destructor
 
 
 type
@@ -8,9 +9,8 @@ type
     key: bool
     mOnAction: proc() {.gcsafe.}
 
-proc `=destroy`*(x: typeof BezierView()[]) =
-  `=destroy`(x.mOnAction.addr[])
-  `=destroy`((typeof View()[])(x))
+BezierView.traceDestructor(tagfield = x.name):
+  BezierView.destroyFields(x.mOnAction)
 
 method getClassName*(v: BezierView): string =
   result = "BezierView"

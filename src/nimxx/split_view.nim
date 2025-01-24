@@ -1,4 +1,5 @@
 import pkg/kiwi
+import pkg/destructor
 
 import ./ [ view, window, cursor, view_event_handling, layout_vars ]
 
@@ -14,10 +15,8 @@ type SplitView* = ref object of View
   draggingDivider: int
   initialDragPos: Point
 
-proc `=destroy`*(x: typeof SplitView()[]) =
-  `=destroy`(x.constraints)
-  `=destroy`(x.separatorPositions)
-  `=destroy`((typeof View()[])(x))
+SplitView.traceDestructor(tagfield = x.name):
+  SplitView.destroyFields(x.constraints, x.separatorPositions)
 
 method getClassName*(v: SplitView): string =
   result = "SplitView"

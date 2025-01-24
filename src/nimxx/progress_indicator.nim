@@ -7,18 +7,15 @@ import ./abstract_window
 
 import std/times
 import std/math
+import pkg/destructor
 
 type ProgressIndicator* = ref object of View
   mValue: Coord
   mIndeterminate: bool
   animation: Animation
 
-proc `=destroy`*(x: typeof ProgressIndicator()[]) =
-  try:
-    `=destroy`(x.animation)
-  except Exception as e:
-    echo "Exception encountered destroying ProgressIndicator animation:", e.msg
-  `=destroy`((typeof View()[])(x))
+ProgressIndicator.traceDestructor(tagfield = x.name):
+  ProgressIndicator.destroyFields(x.animation)
 
 const piComposition = newComposition """
 uniform float uPosition;
@@ -81,8 +78,9 @@ method init(v: ProgressIndicator, r: Rect) =
   procCall v.View.init(r)
   v.animation = newAnimation()
   v.animation.finished = true
+  let w {.cursor.} = v
   v.animation.onAnimate = proc(p: float) =
-    v.setNeedsDisplay()
+    w.setNeedsDisplay()
 
 method draw*(v: ProgressIndicator, r: Rect) =
   let c = v.window.renderingContext

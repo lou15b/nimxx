@@ -2,6 +2,7 @@ import ./slider
 export slider
 
 import ./ [ context, view_event_handling ]
+import pkg/destructor
 
 type ScrollBar* = ref object of Slider
   mKnobSize: float # Knob size should vary between 0.0 and 1.0 depending on
@@ -10,8 +11,9 @@ type ScrollBar* = ref object of Slider
           # document is 0.5.
   trackingPos: Coord # Position of mouse coordinate (x or y depending on orientation) within knob
 
-proc `=destroy`*(x: typeof ScrollBar()[]) =
-  `=destroy`((typeof Slider()[])(x))
+ScrollBar.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: ScrollBar): string =
   result = "ScrollBar"

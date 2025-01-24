@@ -2,11 +2,13 @@
 import ./context
 import ./view_dragging_listener
 import ./linear_layout
+import pkg/destructor
 
 type Toolbar* = ref object of LinearLayout
 
-proc `=destroy`*(x: typeof Toolbar()[]) =
-  `=destroy`((typeof LinearLayout()[])(x))
+Toolbar.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: Toolbar): string =
   result = "Toolbar"

@@ -4,23 +4,21 @@ import nimxx / [ view, font, context, composition, button, autotest,
         gesture_detector, view_event_handling ]
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 const welcomeMessage = "Welcome to nimX"
 
 type WelcomeView = ref object of View
   welcomeFont: Font
 
-proc `=destroy`(x: typeof WelcomeView()[]) =
-  try:
-    `=destroy`(x.welcomeFont)
-  except Exception as e:
-    echo "Exception encountered destroying WelcomeView welcomeFont:", e.msg
-  `=destroy`((typeof View()[])(x))
+WelcomeView.traceDestructor(tagfield = x.name):
+  WelcomeView.destroyFields(x.welcomeFont)
 
 type CustomControl = ref object of Control
 
-proc `=destroy`(x: typeof CustomControl()[]) =
-  `=destroy`((typeof Control()[])(x))
+CustomControl.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: WelcomeView): string =
   result = "WelcomeView"

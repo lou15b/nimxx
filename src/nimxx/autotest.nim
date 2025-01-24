@@ -1,6 +1,7 @@
 import std / [ macros, logging, strutils ]
 import ./ [ timer, app, event, abstract_window, button ]
 import ./utils/lock_utils
+import pkg/destructor
 
 type UITestSuiteStep* = object
   code : proc() {.gcsafe.}
@@ -24,19 +25,16 @@ type TestRunnerObj = object
 
 type TestRunner* = ref TestRunnerObj
 
-proc `=destroy`*(x: UITestSuiteStep) =
-  if not isNil(x.code):
-    `=destroy`(x.code.addr[])
-  `=destroy`(x.astrepr)
-  `=destroy`(x.lineinfo)
+UITestSuiteStep.traceDestructor(tagfield = x.lineinfo):
+  UITestSuiteStep.destroyFields(x.code, x.astrepr, x.lineinfo)
 
-proc `=destroy`*(x: UITestSuiteObj) =
-  `=destroy`(x.name)
-  `=destroy`(x.steps)
+UITestSuiteObj.traceDestructor(tagfield = x.name):
+  UITestSuiteObj.destroyFields(x.name, x.steps)
 
-proc `=destroy`*(x: TestRunnerObj) =
-  # (????) No destructor call needed for x.context, its fields are numbers
-  `=destroy`(x.registeredTests)
+TestRunnerObj.traceDestructor():
+  # x.context doesn't need to be destroyed because it's an object (not ref) with
+  #   numeric fields
+  TestRunnerObj.destroyFields(x.registeredTests)
 
 proc init(context: var TestRunnerContext, curTimeout: float = 0.5, waitTries: int = -1) =
   context.curStep = 0

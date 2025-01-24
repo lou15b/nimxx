@@ -3,13 +3,14 @@ export abstract_pasteboard
 import ./pasteboard_item
 
 import pkg/darwin/app_kit
+import pkg/destructor
 
 type MacPasteboard = object of Pasteboard
   p: NSPasteboard
 
-proc `=destroy`(p: MacPasteboard) =
+MacPasteboard.destructor():
   try:
-    p.p.release()
+    x.p.release()
   except Exception as e:
     echo "Exception raised by p.release() in MacPasteboard destructor: ", e.msg
 

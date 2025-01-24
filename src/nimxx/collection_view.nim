@@ -7,6 +7,8 @@ import ./view
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
+import pkg/destructor
+
 type
   LayoutDirection* {.pure.} = enum
     ## Defines how items are layed out inside collection view
@@ -37,14 +39,11 @@ type
 const
   LayoutWidthAuto*: int = 0
 
-proc `=destroy`*(x: type CollectionView()[]) =
-  `=destroy`(x.viewForItem.addr[])
-  `=destroy`(x.numberOfItems.addr[])
-  `=destroy`((typeof View()[])(x))
+CollectionView.traceDestructor():
+  CollectionView.destroyFields(x.viewForItem, x.numberOfItems)
 
-proc `=destroy`(x: type CollectionScrollListener()[]) =
-  `=destroy`(x.v)
-  `=destroy`((typeof OnScrollListener()[])(x))
+CollectionScrollListener.traceDestructor():
+  CollectionView.destroyFields(x.v)
 
 method getClassName*(v: CollectionView): string =
   result = "CollectionView"

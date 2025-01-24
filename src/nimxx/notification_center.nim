@@ -1,4 +1,5 @@
 import std / [ tables, sequtils, macros ]
+import pkg/destructor
 
 import pkg/variant # for legacy api
 export variant
@@ -19,9 +20,8 @@ type
   NCCallback = proc(args: Variant) {.gcsafe.} # legacy
   NCCallbackTable = TableRef[ObserverId, NCCallback] # legacy
 
-proc `=destroy`*(x: typeof NotificationCenter()[]) =
-  `=destroy`(x.notificationsMap.addr[])
-  `=destroy`(x.observers.addr[])
+NotificationCenter.traceDestructor():
+  NotificationCenter.destroyFields(x.notificationsMap, x.observers)
 
 
 var idCounter {.compileTime.} = 0
@@ -74,6 +74,7 @@ proc removeObserverAux(nc: NotificationCenter, observer: ObserverId) =
 
 template getObserverID(rawId: ref | SomeOrdinal): ObserverId = cast[int](rawId)
 
+#### This now fails C compile.
 proc castProc[TTo, TFrom](p: TFrom): TTo {.inline.} =
   # This is needed because of nim bug #5785. Otherwise regular cast could be used
   {.emit: """
@@ -111,11 +112,11 @@ proc newTupleAux(args: NimNode): NimNode =
   result = newNimNode(nnkTupleConstr)
   for c in args: result.add(c)
 
-macro newTuple(args: varargs[typed]): untyped =
+macro newTuple(args: varargs[untyped]): untyped =
   newTupleAux(args)
 
-macro newTuple(args: untyped): untyped =
-  newTupleAux(args)
+# macro newTuple(args: untyped): untyped =
+#   newTupleAux(args)
 
 # All this dancing with pointers and casts may be prettier at the cost
 # of additional closure allocation on every postNotification. We prefer to
@@ -133,7 +134,7 @@ proc dispatchForwarder[TProc, TTuple](prc: proc(), ctx: pointer) =
   appendTupleToCall(p(), cast[ptr TTuple](ctx)[])
 
 template postNotification*[T: proc](nc: NotificationCenter, name: Notification[T],
-    args: varargs[typed]) =
+    args: varargs[untyped]) =
   var t = newTuple(args)
   var pt {.noInit.}: pointer
   pt = addr t

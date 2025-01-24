@@ -1,5 +1,6 @@
 import ./ [ context, image, types, view ]
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import pkg/destructor
 
 type
   ImageFillRule* {.pure.} = enum
@@ -21,12 +22,8 @@ type
     imageMarginTop*: Coord
     imageMarginBottom*: Coord
 
-proc `=destroy`*(x: typeof ImageView()[]) =
-  try:
-    `=destroy`(x.image)
-  except Exception as e:
-    echo "Exception encountered destroying ImageView image:", e.msg
-  `=destroy`((typeof View()[])(x))
+ImageView.traceDestructor(tagfield = x.name):
+  ImageView.destroyFields(x.image)
 
 proc newImageView*(r: Rect, image: Image = nil, fillRule = ImageFillRule.NoFill): ImageView =
   result.new

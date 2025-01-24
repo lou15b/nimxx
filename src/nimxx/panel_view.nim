@@ -6,6 +6,7 @@ import ./composition
 import ./gesture_detector
 import ./view_dragging_listener
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import pkg/destructor
 
 type PanelView* = ref object of View
   draggable*: bool
@@ -13,8 +14,9 @@ type PanelView* = ref object of View
   mCollapsed: bool
   contentHeight*: Coord
 
-proc `=destroy`*(x: typeof PanelView()[]) =
-  `=destroy`((typeof View()[])(x))
+PanelView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 template titleHeight*(v: PanelView): Coord = Coord(27)
 

@@ -1,5 +1,6 @@
 import std/math
 import pkg/kiwi
+import pkg/destructor
 import ../ [ view, context, matrixes, font, linear_layout, button, menu,
             split_view, layout_vars ]
 import ../ [ view_event_handling ]
@@ -11,9 +12,8 @@ type
   TabDraggingView = ref object of View
     title: string
 
-proc `=destroy`(x: typeof TabDraggingView()[]) =
-  `=destroy`(x.title)
-  `=destroy`((typeof View()[])(x))
+TabDraggingView.traceDestructor(tagfield = x.title):
+  TabDraggingView.destroyFields(x.title)
 
 type TabView* = ref object of View
   tabs: seq[Tab]
@@ -29,18 +29,9 @@ type TabView* = ref object of View
   onClose*: proc(v: View) {.gcsafe.}
   subviewConstraintProtos: seq[Constraint]
 
-proc `=destroy`*(x: typeof TabView()[]) =
-  `=destroy`(x.tabs)
-  `=destroy`(x.mouseTracker.addr[])
-  try:
-    `=destroy`(x.configurationButton)
-  except Exception as e:
-    echo "Exception encountered destroying TabView configurationButton:", e.msg
-  `=destroy`(x.onSplit.addr[])
-  `=destroy`(x.onRemove.addr[])
-  `=destroy`(x.onClose.addr[])
-  `=destroy`(x.subviewConstraintProtos)
-  `=destroy`((typeof View()[])(x))
+TabView.traceDestructor(tagfield = x.name):
+  TabView.destroyFields(x.tabs, x.mouseTracker, x.configurationButton,
+    x.onSplit, x.onRemove, x.onClose, x.subviewConstraintProtos)
 
 method getClassName*(v: TabDraggingView): string =
   result = "TabDraggingView"

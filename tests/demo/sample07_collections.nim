@@ -1,11 +1,13 @@
 import std/strutils
 import ./sample_registry
 import nimxx / [ collection_view, popup_button, slider, text_field, timer, view ]
+import pkg/destructor
 
 type CollectionsSampleView = ref object of View
 
-proc `=destroy`(x: typeof CollectionsSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+CollectionsSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: CollectionsSampleView): string =
   result = "CollectionsSampleView"
@@ -17,11 +19,12 @@ method init(v: CollectionsSampleView, r: Rect) =
     let collection =
       @["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven"]
 
-    let collectionView = newCollectionView(newRect(0, 0, 450, 250), newSize(50, 50),
+    var collectionView = newCollectionView(newRect(0, 0, 450, 250), newSize(50, 50),
       LayoutDirection.LeftToRight)
-    collectionView.numberOfItems = proc(): int =
+    let collectionViewx {.cursor.} = collectionView
+    collectionViewx.numberOfItems = proc(): int =
       return collection.len()
-    collectionView.viewForItem = proc(i: int): View =
+    collectionViewx.viewForItem = proc(i: int): View =
       result = newView(newRect(0, 0, 100, 100))
       discard newLabel(result, newPoint(0, 0), newSize(50, 50), collection[i])
       result.backgroundColor = newColor(1.0, 0.0, 0.0, 0.8)

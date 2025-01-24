@@ -3,6 +3,7 @@ import ./system_logger
 import ./matrixes
 import ./opengl_etc
 import pkg/nimsl/nimsl
+import pkg/destructor
 
 export matrixes
 
@@ -53,7 +54,9 @@ proc newShaderProgram*(vs, fs: string,
     glBindAttribLocation(result, a.index, cstring(a.name))
 
   glLinkProgram(result)
+  result.glDetachShader(vShader)  #######
   glDeleteShader(vShader)
+  result.glDetachShader(fShader)  #######
   glDeleteShader(fShader)
 
   let linked = isGLProgramLinked(result)
@@ -80,14 +83,15 @@ type GraphicsContext* = ref object of RootObj
   sharedBuffer*: BufferGLRef
   vertexes*: array[4 * 4 * 128, Coord]
 
-proc `=destroy`*(gc: typeof GraphicsContext()[]) =
+GraphicsContext.destructor():
   try:
-    deleteGLBuffer(gc.quadIndexBuffer)
-    deleteGLBuffer(gc.gridIndexBuffer4x4)
-    deleteGLBuffer(gc.singleQuadBuffer)
-    deleteGLBuffer(gc.singleQuadBuffer)
+    deleteGLBuffer(x.quadIndexBuffer)
+    deleteGLBuffer(x.gridIndexBuffer4x4)
+    deleteGLBuffer(x.singleQuadBuffer)
+    deleteGLBuffer(x.singleQuadBuffer)
   except Exception as e:
     echo "Exception encountered destroying GraphicsContext contents:", e.msg
+  # No fields require destruction by NIm
 
 proc transformToRef(t: Transform3D): Transform3DRef =
   {.emit: "`result` = `t`;".}

@@ -5,11 +5,12 @@ import pkg/x11 / [ xlib, x, xatom ]
 import ../app, ../private/windows/sdl_window
 import pkg/sdl2
 import ../utils/lock_utils
+import pkg/destructor
 
 type X11Pasteboard = object of Pasteboard
 
-proc `=destroy`(x: X11Pasteboard) =
-  `=destroy`(x.Pasteboard)
+X11Pasteboard.traceDestructor():
+  discard   # No fields to destroy
 
 const XINT_MAX = 32767
 

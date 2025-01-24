@@ -2,6 +2,7 @@ import std / [ macros, times ]
 import ./ [ view, table_view_cell, text_field, context, app, view_event_handling, font ]
 import ./utils/lock_utils
 import std/rlocks
+import pkg/destructor
 
 type MenuItem* = ref object of RootObj
   title*: string
@@ -9,10 +10,8 @@ type MenuItem* = ref object of RootObj
   # customView*: View
   action*: proc() {.gcsafe.}
 
-proc `=destroy`*(x: typeof MenuItem()[]) =
-  `=destroy`(x.title)
-  `=destroy`(x.children)
-  `=destroy`(x.action.addr[])
+MenuItem.traceDestructor():
+  MenuItem.destroyFields(x.title, x.children, x.action)
 
 proc newMenuItem*(title: string): MenuItem =
   result.new()
@@ -73,19 +72,16 @@ type
   TriangleView = ref object of View
   SeparatorView = ref object of View
 
-proc `=destroy`(x: typeof MenuView()[]) =
-  try:
-    `=destroy`(x.item)
-  except Exception as e:
-    echo "Exception encountered destroying MenuView item:", e.msg
-  `=destroy`(x.submenu)
-  `=destroy`((typeof View()[])(x))
+MenuView.traceDestructor(tagfield = x.name):
+  MenuView.destroyFields(x.item, x.submenu)
 
-proc `=destroy`(x: typeof TriangleView()[]) =
-  `=destroy`((typeof View()[])(x))
+TriangleView.traceDestructor(tagfield = x.name):
+  # No fields
+  discard
 
-proc `=destroy`(x: typeof SeparatorView()[]) =
-  `=destroy`((typeof View()[])(x))
+SeparatorView.traceDestructor(tagfield = x.name):
+  # No fields
+  discard
 
 const menuItemHeight = 20.Coord
 

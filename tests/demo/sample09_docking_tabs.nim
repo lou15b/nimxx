@@ -1,4 +1,5 @@
 import std/random
+import pkg/destructor
 import ./sample_registry
 import nimxx / [ view, linear_layout, button ]
 import nimxx/editor/tab_view
@@ -6,8 +7,9 @@ import nimxx/editor/tab_view
 type DockingTabsSampleView = ref object of View
   tabNameIndex: int
 
-proc `=destroy`(x: typeof DockingTabsSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+DockingTabsSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: DockingTabsSampleView): string =
   result = "DockingTabsSampleView"
@@ -23,7 +25,7 @@ proc newTab(v: DockingTabsSampleView): View {.gcsafe.} =
   result.backgroundColor = newRandomColor()
 
   const buttonSize = 20
-  let pane = result
+  let pane {.cursor.} = result
 
   proc indexOfPaneInTabView(): int =
     let tv = TabView(pane.superview)
@@ -34,17 +36,20 @@ proc newTab(v: DockingTabsSampleView): View {.gcsafe.} =
 
   let addButton = Button.new(newRect(5, 5, buttonSize, buttonSize))
   addButton.title = "+"
-  addButton.onAction do():
+  let vx {.cursor.} = v
+  let addButtonx {.cursor.} = addButton
+  addButtonx.onAction do():
     let tv = TabView(pane.superview)
     let i = indexOfPaneInTabView() + 1
-    tv.insertTab(i, v.newTabTitle(), v.newTab())
+    tv.insertTab(i, vx.newTabTitle(), vx.newTab())
     tv.selectTab(i)
   result.addSubview(addButton)
 
   let removeButton =
     Button.new(newRect(addButton.frame.maxX + 2, 5, buttonSize, buttonSize))
   removeButton.title = "-"
-  removeButton.onAction do():
+  let removeButtonx {.cursor.} = removeButton
+  removeButtonx.onAction do():
     let tv = TabView(pane.superview)
     if tv.tabsCount == 1:
       tv.removeFromSplitViewSystem()
@@ -55,7 +60,8 @@ proc newTab(v: DockingTabsSampleView): View {.gcsafe.} =
   let c =
     Button.new(newRect(removeButton.frame.maxX + 2, 5, buttonSize, buttonSize))
   c.title = "c"
-  c.onAction do():
+  let cx {.cursor.} = c
+  cx.onAction do():
     pane.backgroundColor = newRandomColor()
   result.addSubview(c)
 

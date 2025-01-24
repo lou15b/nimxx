@@ -1,4 +1,5 @@
 import ./asset_loading, ./asset_cache
+import pkg/destructor
 
 const debugResCache = false
 
@@ -13,15 +14,10 @@ type AssetLoader* = ref object
   when debugResCache:
     assetsToLoad: seq[string]
 
-proc `=destroy`*(x: typeof AssetLoader()[]) =
-  `=destroy`(x.onComplete.addr[])
-  `=destroy`(x.onProgress.addr[])
-  try:
-    `=destroy`(x.assetCache.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying AssetLoader assetCache:", e.msg
+AssetLoader.traceDestructor():
+  AssetLoader.destroyFields(x.onComplete, x.onProgress, x.assetCache)
   when debugResCache:
-    `=destroy`(x.assetsToLoad)
+    AssetLoader.destroyFields(x.assetsToLoad)
 
 proc newAssetLoader*(): AssetLoader {.inline.} =
   result.new()

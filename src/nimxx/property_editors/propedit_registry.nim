@@ -6,6 +6,7 @@ import ../property_visitor
 
 import pkg/variant
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type
   PropertyEditorView* = ref object of View
@@ -17,10 +18,8 @@ type
     getter: proc(): T {.gcsafe.}): PropertyEditorView {.gcsafe.}
   RegistryTableEntry = proc(editedObject: Variant, v: Variant): PropertyEditorView {.gcsafe.}
 
-proc `=destroy`*(x: typeof PropertyEditorView()[]) =
-  `=destroy`(x.onChange.addr[])
-  `=destroy`(x.changeInspector.addr[])
-  `=destroy`((typeof View()[])(x))
+PropertyEditorView.traceDestructor():
+  PropertyEditorView.destroyFields(x.onChange, x.changeInspector)
 
 var propEditors = initLocker(initTable[TypeId, RegistryTableEntry]())
 

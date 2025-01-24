@@ -2,6 +2,7 @@ import ./ [ control, context, font, types, event, abstract_window, timer, table_
   property_visitor, serializers, key_commands, formatted_text, scroll_view ]
 import std/unicode
 import pkg/clipboard
+import pkg/destructor
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
@@ -26,19 +27,12 @@ type
 
   Label* = ref object of TextField
 
-proc `=destroy`*(x: typeof TextField()[]) =
-  try:
-    `=destroy`(x.mText)
-  except Exception as e:
-    echo "Exception encountered destroying TextField mText:", e.msg
-  try:
-    `=destroy`(x.mFont)
-  except Exception as e:
-    echo "Exception encountered destroying TextField mFont:", e.msg
-  `=destroy`((typeof Control()[])(x))
+TextField.traceDestructor(tagfield = x.name):
+  TextField.destroyFields(x.mText, x.mFont)
 
-proc `=destroy`*(x: typeof Label()[]) =
-  `=destroy`((typeof TextField()[])(x))
+Label.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: TextField): string =
   result = "TextField"

@@ -1,4 +1,5 @@
 import std/strutils
+import pkg/destructor
 import ./sample_registry
 import nimxx / [ view, font, button, text_field, slider, popup_button,
         formatted_text, segmented_control, scroll_view ]
@@ -6,17 +7,14 @@ import nimxx / [ view, font, button, text_field, slider, popup_button,
 type TextView = ref object of View
   text: FormattedText
 
-proc `=destroy`(x: typeof TextView()[]) =
-  try:
-    `=destroy`(x.text)
-  except Exception as e:
-    echo "Exception encountered destroying TextView text:", e.msg
-  `=destroy`((typeof View()[])(x))
+TextView.traceDestructor(tagfield = x.name):
+  TextView.destroyFields(x.text)
 
 type TextSampleView = ref object of View
 
-proc `=destroy`(x: typeof TextSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+TextSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 const textSample = """Nim is statically typed, with a simple syntax. It supports compile-time metaprogramming features such as syntactic macros and term rewriting macros.
   Term rewriting macros enable library implementations of common data structures such as bignums and matrixes to be implemented with an efficiency as if they would have been builtin language facilities.

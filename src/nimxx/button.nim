@@ -4,6 +4,7 @@ import ./view_event_handling
 import ./ [ property_visitor, serializers ]
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import pkg/destructor
 
 export control
 
@@ -36,19 +37,16 @@ type
   Checkbox* = ref object of Button
   Radiobox* = ref object of Button
 
-proc `=destroy`*(x: typeof Button()[]) =
-  `=destroy`(x.title)
-  try:
-    `=destroy`(x.image)
-  except Exception as e:
-    echo "Exception raised by image in Button destructor: ", e.msg
-  `=destroy`((typeof Control()[])(x))
+Button.traceDestructor(tagfield = x.title):
+  Button.destroyFields(x.title, x.image)
 
-proc `=destroy`*(x: typeof Checkbox()[]) =
-  `=destroy`((typeof Button()[])(x))
+Checkbox.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof Radiobox()[]) =
-  `=destroy`((typeof Button()[])(x))
+Radiobox.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
 
 Button.properties:

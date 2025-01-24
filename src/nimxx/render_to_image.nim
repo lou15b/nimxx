@@ -1,4 +1,5 @@
 import ./ [ image, types, context, opengl_etc ]
+import pkg/destructor
 
 type
   RTIContext* = object
@@ -18,21 +19,21 @@ type
     texWidth*, texHeight*: int16
     needsDepthStencil*: bool
 
-proc `=destroy`*(r: RTIContext) =
-  if r.framebuffer != invalidGLFrameBuffer:
+RTIContext.destructor():
+  if x.framebuffer != invalidGLFrameBuffer:
     try:
-      deleteGLFramebuffer(r.framebuffer)
+      deleteGLFramebuffer(x.framebuffer)
     except Exception as e:
       echo "Exception encountered destroying RTIContext framebuffer:", e.msg
 
 
-proc `=destroy`*(r: ImageRenderTargetObj) {.raises: [GLerror].} =
-  if r.framebuffer != invalidGLFrameBuffer:
-    deleteGLFramebuffer(r.framebuffer)
-  if r.depthbuffer != invalidGLRenderbuffer:
-    deleteGLRenderbuffer(r.depthbuffer)
-  if r.stencilbuffer != invalidGLRenderbuffer:
-    deleteGLRenderbuffer(r.stencilbuffer)
+ImageRenderTargetObj.destructor():    #  {.raises: [GLerror].}
+  if x.framebuffer != invalidGLFrameBuffer:
+    deleteGLFramebuffer(x.framebuffer)
+  if x.depthbuffer != invalidGLRenderbuffer:
+    deleteGLRenderbuffer(x.depthbuffer)
+  if x.stencilbuffer != invalidGLRenderbuffer:
+    deleteGLRenderbuffer(x.stencilbuffer)
 
 proc newImageRenderTarget*(needsDepthStencil: bool = true): ImageRenderTarget {.inline.} =
   result.new()

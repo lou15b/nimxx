@@ -2,6 +2,7 @@ import ./text_field
 import ./scroll_view
 import ./panel_view
 import ./inspector_view
+import pkg/destructor
 
 export panel_view
 
@@ -9,13 +10,8 @@ type InspectorPanel* = ref object of PanelView
   inspectorView: InspectorView
   mOnPropertyChanged: proc(name: string) {.gcsafe.}
 
-proc `=destroy`*(x: typeof InspectorPanel()[]) =
-  try:
-    `=destroy`(x.inspectorView)
-  except Exception as e:
-    echo "Exception encountered destroying InspectorPanel inspectorView:", e.msg
-  `=destroy`(x.mOnPropertyChanged.addr[])
-  `=destroy`((typeof PanelView()[])(x))
+InspectorPanel.traceDestructor(tagfield = x.name):
+  InspectorPanel.destroyFields(x.inspectorView, x.mOnPropertyChanged)
 
 
 method getClassName*(v: InspectorPanel): string =

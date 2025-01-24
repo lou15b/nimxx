@@ -1,5 +1,6 @@
 import ./sample_registry
 import nimxx / [ view, font, button, gesture_detector, view_event_handling ]
+import pkg/destructor
 
 var bttnMesage {.threadvar.}: string
 bttnMesage = "Press or drag buttons"
@@ -25,32 +26,30 @@ type
   DraggedButton = ref object of View
     clickPos: Point
 
-proc `=destroy`(x: typeof EventsPriorityView()[]) =
-  try:
-    `=destroy`(x.welcomeFont)
-  except Exception as e:
-    echo "Exception encountered destroying EventsPriorityView welcomeFont:", e.msg
-  `=destroy`((typeof View()[])(x))
+EventsPriorityView.traceDestructor(tagfield = x.name):
+  EventsPriorityView.destroyFields(x.welcomeFont)
 
-proc `=destroy`(x: typeof CustomControl()[]) =
-  `=destroy`((typeof Control()[])(x))
+CustomControl.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
-proc `=destroy`(x: typeof ContentView()[]) =
-  `=destroy`((typeof View()[])(x))
+ContentView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
-proc `=destroy`(x: typeof MyScrollListener()[]) =
-  `=destroy`(x.updatedView)
-  `=destroy`((typeof OnScrollListener()[])(x))
+MyScrollListener.traceDestructor():
+  MyScrollListener.destroyFields(x.updatedView)
 
-proc `=destroy`(x: typeof DraggedButton()[]) =
-  `=destroy`((typeof View()[])(x))
+DraggedButton.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
-proc `=destroy`(x: typeof MyDragListener()[]) =
-  `=destroy`(x.updatedView)
-  `=destroy`((typeof OnScrollListener()[])(x))
+MyDragListener.traceDestructor():
+  MyDragListener.destroyFields(x.updatedView)
 
-proc `=destroy`(x: typeof ScissorView()[]) =
-  `=destroy`((typeof View()[])(x))
+ScissorView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 
 method getClassName*(v: EventsPriorityView): string =

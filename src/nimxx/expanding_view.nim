@@ -7,6 +7,7 @@ import ./color
 
 import ./stack_view
 import ./expand_button
+import pkg/destructor
 
 const titleSize = 20.0
 const expandButtonSize = 20.0
@@ -23,17 +24,8 @@ type ExpandingView* = ref object of View
   titleBarColor*: Color
   titleTextColor*: Color
 
-proc `=destroy`*(x: typeof ExpandingView()[]) =
-  `=destroy`(x.title)
-  try:
-    `=destroy`(x.contentView)
-  except Exception as e:
-    echo "Exception encountered destroying ExpandingView contentView:", e.msg
-  try:
-    `=destroy`(x.expandBut)
-  except Exception as e:
-    echo "Exception encountered destroying ExpandingView expandBut:", e.msg
-  `=destroy`((typeof View()[])(x))
+ExpandingView.traceDestructor(tagfield = x.title):
+  ExpandingView.destroyFields(x.title, x.contentView, x.expandBut)
 
 method getClassName*(v: ExpandingView): string =
   result = "ExpandingView"
@@ -76,9 +68,10 @@ proc init*(v: ExpandingView, r: Rect, hasOffset: bool) =
   v.addSubview(v.contentView)
 
   v.expandBut = newExpandButton(v, newRect(0.0, 0.0, expandButtonSize, expandButtonSize))
+  let w {.cursor.} = v
   v.expandBut.onExpandAction =  proc(state: bool) =
-    v.expanded = state
-    v.updateFrame()
+    w.expanded = state
+    w.updateFrame()
 
   v.titleBarColor = titleBarColor()
   v.titleTextColor = titleTextColor()

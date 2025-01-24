@@ -1,9 +1,11 @@
 import ./ [ button, view, types, color ]
+import pkg/destructor
 
 type StackView* = ref object of View
 
-proc `=destroy`*(x: typeof StackView()[]) =
-  `=destroy`((typeof View()[])(x))
+StackView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: StackView): string =
   result = "StackView"

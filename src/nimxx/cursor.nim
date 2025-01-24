@@ -1,5 +1,6 @@
 import std/rlocks
 import ./utils/lock_utils
+import pkg/destructor
 
 const useAppKit = defined(macosx) and not defined(ios)
 
@@ -46,8 +47,9 @@ when useAppKit:
     of ckNotAllowed: operationNotAllowedCursor()
     of ckHand: pointingHandCursor()
 
-  proc `=destroy`*(c: Cursor) =
-    cast[NSCursor](c.c).release()
+  Cursor.destructor():
+    cast[NSCursor](x.c).release()
+    # No fields require destruction by NIm
 else:
   proc cursorKindToSdl(c: CursorKind): SystemCursor =
     case c
@@ -64,8 +66,9 @@ else:
     of ckNotAllowed: SDL_SYSTEM_CURSOR_NO
     of ckHand: SDL_SYSTEM_CURSOR_HAND
 
-  proc `=destroy`*(c: Cursor) =
-    freeCursor(c.c)
+  Cursor.destructor():
+    freeCursor(x.c)
+    # No fields require destruction by NIm
 
 proc newCursor*(k: CursorKind): ref Cursor =
   result = new(Cursor)

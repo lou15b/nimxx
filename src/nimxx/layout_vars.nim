@@ -1,19 +1,13 @@
 import pkg/kiwi
 import pkg/threading/smartptrs
+import pkg/destructor
 
 type
   LayoutVars* = object
     x*, y*, width*, height*: Variable
 
-proc `=destroy`*(lv: LayoutVars) =
-  # Remove ".addr[]" below, and also try/except, when Variable has a destructor
-  try:
-    `=destroy`(lv.x.addr[])
-    `=destroy`(lv.y.addr[])
-    `=destroy`(lv.width.addr[])
-    `=destroy`(lv.height.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying LayoutVars contents:", e.msg
+LayoutVars.traceDestructor():
+  LayoutVars.destroyFields(x.x, x.y, x.width, x.height)
 
 proc init*(phs: var LayoutVars) =
   phs.x = newVariable("x", 0)

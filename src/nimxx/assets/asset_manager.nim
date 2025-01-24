@@ -4,6 +4,7 @@ import ./ [ abstract_asset_bundle, asset_cache, url_stream, asset_loading, asset
 import ../pathutils
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type
   MountEntry = tuple
@@ -17,13 +18,8 @@ type
     mDefaultAssetBundle: AssetBundle
     defaultCache: AssetCache
 
-proc `=destroy`*(x: typeof AssetManager()[]) =
-  `=destroy`(x.mounts)
-  `=destroy`(x.mDefaultAssetBundle)
-  try:
-    `=destroy`(x.defaultCache.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying AssetManager defaultCache:", e.msg
+AssetManager.traceDestructor():
+  AssetManager.destroyFields(x.mounts,x.mDefaultAssetBundle, x.defaultCache)
 
 
 template newAssetCache(): AssetCache = newTable[string, Variant]()

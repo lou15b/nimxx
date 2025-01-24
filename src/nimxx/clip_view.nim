@@ -1,10 +1,12 @@
 import ./view
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
+import pkg/destructor
 
 type ClipView* = ref object of View
 
-proc `=destroy`*(x: typeof ClipView()[]) =
-  `=destroy`((typeof View()[])(x))
+ClipView.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
 proc newClipView*(r: Rect): ClipView =
   result.new()

@@ -1,10 +1,12 @@
 import ./sample_registry
+import pkg/destructor
 import nimxx / [ view, menu, button, text_field ]
 
 type MenuSampleView = ref object of View
 
-proc `=destroy`(x: typeof MenuSampleView()[]) =
-  `=destroy`((typeof View()[])(x))
+MenuSampleView.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: MenuSampleView): string =
   result = "MenuSampleView"

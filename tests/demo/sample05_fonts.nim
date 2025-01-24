@@ -1,6 +1,7 @@
 import std/strutils
 import ./sample_registry
 import nimxx / [ view, font, context, button, text_field, slider, popup_button ]
+import pkg/destructor
 
 type FontsView = ref object of View
   curFont: Font
@@ -9,31 +10,32 @@ type FontsView = ref object of View
   curFontSize: float
   baseline: Baseline
 
-proc `=destroy`(x: typeof FontsView()[]) =
-  try:
-    `=destroy`(x.curFont)
-  except Exception as e:
-    echo "Exception encountered destroying FontsView curFont:", e.msg
-  `=destroy`(x.caption)
-  `=destroy`((typeof View()[])(x))
+FontsView.traceDestructor(tagfield = x.name):
+  FontsView.destroyFields(x.curFont, x.caption)
 
-template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord,
-    val: typed) =
+# template createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord,
+#     val: typed) =
+proc createSlider(fv: FontsView, title: string, y: var Coord, fr, to: Coord) =
   let lb = newLabel(newRect(20, y, 120, 20))
   lb.text = title & ":"
   let s = Slider.new(newRect(140, y, 120, 20))
   let ef = newTextField(newRect(280, y, 120, 20))
-  s.onAction do():
-    let v = fr + (to - fr) * s.value
-    ef.text = $v
-    val = v
-    fv.setNeedsDisplay()
+  let fvx {.cursor.} = fv
+  let sx {.cursor.} = s
+  let efx {.cursor.} = ef
+  sx.onAction do():
+    let v = fr + (to - fr) * sx.value
+    efx.text = $v
+    # val = v
+    fvx.curFontSize = v
+    fvx.setNeedsDisplay()
   ef.onAction do():
     try:
-      let v = parseFloat(ef.text)
-      s.value = (v - fr) / (to - fr)
-      val = v
-      fv.setNeedsDisplay()
+      let v = parseFloat(efx.text)
+      sx.value = (v - fr) / (to - fr)
+      # val = v
+      fvx.curFontSize = v
+      fvx.setNeedsDisplay()
     except:
       discard
   fv.addSubview(lb)
@@ -49,20 +51,24 @@ method init(v: FontsView, r: Rect) =
   let captionTf = newTextField(newRect(20, 20, r.width - 40, 20))
   captionTf.autoresizingMask = { afFlexibleWidth, afFlexibleMaxY }
   captionTf.text = "A Quick Brown $@#&¿"
-  captionTf.onAction do():
-    v.caption = captionTf.text
-    v.setNeedsDisplay()
+  let vx {.cursor.} = v
+  let captionTfx {.cursor.} = captionTf
+  captionTfx.onAction do():
+    vx.caption = captionTfx.text
+    vx.setNeedsDisplay()
   v.addSubview(captionTf)
   captionTf.sendAction()
 
   var y = 44.Coord
-  v.createSlider("size", y, 8.0, 80.0, v.curFontSize)
+  # vx.createSlider("size", y, 8.0, 80.0, vx.curFontSize)
+  vx.createSlider("size", y, 8.0, 80.0)
 
   let showBaselineBtn = newCheckbox(newRect(20, y, 120, 16))
   showBaselineBtn.title = "Show baseline"
-  showBaselineBtn.onAction do():
-    v.showBaseline = showBaselineBtn.boolValue
-    v.setNeedsDisplay()
+  let showBaselineBtnx {.cursor.} = showBaselineBtn
+  showBaselineBtnx.onAction do():
+    vx.showBaseline = showBaselineBtnx.boolValue
+    vx.setNeedsDisplay()
 
   v.addSubview(showBaselineBtn)
   y += 16 + 5
@@ -72,9 +78,10 @@ method init(v: FontsView, r: Rect) =
   for i in Baseline.low .. Baseline.high:
     items.add($i)
   baselineSelector.items = items
-  baselineSelector.onAction do():
-    v.baseline = Baseline(baselineSelector.selectedIndex)
-    v.setNeedsDisplay()
+  let baselineSelectorx {.cursor.} = baselineSelector
+  baselineSelectorx.onAction do():
+    vx.baseline = Baseline(baselineSelectorx.selectedIndex)
+    vx.setNeedsDisplay()
   v.addSubview(baselineSelector)
 
 method draw(v: FontsView, r: Rect) =

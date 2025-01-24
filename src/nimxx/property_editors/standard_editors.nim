@@ -19,6 +19,7 @@ import ../image_preview
 import ./propedit_registry
 
 import pkg/variant
+import pkg/destructor
 
 #### Hacked out - we need to have our own file dialog
 # when not defined(android) and not defined(ios):
@@ -94,10 +95,9 @@ type ColorComponentTextField = ref object of NumericTextField
   onBecomeFirstResponder: proc() {.gcsafe.}
   onResignFirstResponder: proc() {.gcsafe.}
 
-proc `=destroy`(x: typeof ColorComponentTextField()[]) =
-  `=destroy`(x.onBecomeFirstResponder.addr[])
-  `=destroy`(x.onResignFirstResponder.addr[])
-  `=destroy`((typeof NumericTextField()[])(x))
+ColorComponentTextField.traceDestructor():
+  ColorComponentTextField.destroyFields(x.onBecomeFirstResponder,
+    x.onResignFirstResponder)
 
 method getClassName*(v: ColorComponentTextField): string =
   result = "ColorComponentTextField"

@@ -11,6 +11,7 @@ import ./types
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
+import pkg/destructor
 
 const titleSize = 20.0
 const bottomSize = 30.0
@@ -23,13 +24,8 @@ type ImagePreview* = ref object of PanelView
   imgScale*: float
   imageRect*: Rect
 
-proc `=destroy`*(x: typeof ImagePreview()[]) =
-  try:
-    `=destroy`(x.image)
-  except Exception as e:
-    echo "Exception encountered destroying ImagePreview image:", e.msg
-  `=destroy`(x.title)
-  `=destroy`((typeof PanelView()[])(x))
+ImagePreview.traceDestructor(tagfield = x.title):
+  ImagePreview.destroyFields(x.image, x.title)
 
 method getClassName*(v: ImagePreview): string =
   result = "ImagePreview"

@@ -1,6 +1,9 @@
 import std/locks except Lock, acquire, release, tryAcquire
 import std/rlocks
 
+### TODO: Either put in proper memory management (`=destroy` functionality?)
+###       or replace this with malebogia
+
 type TaskListNode = object
   p: proc(data: pointer) {.cdecl, gcsafe.}
   data: pointer

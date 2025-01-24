@@ -2,6 +2,7 @@ import ./types
 
 import std/tables
 import pkg/variant
+import pkg/destructor
 
 type
   Setter*[T] = proc(v: T) {.gcsafe.}
@@ -28,18 +29,11 @@ type
     name*: string
     commit*: proc() {.gcsafe.}
 
-proc `=destroy`*(x: EnumValue) =
-  `=destroy`(x.possibleValues.addr[])
+EnumValue.traceDestructor():
+  EnumValue.destroyFields(x.possibleValues)
 
-proc `=destroy`*(x: PropertyVisitor) =
-  `=destroy`(x.qualifiers)
-  # Remove ".addr[]" when Variant has a destructor
-  try:
-    `=destroy`(x.setterAndGetter.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying PropertyVisitor setterAndGetter:", e.msg
-  `=destroy`(x.name)
-  `=destroy`(x.commit.addr[])
+PropertyVisitor.traceDestructor(tagfield = x.name):
+  PropertyVisitor.destroyFields(x.qualifiers, x.setterAndGetter, x.name, x.commit)
 
 proc clear*(p: var PropertyVisitor) =
   p.setterAndGetter = newVariant()

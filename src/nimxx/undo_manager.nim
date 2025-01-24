@@ -1,4 +1,5 @@
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type
   UndoManager* = ref object
@@ -10,13 +11,11 @@ type
     undo: proc() {.gcsafe.}
     description: string
 
-proc `=destroy`(x: UndoAction) =
-  `=destroy`(x.redo.addr[])
-  `=destroy`(x.undo.addr[])
-  `=destroy`(x.description)
+UndoAction.traceDestructor():
+  UndoAction.destroyFields(x.redo, x.undo, x.description)
 
-proc `=destroy`*(x: typeof UndoManager()[]) =
-  `=destroy`(x.actions)
+UndoManager.traceDestructor():
+  UndoManager.destroyFields(x.actions)
 
 proc newUndoManager*(): UndoManager =
   result.new()

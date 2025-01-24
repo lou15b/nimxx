@@ -2,17 +2,14 @@ import ./gesture_detector
 import ./view
 import ./event
 import ./context
+import pkg/destructor
 
 type DraggingScrollListener = ref object of OnScrollListener
   view: View
   start: Point
 
-proc `=destroy`(x: typeof DraggingScrollListener()[]) =
-  try:
-    `=destroy`(x.view)
-  except Exception as e:
-    echo "Exception encountered destroying DraggingScrollListener view:", e.msg
-  `=destroy`((typeof OnScrollListener()[])(x))
+DraggingScrollListener.traceDestructor():
+  DraggingScrollListener.destroyFields(x.view)
 
 
 method onTapDown(ls: DraggingScrollListener, e: var Event) =
@@ -29,19 +26,16 @@ proc enableDraggingByBackground*(v: View) =
 
 type ResizingKnob = ref object of View
 
-proc `=destroy`(x: typeof ResizingKnob()[]) =
-  `=destroy`((typeof View()[])(x))
+ResizingKnob.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 type ResizingScrollListener = ref object of OnScrollListener
   view: View
   originalSize: Size
 
-proc `=destroy`(x: typeof ResizingScrollListener()[]) =
-  try:
-    `=destroy`(x.view)
-  except Exception as e:
-    echo "Exception encountered destroying ResizingScrollListener view:", e.msg
-  `=destroy`((typeof OnScrollListener()[])(x))
+ResizingScrollListener.traceDestructor():
+  ResizingScrollListener.destroyFields(x.view)
 
 method onTapDown(ls: ResizingScrollListener, e: var Event) =
   ls.originalSize = ls.view.superview.frame.size

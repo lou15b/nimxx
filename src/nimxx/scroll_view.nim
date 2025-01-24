@@ -1,5 +1,6 @@
 import ./ [ view, scroll_bar, event, layout_vars ]
 import pkg/kiwi
+import pkg/destructor
 export view
 
 import ./clip_view # [Deprecated old layout]
@@ -12,32 +13,9 @@ type ScrollView* = ref object of View
   constraints: seq[Constraint]
   xPos, yPos: Variable # Scroll positions
 
-proc `=destroy`*(x: typeof ScrollView()[]) =
-  try:
-    `=destroy`(x.mContentView)
-  except Exception as e:
-    echo "Exception encountered destroying ScrollView mContentView:", e.msg
-  try:
-    `=destroy`(x.clipView)
-  except Exception as e:
-    echo "Exception encountered destroying ScrollView clipView:", e.msg
-  try:
-    `=destroy`(x.mHorizontalScrollBar)
-  except Exception as e:
-    echo "Exception encountered destroying ScrollView mHorizontalScrollBar:", e.msg
-  try:
-    `=destroy`(x.mVerticalScrollBar)
-  except Exception as e:
-    echo "Exception encountered destroying ScrollView mVerticalScrollBar:", e.msg
-  `=destroy`(x.mOnScrollCallback.addr[])
-  `=destroy`(x.constraints)
-  # Remove ".addr[] when Variable has a destructor
-  try:
-    `=destroy`(x.xPos.addr[])
-    `=destroy`(x.yPos.addr[])
-  except Exception as e:
-    echo "Exception encountered destroying ScrollView xPos and yPos:", e.msg
-  `=destroy`((typeof View()[])(x))
+ScrollView.traceDestructor(tagfield = x.name):
+  ScrollView.destroyFields(x.mContentView, x.clipView, x.mHorizontalScrollBar,
+    x.mVerticalScrollBar, x.mOnScrollCallback, x.constraints, x.xPos, x.yPos)
 
 const scrollBarWidth = 12.Coord
 
@@ -82,7 +60,9 @@ proc setScrollBar(v: ScrollView, vs: var ScrollBar, s: ScrollBar) =
   vs = s
   if not s.isNil:
     v.addSubview(s)
-    s.onAction do(): v.onScrollBar(s)
+    let sx {.cursor.} = s
+    let vx {.cursor.} = v
+    sx.onAction do(): vx.onScrollBar(sx)
 
   if layoutChanged:
     v.relayout()
@@ -343,7 +323,9 @@ method didAddSubview*(v: ScrollView, s: View) =
         if not v.mVerticalScrollBar.isNil:
           v.mVerticalScrollBar.removeFromSuperview()
         v.mVerticalScrollBar = sb
-      sb.onAction do(): v.onScrollBar(sb)
+      let sbx {.cursor.} = sb
+      let vx {.cursor.} = v
+      sbx.onAction do(): vx.onScrollBar(sbx)
 
     else:
       if not v.mContentView.isNil:

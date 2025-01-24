@@ -1,5 +1,6 @@
 import std / [ tables, rlocks ]
 import pkg/threading/smartptrs
+import pkg/destructor
 
 #[
   This code gathers user-defined global statistics.
@@ -36,19 +37,18 @@ type
   # from multiple threads
   Profiler* = SharedPtr[ProfilerObj]
 
-proc `=destroy`*(x: ProfilerDataSourceBaseObj) =
-  `=destroy`(x.stringifiedValue)
-  `=destroy`(x.syncStringifiedValue.addr[])
-  `=destroy`(x.incValue.addr[])
-  `=destroy`(x.decValue.addr[])
+ProfilerDataSourceBaseObj.traceDestructor():
+  ProfilerDataSourceBaseObj.destroyFields(x.stringifiedValue, x.syncStringifiedValue,
+    x.incValue, x.decValue)
 
-proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
-  when T is string or T is ref:
-    `=destroy`(x.mValue)
-  `=destroy`(x.ProfilerDataSourceBaseObj)
+# Generation of this generic `=destroy` hook is left to Nim
+# proc `=destroy`[T: SourceDataType](x: ProfilerDataSourceObj[T]) =
+#   when T is string or T is ref:
+#     `=destroy`(x.mValue)
+#   `=destroy`(x.ProfilerDataSourceBaseObj)
 
-proc `=destroy`*(x: ProfilerObj) =
-  `=destroy`(x.values.addr[])
+ProfilerObj.traceDestructor():
+  ProfilerObj.destroyFields(x.values)
 
 proc setStringifiedValue(ds: ProfilerDataSourceBase, stringVal: string) =
   ds.stringifiedValue = stringVal

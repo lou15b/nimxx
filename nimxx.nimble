@@ -22,7 +22,7 @@ requires "x11"    # For linux target - pasteboard/clipboard
 # requires "nake"   # Use nimble for building instead of nake
 # requires "closure_compiler >= 0.3.1"   # Used for web API - not used here
 requires "plists"
-requires "variant >= 0.2 & < 0.3"
+requires "variant >= 0.2"
 requires "kiwi"
 requires "https://github.com/yglukhov/ttf >= 0.2.9 & < 0.3"   # Replace by Pixie
 # requires "jsbind"   # Indirectly required by async_http_request above

@@ -3,20 +3,15 @@ import nimxx / [ view, image, context, render_to_image, font ]
 import nimxx/assets/asset_manager
 
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 type ImageSampleView = ref object of View
   image: Image
   generatedImage: Image
   httpImage: Image
 
-proc `=destroy`(x: typeof ImageSampleView()[]) =
-  try:
-    `=destroy`(x.image)
-    `=destroy`(x.generatedImage)
-    `=destroy`(x.httpImage)
-  except Exception as e:
-    echo "Exception encountered destroying ImageSampleView contents:", e.msg
-  `=destroy`((typeof View()[])(x))
+ImageSampleView.traceDestructor(tagfield = x.name):
+  ImageSampleView.destroyFields(x.image, x.generatedImage, x.httpImage)
 
 method getClassName*(v: ImageSampleView): string =
   result = "ImageSampleView"

@@ -1,21 +1,14 @@
 import std/strutils
 import ./sample_registry
 import nimxx / [ view, timer, text_field, button ]
+import pkg/destructor
 
 type TimersSampleView = ref object of View
   timer: Timer
   intervalTextField: TextField
 
-proc `=destroy`(x: typeof TimersSampleView()[]) =
-  try:
-    `=destroy`(x.timer)
-  except Exception as e:
-    echo "Exception encountered destroying TimersSampleView timer:", e.msg
-  try:
-    `=destroy`(x.intervalTextField)
-  except Exception as e:
-    echo "Exception encountered destroying TimersSampleView intervalTextField:", e.msg
-  `=destroy`((typeof View()[])(x))
+TimersSampleView.traceDestructor(tagfield = x.name):
+  TimersSampleView.destroyFields(x.timer, x.intervalTextField)
 
 method getClassName*(v: TimersSampleView): string =
   result = "TimersSampleView"
@@ -35,45 +28,55 @@ method init(t: TimersSampleView, r: Rect) =
 
   let startButton = newButton(newRect(20, 80, 100, 20))
   startButton.title = "Start"
-  startButton.onAction do():
-    t.timer.clear()
-    firesLabel.text = "fires: "
-    t.timer = newTimer(parseFloat(intervalTextField.text), periodicButton.boolValue,
+  let tx {.cursor.} = t
+  let intervalTextFieldx {.cursor.} = intervalTextField
+  let periodicButtonx {.cursor.} = periodicButton
+  let startButtonx {.cursor.} = startButton
+  var firesLabelx {.cursor.} = firesLabel
+  startButtonx.onAction do():
+    tx.timer.clear()
+    firesLabelx.text = "fires: "
+    tx.timer = newTimer(parseFloat(intervalTextFieldx.text), periodicButtonx.boolValue,
       proc() =
-        firesLabel.text = firesLabel.text & "O"
+        firesLabelx.text = firesLabelx.text & "O"
       )
   t.addSubview(startButton)
 
   let clearButton = newButton(newRect(20, 110, 100, 20))
   clearButton.title = "Clear"
-  clearButton.onAction do():
-    t.timer.clear()
+  let clearButtonx {.cursor.} = clearButton
+  clearButtonx.onAction do():
+    tx.timer.clear()
   t.addSubview(clearButton)
 
   let pauseButton = newButton(newRect(20, 140, 100, 20))
   pauseButton.title = "Pause"
-  pauseButton.onAction do():
-    if not t.timer.isNil:
-      t.timer.pause()
+  let pauseButtonx {.cursor.} = pauseButton
+  pauseButtonx.onAction do():
+    if not tx.timer.isNil:
+      tx.timer.pause()
   t.addSubview(pauseButton)
 
   let resumeButton = newButton(newRect(20, 170, 100, 20))
   resumeButton.title = "Resume"
-  resumeButton.onAction do():
-    if not t.timer.isNil:
-      t.timer.resume()
+  let resumeButtonx {.cursor.} = resumeButton
+  resumeButtonx.onAction do():
+    if not tx.timer.isNil:
+      tx.timer.resume()
   t.addSubview(resumeButton)
 
   let secondsLabel = t.newLabel(newPoint(20, 200), newSize(120, 20), "seconds: ")
   var secs = 0
+  let secondsLabelx {.cursor.} = secondsLabel
   setInterval 1.0, proc() =
     inc secs
     if secs >= 10:
       secs = 0
-    secondsLabel.text = "seconds: "
+    secondsLabelx.text = "seconds: "
     for i in 0 ..< secs:
-      secondsLabel.text = secondsLabel.text & "O"
+      secondsLabelx.text = secondsLabelx.text & "O"
 
   firesLabel = t.newLabel(newPoint(20, 230), newSize(120, 20), "fires: ")
+  firesLabelx = firesLabel
 
 registerSample(TimersSampleView, "Timers")

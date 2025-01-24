@@ -4,6 +4,7 @@ import std/macros
 import std/algorithm
 import std/logging
 import std/times
+import pkg/destructor
 
 ##[
   An Animation provides the timing/progress infrastructure that controls the
@@ -37,8 +38,8 @@ type ProgressHandler = object
   progress: float
   callIfCancelled: bool
 
-proc `=destroy`(x: ProgressHandler) =
-  `=destroy`(x.handler.addr[])
+ProgressHandler.traceDestructor():
+  ProgressHandler.destroyFields(x.handler)
 
 type
   Animation* = ref object of RootObj
@@ -57,7 +58,7 @@ type
 
     loopProgressHandlers: seq[ProgressHandler]
     totalProgressHandlers: seq[ProgressHandler]
-    lphIt, tphIt: int # Cursors for progressHandlers arrays
+    lphIt, tphIt: int # Index cursors for progressHandlers arrays
 
   ComposeMarker* = ref object
     positionStart: float
@@ -76,24 +77,18 @@ type
     parallelMode*: bool
     currentLoopPattern: LoopPattern
 
-proc `=destroy`*(x: typeof Animation()[]) =
-  `=destroy`(x.timingFunction.addr[])
-  `=destroy`(x.onAnimate.addr[])
-  `=destroy`(x.tag)
-  `=destroy`(x.loopProgressHandlers)
-  `=destroy`(x.totalProgressHandlers)
+Animation.traceDestructor(tagfield = x.tag):
+  Animation.destroyFields(x.timingFunction, x.onAnimate, x.tag, x.loopProgressHandlers,
+    x.totalProgressHandlers)
 
-proc `=destroy`*(x: typeof ComposeMarker()[]) =
-  `=destroy`(x.onMarkerActive.addr[])
-  `=destroy`(x.animation)
+ComposeMarker.traceDestructor():
+  ComposeMarker.destroyFields(x.onMarkerActive, x.animation)
 
-proc `=destroy`*(x: typeof CompositAnimation()[]) =
-  `=destroy`(x.mMarkers)
-  `=destroy`((typeof Animation()[])(x))
+CompositAnimation.traceDestructor():
+  CompositAnimation.destroyFields(x.mMarkers)
 
-proc `=destroy`*(x: typeof MetaAnimation()[]) =
-  `=destroy`(x.animations)
-  `=destroy`((typeof Animation()[])(x))
+MetaAnimation.traceDestructor():
+  MetaAnimation.destroyFields(x.animations)
 
 proc init*(a: Animation) =
   a.numberOfLoops = -1

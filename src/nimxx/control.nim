@@ -1,14 +1,14 @@
 
 import ./ [ view, view_event_handling ]
+import pkg/destructor
 export view
 
 type Control* = ref object of View
   actionHandler: proc(e: Event) {.gcsafe.}
   clickable*: bool
 
-proc `=destroy`*(x: typeof Control()[]) =
-  `=destroy`(x.actionHandler.addr[])
-  `=destroy`((typeof View()[])(x))
+Control.traceDestructor():
+  Control.destroyFields(x.actionHandler)
 
 method getClassName*(v: Control): string =
   result = "Control"

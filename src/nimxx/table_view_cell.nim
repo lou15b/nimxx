@@ -2,13 +2,15 @@ import ./view
 export view
 import ./context
 import ./types
+import pkg/destructor
 
 type TableViewCell* = ref object of View
   row*, col*: int
   selected*: bool
 
-proc `=destroy`*(x: typeof TableViewCell()[]) =
-  `=destroy`((typeof View()[])(x))
+TableViewCell.traceDestructor(tagfield = x.name):
+  # No fields that require destruction by Nim
+  discard
 
 method getClassName*(v: TableViewCell): string =
   result = "TableViewCell"

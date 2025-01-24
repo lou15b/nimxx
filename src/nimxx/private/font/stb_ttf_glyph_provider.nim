@@ -3,6 +3,7 @@ import ./font_data
 import ../../assets/url_stream
 import pkg/rect_packer
 import pkg/ttf
+import pkg/destructor
 
 type StbTtfGlyphProvider* = ref object
   path: string
@@ -11,10 +12,10 @@ type StbTtfGlyphProvider* = ref object
   fontInfo: stbtt_fontinfo
   glyphMargin*: int32
 
-proc `=destroy`*(x: typeof StbTtfGlyphProvider()[]) =
-  `=destroy`(x.path)
-  `=destroy`(x.fontData)
+StbTtfGlyphProvider.traceDestructor():
+  StbTtfGlyphProvider.destroyFields(x.path, x.fontData)
   # Don't know how (or whether) to destroy x.fontInfo
+  ### A moot issue, because ttf needs to be replaced by pixie
 
 proc setPath*(p: StbTtfGlyphProvider, path: string) =
   p.path = path

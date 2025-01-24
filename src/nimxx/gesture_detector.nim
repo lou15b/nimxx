@@ -1,4 +1,5 @@
 import ./ [ view, event ]
+import pkg/destructor
 
 type
   BaseGestureDetector* = ref object of GestureDetector
@@ -49,55 +50,43 @@ type
     flingListener* : OnFlingListener
     prev_ev, this_ev: Event
 
-proc `=destroy`*(x: typeof BaseGestureDetector()[]) =
-  `=destroy`((typeof GestureDetector()[])(x))
+BaseGestureDetector.traceDestructor():
+  # No fields requiring destruction by Nim
+  discard
 
-proc `=destroy`*(x: typeof OnScrollListener()[]) =
+OnScrollListener.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`*(x: typeof BaseScrollListener()[]) =
-  `=destroy`(x.tapDownDelegate.addr[])
-  `=destroy`(x.scrollProgressDelegate.addr[])
-  `=destroy`(x.tapUpDelegate.addr[])
-  `=destroy`((typeof OnScrollListener()[])(x))
+BaseScrollListener.traceDestructor():
+  BaseScrollListener.destroyFields(x.tapDownDelegate, x.scrollProgressDelegate,
+    x.tapUpDelegate)
 
-proc `=destroy`*(x: typeof ScrollDetector()[]) =
-  `=destroy`(x.listener)
-  `=destroy`(x.pointers)
-  `=destroy`((typeof BaseGestureDetector()[])(x))
+ScrollDetector.traceDestructor():
+  ScrollDetector.destroyFields(x.listener, x.pointers)
 
-proc `=destroy`*(x: typeof TapGestureDetector()[]) =
-  `=destroy`(x.tapListener.addr[])
-  `=destroy`((typeof BaseGestureDetector()[])(x))
+TapGestureDetector.traceDestructor():
+  TapGestureDetector.destroyFields(x.tapListener)
 
-proc `=destroy`*(x: typeof OnZoomListener()[]) =
+OnZoomListener.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`*(x: typeof ZoomGestureDetector()[]) =
-  `=destroy`(x.pointers)
-  `=destroy`(x.listener)
-  `=destroy`((typeof BaseGestureDetector()[])(x))
+ZoomGestureDetector.traceDestructor():
+  ZoomGestureDetector.destroyFields(x.pointers, x.listener)
 
-proc `=destroy`*(x: typeof OnRotateListener()[]) =
+OnRotateListener.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`*(x: typeof RotateGestureDetector()[]) =
-  `=destroy`(x.pointers)
-  `=destroy`(x.listener)
-  `=destroy`((typeof BaseGestureDetector()[])(x))
+RotateGestureDetector.traceDestructor():
+  RotateGestureDetector.destroyFields(x.pointers, x.listener)
 
-proc `=destroy`*(x: typeof OnFlingListener()[]) =
+OnFlingListener.traceDestructor():
   discard    # Type is empty
 
-proc `=destroy`*(x: typeof BaseFlingListener()[]) =
-  `=destroy`(x.flingDelegate.addr[])
-  `=destroy`((typeof OnFlingListener()[])(x))
+BaseFlingListener.traceDestructor():
+  BaseFlingListener.destroyFields(x.flingDelegate)
 
-proc `=destroy`*(x: typeof FlingGestureDetector()[]) =
-  `=destroy`(x.flingListener)
-  `=destroy`(x.prev_ev)
-  `=destroy`(x.this_ev)
-  `=destroy`((typeof BaseGestureDetector()[])(x))
+FlingGestureDetector.traceDestructor():
+  FlingGestureDetector.destroyFields(x.flingListener, x.prev_ev, x.this_ev)
 
 method onGestEvent*(d: GestureDetector, e: var Event): bool {.base, gcsafe.} = discard
 

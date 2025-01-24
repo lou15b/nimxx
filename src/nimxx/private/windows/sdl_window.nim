@@ -6,6 +6,7 @@ import ../sdl_vk_map
 import ../../utils/lock_utils
 import std / [ times, logging ]
 import pkg/malebolgia/lockers
+import pkg/destructor
 
 export abstract_window
 
@@ -56,13 +57,13 @@ type SdlWindow* = ref object of Window
   sdlGlContext: GlContextPtr
   isFullscreen: bool
 
-proc `=destroy`*(w:  typeof SdlWindow()[]) =
+SdlWindow.destructor():
   try:
-    destroyWindow(w.impl)
-    glDeleteContext(w.sdlGlContext)
+    destroyWindow(x.impl)
+    glDeleteContext(x.sdlGlContext)
   except Exception as e:
     echo "Exception encountered destroying SdlWindowObj contents:", e.msg
-  `=destroy`((typeof Window()[])(w))
+  # There are no fields requiring destruction by Nim
 
 method getClassName*(v: SdlWindow): string =
   result = "SdlWindow"
@@ -360,8 +361,10 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
           wnd.setNeedsDisplay()
         of WindowEvent_Close:
           if wnd.onClose.isNil:
+            echo "####### wnd.onClose is Nil - hide window"
             wnd.hide()
           else:
+            echo "####### wnd.onClose is NOT Nil - call it"
             wnd.onClose()
         else:
           discard
@@ -462,6 +465,7 @@ proc eventWithSDLEvent(event: ptr sdl2.Event): Event =
       discard     # Used directly, doesn't need conversion
     else:
       info "Unknown event: ", event.kind
+      echo "####### Unknown event: ", event.kind
       discard
 
 proc handleEvent(event: ptr sdl2.Event): Bool32 =
@@ -548,7 +552,8 @@ proc nextEvent(evt: var sdl2.Event) =
       while pollEvent(evt):
         discard handleEvent(addr evt)
         if evt.kind == QuitEvent:
-          break
+          # break
+          return
 
     animateAndDraw()
 
@@ -591,8 +596,11 @@ proc runUntilQuit*() =
       break
   
   # echo "#### QuitEvent has been detected"
-  withRLockGCsafe(mainAppLock):
-    `=destroy`(mainApp)
+  lock touchWindow as tw:
+    echo "########## Destroying touchWindow tw"
+    `=destroy`(tw)
+  # withRLockGCsafe(mainAppLock):
+  #   `=destroy`(mainApp)
   if sdlInitialized:
     # echo "#### Asking sdl to quit"
     quitSubSystem(INIT_VIDEO)

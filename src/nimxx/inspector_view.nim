@@ -3,15 +3,15 @@ import ./property_visitor
 import ./property_editors/propedit_registry
 
 import pkg/variant
+import pkg/destructor
 
 export linear_layout
 
 type InspectorView* = ref object of LinearLayout
   onPropertyChanged*: proc(name: string) {.gcsafe.}
 
-proc `=destroy`*(x: typeof InspectorView()[]) =
-  `=destroy`(x.onPropertyChanged.addr[])
-  `=destroy`((typeof LinearLayout()[])(x))
+InspectorView.traceDestructor(tagfield = x.name):
+  InspectorView.destroyFields(x.onPropertyChanged)
 
 method getClassName*(v: InspectorView): string =
   result = "InspectorView"

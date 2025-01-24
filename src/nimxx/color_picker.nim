@@ -16,6 +16,8 @@ import ./button
 
 import ./meta_extensions / [ property_desc, visitors_gen, serializers_gen ]
 
+import pkg/destructor
+
 const
   margin = 6
 
@@ -73,46 +75,33 @@ type
     # Callbacks
     onColorSelected*: proc(c: Color) {.gcsafe.}
 
-proc `=destroy`*(x: typeof ColorView()[]) =
-  `=destroy`((typeof View()[])(x))
+ColorView.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof ColorPickerCircle()[]) =
-  `=destroy`((typeof View()[])(x))
+ColorPickerCircle.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof ColorPickerH()[]) =
-  `=destroy`((typeof View()[])(x))
+ColorPickerH.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof ColorPickerS()[]) =
-  `=destroy`((typeof View()[])(x))
+ColorPickerS.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof ColorPickerV()[]) =
-  `=destroy`((typeof View()[])(x))
+ColorPickerV.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`(x: typeof ColorComponentTextField()[]) =
-  `=destroy`((typeof TextField()[])(x))
+ColorComponentTextField.traceDestructor():
+  # No fields need to be destroyed
+  discard
 
-proc `=destroy`*(x: typeof ColorPickerView()[]) =
-  `=destroy`(x.colorHistory)
-  `=destroy`(x.circle)
-  try:
-    `=destroy`(x.paletteChooser)
-  except Exception as e:
-    echo "Exception encountered destroying ColorPickerView paletteChooser:", e.msg
-  try:
-    `=destroy`(x.chosenColorView)
-  except Exception as e:
-    echo "Exception encountered destroying ColorPickerView chosenColorView:", e.msg
-  `=destroy`(x.cpH)
-  `=destroy`(x.cpS)
-  `=destroy`(x.cpV)
-  try:
-    `=destroy`(x.tfH)
-    `=destroy`(x.tfS)
-    `=destroy`(x.tfV)
-  except Exception as e:
-    echo "Exception encountered destroying ColorPickerView tfH, tfS, or tfV:", e.msg
-  `=destroy`(x.onColorSelected.addr[])
-  `=destroy`((typeof View()[])(x))
+ColorPickerView.traceDestructor():
+  ColorPickerView.destroyFields(x.colorHistory, x.circle, x.paletteChooser, x.chosenColorView,
+    x.cpH, x.cpS, x.cpV, x.tfH, x.tfS, x.tfV, x.onColorSelected)
 
 
 method getClassName*(v: ColorView): string =

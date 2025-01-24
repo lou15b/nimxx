@@ -5,14 +5,14 @@ import ./composition
 import ./context
 import ./font
 import ./view_event_handling
+import pkg/destructor
 
 type PopupButton* = ref object of Control
   mItems: seq[MenuItem]
   mSelectedIndex: int
 
-proc `=destroy`*(x: typeof PopupButton()[]) =
-  `=destroy`(x.mItems)
-  `=destroy`((typeof Control()[])(x))
+PopupButton.traceDestructor(tagfield = x.name):
+  PopupButton.destroyFields(x.mItems)
 
 method getClassName*(v: PopupButton): string =
   result = "PopupButton"

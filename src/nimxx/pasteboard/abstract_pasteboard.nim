@@ -7,6 +7,7 @@
 ## let myString = p.read().data
 
 import ./pasteboard_item
+import pkg/destructor
 export pasteboard_item
 
 type
@@ -14,9 +15,8 @@ type
     writeImpl*: proc(pb: Pasteboard, pi: varargs[PasteboardItem] ) {.nimcall, gcsafe.}
     readImpl*: proc(pb: Pasteboard, kind: string): PasteboardItem {.nimcall, gcsafe.}
 
-proc `=destroy`*(x: Pasteboard) =
-  `=destroy`(x.writeImpl.addr[])
-  `=destroy`(x.readImpl.addr[])
+Pasteboard.traceDestructor():
+  Pasteboard.destroyFields(x.writeImpl, x.readImpl)
 
 const PboardGeneral* = "__nimx.PboardGeneral"
 const PboardFont* = "__nimx.PboardFont"
