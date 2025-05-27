@@ -3,20 +3,18 @@ import std / [ unicode, logging ]
 import ./ [ types, timer, opengl_etc ]
 import ./private/font/font_data
 
-import ./private/font/stb_ttf_glyph_provider
+import ./private/font/ttf_glyph_provider
 
 import std/os
 import pkg/malebolgia/lockers
 import pkg/destructor
 
-import pkg/ttf/edtaa3func
+# import pkg/ttf/edtaa3func
+import ./private/font/edtaa3func
 import ./private/simple_table
 
 when defined(android):
   import ./assets/url_stream
-
-# No destructor needed for GlyphProvider, because it is an alias
-type GlyphProvider = StbTtfGlyphProvider  
 
 type Baseline* = enum
   bTop
@@ -53,7 +51,7 @@ template scaleForSize(s: float): float = s / charHeightForSize(s)
 
 type FontImpl = ref object
   chars: SimpleTable[int32, CharInfo]
-  glyphProvider: GlyphProvider
+  glyphProvider: TtfGlyphProvider
   ascent: float32
   descent: float32
 
@@ -71,10 +69,7 @@ proc cachedImplForFont(face: string, sz: float): FontImpl =
     else:
       result.new()
       result.chars = newSimpleTable(int32, CharInfo)
-      result.glyphProvider.new()
-      result.glyphProvider.setPath(face)
-      result.glyphProvider.setSize(charHeightForSize(sz))
-      result.glyphProvider.glyphMargin = 8
+      result.glyphProvider = newTtfGlyphProvider(face, charHeightForSize(sz), 8)
       fc[key] = result
 
 type Font* = ref object
@@ -167,6 +162,7 @@ const preferredFonts = when defined(windows):
 import ./private/font/fontconfig
 
 proc getAvailableFonts*(isSystem: bool = false): seq[string] =
+  ###### TODO Update to include .otf files
   result = newSeq[string]()
   when not defined(android) and not defined(ios):
     for f in walkFiles(getAppDir() /../ "Resources/*.ttf"):
@@ -178,6 +174,9 @@ proc getAvailableFonts*(isSystem: bool = false): seq[string] =
 
 proc newFontWithFace*(face: string, size: float): Font =
   let path = findFontFileForFace(face)
+  # let path = "/usr/share/fonts/liberation/LiberationSans-Regular.ttf"
+  # let path = "/usr/share/fonts/gnu-free/FreeSans.otf"
+  # echo "########### Font path forced to be: ", path
   if path.len != 0:
     result = newFontWithFile(path, size)
   else:

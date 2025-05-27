@@ -278,6 +278,6 @@ proc drawText*(c: GraphicsContext, font: Font, pt: var Point, text: string) =
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
       GL_ONE_MINUS_SRC_ALPHA)
 
-proc drawText*(c: GraphicsContext, font: Font, pt: Point, text: string) {.gcsafe.}=
+proc drawText*(c: GraphicsContext, font: Font, pt: Point, text: string) =
   var p = pt
   c.drawText(font, p, text)

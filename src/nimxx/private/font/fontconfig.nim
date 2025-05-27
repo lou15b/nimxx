@@ -1,5 +1,7 @@
 import std / [ os, dynlib, strutils ]
 
+###### TODO Update to include .otf files
+
 const fontSearchPaths = when defined(macosx):
   [
     "/Library/Fonts"
@@ -142,6 +144,7 @@ when useLibfontconfig:
     # TODO: Our glyph rasterizer (stb_truetype) supports only ttf.
     # We should have gotten a ttf file by now, but verify it
     # just in case.
+    # NOTE: This is no longer true. Need to update to include .otf files.
     if not result.endsWith(".ttf"):
       result = ""
 

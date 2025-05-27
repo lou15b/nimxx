@@ -24,7 +24,9 @@ requires "x11"    # For linux target - pasteboard/clipboard
 requires "plists"
 requires "variant >= 0.2"
 requires "kiwi"
-requires "https://github.com/yglukhov/ttf >= 0.2.9 & < 0.3"   # Replace by Pixie
+# ***ttf***: edtaa3func.nim and ttf.nim were copied to private/font
+#   and the relevant parts of the stb C code was converted to idiomatic nim
+# requires "https://github.com/yglukhov/ttf >= 0.2.9 & < 0.3"
 # requires "jsbind"   # Indirectly required by async_http_request above
 requires "rect_packer"
 requires "https://github.com/yglukhov/android"    # For android target
@@ -34,6 +36,7 @@ requires "darwin"
 requires "nimwebp"  # Used (indirectly) by image.nim to decode an image being downloaded from the Web
 requires "https://github.com/yglukhov/clipboard"  # Used for copy/paste functionality
 requires "threading"
+requires "malebolgia"
 
 
 # "Unpublished" packages that have been copied to local "imported" directory
