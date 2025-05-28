@@ -176,7 +176,7 @@ proc newFontWithFace*(face: string, size: float): Font =
   let path = findFontFileForFace(face)
   # let path = "/usr/share/fonts/liberation/LiberationSans-Regular.ttf"
   # let path = "/usr/share/fonts/gnu-free/FreeSans.otf"
-  # echo "########### Font path forced to be: ", path
+  echo "########### Font path: ", path
   if path.len != 0:
     result = newFontWithFile(path, size)
   else:

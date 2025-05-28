@@ -2,6 +2,8 @@
 ## ttf.nim in https://github.com/yglukhov/ttf and from
 ## stb_truetype.h (version 1.26) in https://github.com/nothings/stb
 ## Note that only the portions used by nimx/nimxx were converted
+######## TODO - the code dealing with vertices is clunky - needs to be streamlined
+########    Same for other seq's where the length is tracked separately
 import std/strutils
 import std/math
 import std/deques
@@ -139,9 +141,6 @@ type
     savedChunks: seq[seq[ActiveEdge]]
 
 
-# proc setData*(info: FontInfo, indata: sink string) =
-#   info.data = move(indata)
-
 #============= For debugging purposes =======================
 proc printAttribs(view: DataView, viewName: string) =
   let sourceOffset:Natural =
@@ -242,11 +241,8 @@ proc skip(bv: var DataView, offset: int) =
 
 #--- stbtt__buf_get
 proc getValue(bv: var DataView, numBytes: range[1..4]): uint32 =
-  # echo "getValue(): numBytes = ", numBytes
-  # bv.printAttribs("\tbv")
   for i in 0 ..< numBytes:
     result = result.shl(8) or bv.get8()
-  # echo "getValue(): result = ", result
 
 #--- stbtt__buf_get16
 template get16(bv: var DataView): uint32 =
@@ -258,47 +254,27 @@ template get32(bv: var DataView): uint32 =
 
 #--- stbtt__buf_range
 proc bufferRange(buf: DataView, offset, size: Natural): DataView =
-  # echo "\nbufferRange:  offset = ", offset, "   size = ", size
   assert(offset + size <= buf.dataSource.contents.len)
   result.dataSource = buf.dataSource
   result.data = cast[ptr UncheckedArray[byte]](buf.data[offset].addr)
   result.size = size
   result.cursor = 0
-  # echo "bufferRange result: size = ", result.size, "  cursor = ", result.cursor
-
-# proc get(bv: var DataView, n: range[1..4]): uint32 =
-#   # echo "\nget:  n = ", n
-#   for i in 0 ..< n:
-#     result = result.shl(8) or bv.get8()
-#   # echo "get result: ", result
 
 #--- stbtt__cff_get_index
 proc cffGetIndex(buf: var DataView): DataView =
-  # buf.printAttribs("\ncffGetIndex - buf")
   let start = buf.cursor
-  # echo "start = ", start
   let count: Natural = buf.get16().int
-  # echo "count = ", count
   if count > 0:
     let offsize: range[1..4] = buf.get8().int
-    # echo "offsize = ", offsize
-    # echo "First skip by ", offsize * count
     buf.skip(offsize * count)
-    buf.printAttribs("After first skip - buf")
     buf.skip(buf.getValue(offsize).int - 1)
-    # let iskip = buf.getValue(offsize).int - 1
-    # echo "Second skip by ", iskip
-    # buf.skip(iskip)
-    # buf.printAttribs("After second skip - buf")
   result = buf.newBufferSubView(start, buf.cursor - start)
-  # result.printAttribs("cffGetIndex result")
 
 #--- stbtt__cff_int
 # ***Note*** The original code returned a uint32 but the CFF encoding is for
 #            a SIGNED int
 proc cffGetInt(buf: var DataView): int =
   let b0 = buf.get8().int
-  # echo "cffGetInt - b0 = ", b0
   if b0 >= 32 and b0 <= 246:
     result = b0 - 139
   elif b0 >= 247 and b0 <= 250:
@@ -350,10 +326,8 @@ proc dictGet(buf: var DataView, key: int): DataView =
 # Gets a single value
 proc dictGetInt(buf: var DataView, key: int, outInt: var Natural) =
   var operands = buf.dictGet(key)
-  # operands.printAttribs("dictGetInt - operands")
   if operands.cursor < operands.size:
     outInt = operands.cffGetInt()
-    # echo "dictGetInt - outInt = ", outInt
 
 # Retrieves a number of values into an array or seq
 proc dictGetInts(buf: var DataView, key: int, outcount: int, outInts: var openArray[Natural]) =
@@ -385,21 +359,16 @@ proc cffIndexGet(buf: var DataView, i: Natural): DataView =
 proc getSubrs(cff: var DataView, fontdict: var DataView): DataView =
   var private_loc: array[2, Natural]
   fontdict.dictGetInts(18, 2, private_loc)
-  # echo "private_loc = ", private_loc
   if private_loc[1] > 0 and private_loc[0] > 0:
     var pdict = bufferRange(cff, private_loc[1], private_loc[0])
-    # pdict.printAttribs("getSubrs - pdict")
     var subrsoff: Natural
     pdict.dictGetInt(19, subrsoff)
-    # echo "subrsoff = ", subrsoff
     if subrsoff > 0:
       cff.seek(private_loc[1] + subrsoff)
-      # cff.printAttribs("getSubrs - cff")
       result = cff.cffGetIndex()
 
 #--- stbtt_InitFont / stbtt_InitFont_internal
 proc initFont*(info: FontInfo, data: sink seq[byte], fontstart: Natural): bool =
-  # echo "\ninitFont"
   info.data = new(DataBuffer)
   info.data.contents = move(data)
   data.wasMoved()
@@ -415,14 +384,6 @@ proc initFont*(info: FontInfo, data: sink seq[byte], fontstart: Natural): bool =
   info.hmtx = info.data.contents.findTable(fontstart, "hmtx")   # required
   info.kern = info.data.contents.findTable(fontstart, "kern")   # not required
   info.gpos = info.data.contents.findTable(fontstart, "GPOS")   # not required
-  # echo "\ncmap = ", cmap
-  # echo "info.loca = ", info.loca
-  # echo "info.head = ", info.head
-  # echo "info.glyf = ", info.glyf
-  # echo "info.hhea = ", info.hhea
-  # echo "info.hmtx = ", info.hmtx
-  # echo "info.kern = ", info.kern
-  # echo "info.gpos = ", info.gpos
 
   if cmap.offset == 0 or info.head.offset == 0 or info.hhea.offset == 0 or info.hmtx.offset == 0:
     return
@@ -435,67 +396,36 @@ proc initFont*(info: FontInfo, data: sink seq[byte], fontstart: Natural): bool =
     let cff = info.data.contents.findTable(fontstart, "CFF ")
     if cff.offset == 0:
       return
-    # echo "\ncff = ", cff
     
     info.cff = newBufferView(info.data, cff)
-    # info.cff.printAttribs("info.cff")
     var b = info.cff
-    # b.printAttribs("b")
 
     # Read the header
     b.skip(2)
-    # echo "\nAfter skip: "
-    # b.printAttribs("b")
-    # info.cff.printAttribs("info.cff")
-    # echo "Byte at b cursor = ", b.peek8()
-    # echo "\nAfter peek: "
-    # b.printAttribs("b")
-    # info.cff.printAttribs("info.cff")
 
     b.seek(b.get8())  # hdrsize
-    # echo "\nAfter seek: "
-    # b.printAttribs("b")
-    # info.cff.printAttribs("info.cff")
 
     # TODO the name INDEX could list multiple fonts,
     # but we just use the first one.
     let nameIndex = b.cffGetIndex()   # name INDEX - not currently used
-    # echo "\nAfter cffGetIndex 1 (nameIndex): "
-    # b.printAttribs("b")
-    # nameIndex.printAttribs("nameIndex")
     
     var topDictIdx = b.cffGetIndex()
-    # echo "\nAfter cffGetIndex 2 (topDictIdx): "
-    # b.printAttribs("b")
-    # topDictIdx.printAttribs("topDictIdx")
     
     var topDict = topDictIdx.cffIndexGet(0)
-    # topDict.printAttribs("topDict")
 
     let stringIndex = b.cffGetIndex()   # string INDEX - not currently used
-    # echo "\nAfter cffGetIndex 3 (stringIndex): "
-    # b.printAttribs("b")
-    # stringIndex.printAttribs("stringIndex")
 
     info.gsubrs = b.cffGetIndex()
-    # echo "\nAfter cffGetIndex 4 (info.gsubrs): "
-    # b.printAttribs("b")
-    # info.gsubrs.printAttribs("info.gsubrs")
 
     var charstrings: Natural = 0
     topDict.dictGetInt(17, charstrings)
-    # echo "\ncharstrings = ", charstrings
     var cstype: Natural = 2
     topDict.dictGetInt(0x100 or 6, cstype)
-    # echo "cstype = ", cstype
     var fdarrayoff: Natural = 0
     topDict.dictGetInt(0x100 or 36, fdarrayoff)
-    # echo "fdarrayoff = ", fdarrayoff
     var fdselectoff: Natural = 0
     topDict.dictGetInt(0x100 or 37, fdselectoff)
-    # echo "fdselectoff = ", fdselectoff
     info.subrs = b.getSubrs(topDict)
-    # info.subrs.printAttribs("info.subrs")
 
     # We only support Type 2 charstrings
     if cstype != 2:
@@ -505,80 +435,61 @@ proc initFont*(info: FontInfo, data: sink seq[byte], fontstart: Natural): bool =
 
     if fdarrayoff > 0:
       # Looks like a CID font
-      # echo "Looks like a CID font"
       if fdselectoff == 0:
         return
       b.seek(fdarrayoff)
       info.fontdicts = b.cffGetIndex()
-      # info.fontdicts.printAttribs("info.fontdicts")
       info.fdselect = b.bufferRange(fdselectoff, b.size - fdselectoff)
-      # info.fdselect.printAttribs("info.fdselect")
 
     b.seek(charstrings)
     info.charstrings = b.cffGetIndex()
-    # info.charstrings.printAttribs("info.charstrings")
 
   let t = info.data.contents.findTable(fontstart, "maxp")
-  # echo "t = ", t
   if (t.offset > 0 and t.size > 0):
     let offs = t.offset + 4
     info.numGlyphs = info.data.contents.ttUshort(offs)
   else:
     info.numGlyphs = 0xffff
-  # echo "info.numGlyphs = ", info.numGlyphs
-  
+   
   # Already set by default
   # info.svg = TableOffsetAndSize(offset = 0, size = 0)
 
   # Find a cmap encoding table we understand *now* to avoid searching later.
   # (todo: could make this installable)
   # The same regardless of glyph.
-  # echo "\n##################"
   let offs = cmap.offset + 2
   let numTables = info.data.contents.ttUshort(offs).int
-  # echo "numTables = ", numTables
   # The following code gets the LAST encoding we understand
   # TODO Change it to get the FIRST encoding we understand
   info.indexMap = 0
   for i in 0 ..< numTables:
     let encodingRecordOffset = cmap.offset + 4 + 8 * i
-    # echo "encodingRecordOffset = ", encodingRecordOffset
     # Find an encoding we understand
     let platformCode = info.data.contents.ttUshort(encodingRecordOffset)
-    # echo "platformCode = ", platformCode
     case platformCode:
       of PidMicrosoft.ord:
-        # echo "platformCode is PidMicrosoft"
         let encodingId =
           info.data.contents.ttUshort(encodingRecordOffset + 2)
-        # echo "encodingId = ", encodingId
         case encodingId:
           of MsEidUnicodeBmp.ord, MsEidUnicodeFull.ord:
             # MS/Unicode
-            # echo "encodingId is MS/Unicode"
             info.indexMap = cmap.offset +
               info.data.contents.ttUlong(encodingRecordOffset + 4).int
-            # echo "info.indexMap = ", info.indexMap
           else:
             discard
       of PidUnicode.ord:
-        # echo "platformCode is PidUnicode"
         # Mac/iOS has these
         # all the encodingIDs are unicode, so we don't bother to check it
         info.indexMap = cmap.offset +
           info.data.contents.ttUlong(encodingRecordOffset + 4).int
-        # echo "info.indexMap = ", info.indexMap
       else:
         discard
 
-  # echo "FINAL info.indexMap = ", info.indexMap
   if info.indexMap == 0:
     return
 
   let indexIdx = info.head.offset + 50
-  # echo "indexIdx = ", indexIdx
   info.indexToLocFormat = info.data.contents.ttUshort(indexIdx)
-  # echo "info.indexToLocFormat = ", info.indexToLocFormat
   result = true
 
 #--- stbtt_ScaleForMappingEmToPixels
@@ -590,60 +501,39 @@ proc scaleForMappingEmToPixels*(info: FontInfo, pixels: float): float =
 #--- stbtt_GetFontVMetrics
 proc getFontVMetrics*(info: FontInfo): (int, int, int) =
   let offset = info.hhea.offset
-  # echo "getFontVMetrics - offset = ", offset
   let ascent = info.data.contents.ttShort(offset + 4)
-  # echo "ascent = ", ascent
   let descent = info.data.contents.ttShort(offset + 6)
-  # echo "descent = ", descent
   let lineGap = info.data.contents.ttShort(offset + 8)
-  # echo "lineGap = ", lineGap
   result = (ascent, descent, lineGap)
 
 #--- stbtt_FindGlyphIndex
 proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
-  # echo "\n################## findGlyphIndex"
-  # echo "unicodeCodepoint = ", unicodeCodepoint, "   \\x", toHex(unicodeCodepoint)
   result = 0    # Default return, just to be clear
   let indexMapOffset = info.indexMap
-  # echo "indexMapOffset = ", indexMapOffset
 
   let format = info.data.contents.ttUshort(indexMapOffset)
-  # echo "format = ", format
   case format:
     of 0:   # apple byte encoding
-      # echo "Apple byte encoding"
       let bytes: Natural = info.data.contents.ttUshort(indexMapOffset + 2)
-      # echo "bytes = ", bytes
       if unicodeCodepoint < bytes - 6:
         result = info.data.contents[indexMapOffset + 6 + unicodeCodepoint].int
     of 6:
-      # echo "Whatever format 6 is"
       let first: Natural = info.data.contents.ttUshort(indexMapOffset + 6)
-      # echo "first = ", first
       let count: Natural = info.data.contents.ttUshort(indexMapOffset + 8)
-      # echo "count = ", count
       if unicodeCodepoint >= first and unicodeCodepoint < first + count:
         result =
           info.data.contents.ttUshort(indexMapOffset + 10 + (unicodeCodepoint - first) * 2).int
     of 2:
-      # echo "High-byte mapping for japanese/chinese/korean"
       assert(false)   # Original code TODO: high-byte mapping for japanese/chinese/korean
     of 4:   # standard mapping for windows fonts: binary search collection of ranges
-      # echo "Standard mapping for windows fonts"
       let segcount: Natural = info.data.contents.ttUshort(indexMapOffset + 6).shr(1)
-      # echo "segcount = ", segcount
       var searchRange: Natural = info.data.contents.ttUshort(indexMapOffset + 8).shr(1)
-      # echo "searchRange = ", searchRange
       var entrySelector: Natural = info.data.contents.ttUshort(indexMapOffset + 10)
-      # echo "entrySelector = ", entrySelector
       let rangeShift: Natural = info.data.contents.ttUshort(indexMapOffset + 12).shr(1)
-      # echo "rangeShift = ", rangeShift
 
       # do a binary search of the segments
       let endCount = indexMapOffset + 14
-      # echo "endCount = ", endCount
       var search = endCount
-      # echo "search = ", search
 
       if unicodeCodepoint > 0xffff:
         return
@@ -652,11 +542,9 @@ proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
       # but searchRange is the nearest power of two, so...
       if unicodeCodepoint >= info.data.contents.ttUshort(search + rangeShift * 2).int:
         search += rangeShift * 2
-        # echo "search = ", search
 
       # now decrement to bias correctly to find smallest
       search -= 2
-      # echo "search = ", search
       while entrySelector > 0:
         searchRange = searchRange.shr(1)
         let iend: Natural = info.data.contents.ttUshort(search + searchRange * 2)
@@ -664,7 +552,6 @@ proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
           search += searchRange * 2
         dec entrySelector
       search += 2
-      # echo "search = ", search
 
       # ------------
       # Note: The following chunk of code was originally in its own block.
@@ -672,18 +559,14 @@ proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
       # nor large chunks of data that need to be popped off the stack at the end.
       # So I got rid of the separate block
       let item = (search - endCount).shr(1)
-      # echo "item = ", item
 
       let offx = indexMapOffset + 14 + 2 + 2 * item
       let start: Natural =
         info.data.contents.ttUshort(offx + segcount * 2)
-      # echo "start = ", start
       let last: Natural = info.data.contents.ttUshort(endCount + 2 * item)
-      # echo "last = ", last
       if unicodeCodepoint >= start and unicodeCodepoint <= last:
         let offset: Natural =
           info.data.contents.ttUshort(offx + segcount * 6)
-        # echo "offset = ", offset
         if offset == 0:
           result = unicodeCodepoint +
             info.data.contents.ttShort(offx + segcount * 4).int
@@ -692,9 +575,7 @@ proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
             info.data.contents.ttUshort(offset + (unicodeCodepoint - start) * 2 + offx + segcount * 6).int
       # ------------
     of 12, 13:
-      # echo "Whatever format 12 or 13 is"
       let ngroups: Natural = info.data.contents.ttUlong(indexMapOffset + 12)
-      # echo "ngroups = ", ngroups
       var ilow: Natural = 0
       var ihigh: Natural = ngroups
       # Binary search the right group
@@ -709,12 +590,9 @@ proc findGlyphIndex*(info: FontInfo, unicodeCodepoint: int): int =
           ilow = mid + 1
         else:
           let startGlyph: Natural = info.data.contents.ttUlong(offx + 8)
-          # echo "startGlyph = ", startGlyph
           if format == 12:
-            # echo "Return format 12 result"
             result = startGlyph + unicodeCodepoint - startChar
           else:   # format == 13
-            # echo "Return format 13 result"
             result = startGlyph
           break
     else:
@@ -1186,14 +1064,11 @@ proc getGlyfOffset(info: FontInfo, glyphIndex: int): int =
 
 #--- stbtt_GetGlyphBox
 proc getGlyphBox(info: FontInfo, glyphIndex: int, x0, y0, x1, y1: var int): bool =
-  # echo "########### getGlyphBox"
   result = false
-  # echo "info.cff.size = ", info.cff.size
   if info.cff.size > 0:
     discard info.getGlyphInfoT2(glyphIndex, x0, y0, x1, y1)
   else:
     let g = info.getGlyfOffset(glyphIndex)
-    # echo "g = ", g
     if g < 0:
       return
 
@@ -1201,9 +1076,7 @@ proc getGlyphBox(info: FontInfo, glyphIndex: int, x0, y0, x1, y1: var int): bool
     y0 = info.data.contents.ttShort(g + 4)
     x1 = info.data.contents.ttShort(g + 6)
     y1 = info.data.contents.ttShort(g + 8)
-  # echo "x0, y0, x1, y1 = ", x0, "  ", y0, "  ", x1, "  ", y1
   result = true
-  # echo "... getGlyphBox"
 
 #--- stbtt_GetGlyphBitmapBoxSubpixel
 proc getGlyphBitmapBoxSubpixel(info: FontInfo, glyphIndex: int, scaleX, scaleY,
@@ -1222,50 +1095,32 @@ proc getGlyphBitmapBoxSubpixel(info: FontInfo, glyphIndex: int, scaleX, scaleY,
 
 #--- stbtt_GetGlyphBitmapBox
 proc getGlyphBitmapBox*(info: FontInfo, glyphIndex: int, scaleX, scaleY: float): (int, int, int, int) =
-  # echo "\n################## getGlyphBitmapBox"
-  # echo "scaleX, scaleY = ", scaleX, "  ", scaleY
   result = info.getGlyphBitmapBoxSubpixel(glyphIndex, scaleX, scaleY, 0.0, 0.0)
-  # echo "getGlyphBitmapBox result = ", result
 
 #--- stbtt__close_shape
-# proc closeShape(vertices: var seq[Vertex], numVertices: int, wasOff, startOff: bool,
-    # sx, sy, scx, scy, cx, cy: int): int =
 proc closeShape(vertices: var seq[Vertex], wasOff, startOff: bool,
     sx, sy, scx, scy, cx, cy: int) =
-  # echo "closeShape numVertices = ", numVertices
-  # echo "closeShape vertices.len = ", vertices.len
-  # result = numVertices
   if startOff:
     if wasOff:
-      # vertices[result].setFields(Vcurve.uint8, (cx + scx).shr(1), (cy + scy).shr(1), cx,cy)
-      # inc result
       vertices.add(Vertex(vtype: Vcurve.uint8, x: (cx + scx).shr(1).int16, y: (cy + scy).shr(1).int16, cx: cx.int16, cy: cy.int16))
-    # vertices[result].setFields(Vcurve.uint8, sx, sy, scx, scy)
     vertices.add(Vertex(vtype: Vcurve.uint8, x: sx.int16, y: sy.int16, cx: scx.int16, cy: scy.int16))
   else:
     if wasOff:
-      # vertices[result].setFields(Vcurve.uint8, sx, sy, cx, cy)
       vertices.add(Vertex(vtype: Vcurve.uint8, x: sx.int16, y: sy.int16, cx: cx.int16, cy: cy.int16))
     else:
-      # vertices[result].setFields(Vline.uint8, sx, sy, 0, 0)
       vertices.add(Vertex(vtype: Vline.uint8, x: sx.int16, y: sy.int16))
-  # inc result
-  # echo "closeShape result = ", result
 
 # Recursive call requires this forward declaration
 proc getGlyphShape(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex]): int {.gcsafe.}
 
 #--- stbtt__GetGlyphShapeTT
 proc getGlyphShapeTT(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex]): int {.gcsafe.} =
-  # echo "\ngetGlyphShapeTT glyphIndex = ", glyphIndex
   result = 0    # Result is number of vertices - Failure return value is 0
   let g = info.getGlyfOffset(glyphIndex)
-  # echo "getGlyphShapeTT g = ", g
   if g < 0:
     return
 
   let numberOfContours = info.data.contents.ttShort(g)
-  # echo "getGlyphShapeTT numberOfContours = ", numberOfContours
 
   if numberOfContours > 0:
     let endPtsOfContoursIdx = g + 10
@@ -1275,9 +1130,6 @@ proc getGlyphShapeTT(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex])
 
     let n = 1 + info.data.contents.ttShort(insIdx - 2)
     let m = n + 2*numberOfContours    # A loose bound on how many vertices we might need
-    # echo "getGlyphShapeTT n = ", n
-    # echo "getGlyphShapeTT m = ", m
-    # vertices.setLen(m)
     vertices = newSeqOfCap[Vertex](m)
 
     # In first pass, we load uninterpreted data
@@ -1337,19 +1189,13 @@ proc getGlyphShapeTT(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex])
     var j = 0
     var i = 0
     while i < n:
-      # echo "\t i = ", i, "   nextMove = ", nextMove
       flags = uninterpreted[i].vtype
       let x = uninterpreted[i].x
       let y = uninterpreted[i].y
 
       if nextMove == i:
-        # echo "\t\t nextMove == i"
         if i != 0:
-          # numVertices = vertices.closeShape(numVertices, wasOff, startOff,
-          #   sx, sy, scx, scy, cx, cy)
-          # echo "\t\t numVertices 1 = ", numVertices
           vertices.closeShape(wasOff, startOff, sx, sy, scx, scy, cx, cy)
-          # echo "\t\t vertices.len 1 = ", vertices.len
         # Now start the new one
         startOff = (flags and 1) == 0
         let i1 = i + 1
@@ -1370,48 +1216,25 @@ proc getGlyphShapeTT(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex])
         else:
           sx = x
           sy = y
-        # vertices[numVertices].setFields(Vmove.uint8, sx, sy, 0, 0)
-        # inc numVertices
-        # echo "\t\t numVertices 2 = ", numVertices
         vertices.add(Vertex(vtype: Vmove.uint8, x: sx.int16, y: sy.int16))
-        # echo "\t\t vertices.len 2 = ", vertices.len
         wasOff = false
         nextMove = 1 + info.data.contents.ttUshort(endPtsOfContoursIdx + j * 2).int
-        # echo "\t\t nextMove = ", nextMove
         inc j
       else:
-        # echo "\t\t else (nextMove != i)"
         if (flags and 1) == 0:    # If it's a curve
-          # echo "\t\t it's a curve"
           if wasOff:    # Two off-curve control points in a row means interpolate an on-curve midpoint
-            # vertices[numVertices].setFields(Vcurve.uint8, (cx + x).shr(1), (cy + y).shr(1), cx, cy)
-            # inc numVertices
-            # echo "\t\t numVertices 1 = ", numVertices
             vertices.add(Vertex(vtype: Vcurve.uint8, x: (cx + x).shr(1).int16, y: (cy + y).shr(1).int16, cx: cx.int16, cy: cy.int16))
-            # echo "\t\t vertices.len 1 = ", vertices.len
           cx = x
           cy = y
           wasOff = true
         else:
-          # echo "\t\t it's NOT a curve"
           if wasOff:
-            # echo "\t\t Call setFields with Vcurve"
-            # vertices[numVertices].setFields(Vcurve.uint8, x, y, cx, cy)
-            # echo "\t\t Add a Vertex with Vcurve"
             vertices.add(Vertex(vtype: Vcurve.uint8, x: x.int16, y: y.int16, cx: cx.int16, cy: cy.int16))
           else:
-            # echo "\t\t Call setFields with Vline"
-            # vertices[numVertices].setFields(Vline.uint8, x, y, 0, 0)
-            # echo "\t\t Add a Vertex with Vline"
             vertices.add(Vertex(vtype: Vline.uint8, x: x.int16, y: y.int16))
-          # inc numVertices
-          # echo "\t\t vertices.len 2 = ", vertices.len
           wasOff = false
       inc i
-    # numVertices = vertices.closeShape(numVertices, wasOff, startOff, sx, sy, scx, scy, cx, cy)
-    # echo "getGlyphShapeTT numVertices = ", numVertices
     vertices.closeShape(wasOff, startOff, sx, sy, scx, scy, cx, cy)
-    # echo "getGlyphShapeTT vertices.len = ", vertices.len
   elif numberOfContours < 0:
     # Compound shapes.
     var more = 1
@@ -1497,40 +1320,26 @@ proc getGlyphShapeT2(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex])
   # Runs the charstring twice, once to count and once to output (to avoid realloc)
   var countCtx = makeCsctx(true)
   var outputCtx = makeCsctx(false)
-  # echo "getGlyphShapeT2"
   if info.runCharstring(glyphIndex, countCtx):
-    # echo "getGlyphShapeT2 countCtx.numVertices = ", countCtx.numVertices
     outputCtx.vertices = newSeqOfCap[Vertex](countCtx.numVertices)
     if info.runCharstring(glyphIndex, outputCtx):
-      # echo "getGlyphShapeT2 outputCtx.numVertices = ", outputCtx.numVertices
       assert(outputCtx.numVertices == countCtx.numVertices)
       result = outputCtx.numVertices
-      # echo "getGlyphShapeT2 outputCtx.vertices.len = ", outputCtx.vertices.len
-      # echo "getGlyphShapeT2 outputCtx.vertices:"
-      # for vertex in outputCtx.vertices:
-      #   echo "\t", $vertex
       vertices = move(outputCtx.vertices)
-      # echo "getGlyphShapeT2 vertices.len = ", vertices.len
-      # echo "vertices:"
-      # for vertex in vertices:
-      #   echo "\t", $vertex
       return
   result = 0
   vertices.setLen(0)
 
 #--- stbtt_GetGlyphShape
 proc getGlyphShape(info: FontInfo, glyphIndex: int, vertices: var seq[Vertex]): int {.gcsafe.} =
-  # echo "getGlyphShape info.cff.size = ", info.cff.size
   if info.cff.size == 0:
     result = info.getGlyphShapeTT(glyphIndex, vertices)
   else:
     result = info.getGlyphShapeT2(glyphIndex, vertices)
-    # echo "getGlyphShape result = ", result
 
 #--- stbtt__tesselate_curve
 proc tesselateCurve(points: var seq[Point], numPoints: var int,
     x0, y0, x1, y1, x2, y2, objspaceFlatnessSquared: float, pass, n: int) =
-  # echo "tesselateCurve n = ", n, "    objspaceFlatnessSquared = ", objspaceFlatnessSquared
   # midpoint
   let mx = (x0 + 2.0 * x1 + x2) / 4.0
   let my = (y0 + 2.0 * y1 + y2) / 4.0
@@ -1539,10 +1348,8 @@ proc tesselateCurve(points: var seq[Point], numPoints: var int,
   let dy = (y0 + y2) / 2.0 - my
   if n <= 16:   # Recursion limit - 65536 segments on one curve better be enough!
     if dx * dx + dy * dy > objspaceFlatnessSquared:   # half-pixel error allowed... need to be smaller if AA
-      # echo "\t Recursive call 1 to tesselateCurve"
       points.tesselateCurve(numPoints, x0, y0, (x0 + x1) / 2.0, (y0 + y1) / 2.0,
         mx, my, objspaceFlatnessSquared, pass, n + 1)
-      # echo "\t Recursive call 2 to tesselateCurve"
       points.tesselateCurve(numPoints, mx, my, (x1 + x2) / 2.0, (y1 + y2) / 2.0,
         x2, y2, objspaceFlatnessSquared, pass, n + 1)
     else:
@@ -1550,12 +1357,10 @@ proc tesselateCurve(points: var seq[Point], numPoints: var int,
       if pass > 0:
         points[numPoints].setFields(x2, y2)
       inc numPoints
-      # echo "\t numPoints = ", numPoints
 
 #--- stbtt__tesselate_cubic
 proc tesselateCubic(points: var seq[Point], numPoints: var int,
     x0, y0, x1, y1, x2, y2, x3, y3, objspaceFlatnessSquared: float, pass, n: int) =
-  # echo "tesselateCubic n = ", n, "    objspaceFlatnessSquared = ", objspaceFlatnessSquared
   # From orig code:
   #  TODO this "flatness" calculation is just made-up nonsense that seems to work well enough
   let dx0 = x1 - x0
@@ -1570,7 +1375,6 @@ proc tesselateCubic(points: var seq[Point], numPoints: var int,
     sqrt(dx2 * dx2 + dy2 * dy2)
   let shortlensq = dx * dx + dy * dy
   let flatnessSquared = longlen * longlen - shortlensq
-  # echo "\t flatnessSquared = ", flatnessSquared
 
   if n <= 16:   # Recursion limit - 65536 segments on one curve better be enough!
     if flatnessSquared > objspaceFlatnessSquared:
@@ -1589,10 +1393,8 @@ proc tesselateCubic(points: var seq[Point], numPoints: var int,
       let mx = (xa + xb) / 2.0
       let my = (ya + yb) / 2.0
 
-      # echo "\t Recursive call 1 to tesselateCubic"
       points.tesselateCubic(numPoints, x0, y0, x01, y01, xa, ya, mx, my,
         objspaceFlatnessSquared, pass, n + 1)
-      # echo "\t Recursive call 2 to tesselateCubic"
       points.tesselateCubic(numPoints, mx, my, xb, yb, x23, y23, x3, y3,
         objspaceFlatnessSquared, pass, n + 1)
     else:
@@ -1600,7 +1402,6 @@ proc tesselateCubic(points: var seq[Point], numPoints: var int,
       if pass > 0:
         points[numPoints].setFields(x3, y3)
       inc numPoints
-      # echo "\t numPoints = ", numPoints
 
 #--- stbtt_FlattenCurves
 # Returns number of contours and points in the contours
@@ -1608,14 +1409,9 @@ proc flattenCurves(vertices: openArray[Vertex], numVertices: int, objspaceFlatne
     contourLengths: var seq[int], numContours: var int): seq[Point] =
   # Count how many "moves" there are to get the contour count
   numContours = 0
-  # echo "flattenCurves numVertices = ", numVertices
-  # echo "flattenCurves vertices.len = ", vertices.len
-  # echo "flattenCurves objspaceFlatness = ", objspaceFlatness
   for i in 0 ..< numVertices:
-    # echo "\tflattenCurves i = ", i, "    vertices = ", $vertices[i]
     if vertices[i].vtype == Vmove.ord:
       inc numContours
-  # echo "flattenCurves numContours = ", numContours
   
   if numContours == 0:
     return
@@ -1627,22 +1423,17 @@ proc flattenCurves(vertices: openArray[Vertex], numVertices: int, objspaceFlatne
   let objspaceFlatnessSquared = objspaceFlatness * objspaceFlatness
   var x, y: float
   for pass in 0 .. 1:
-    # echo "\t pass = ", pass
     if pass == 1:
       result.setLen(numPoints)
 
     numPoints = 0
     var n = -1
     for i in 0 ..< numVertices:
-      # echo "\t\t i = ", i
-      # echo "\t\t vertices[i] = ", $vertices[i]
       case vertices[i].vtype.VertexType:
         of Vmove:
-          # echo "\t\t Vmove - Start the next contour"
           # Start the next contour
           if n >= 0:
             contourLengths[n] = numPoints - start
-            # echo "\t\t n = ", n, "    contourLengths[n] = ", contourLengths[n]
           inc n
           start = numPoints
 
@@ -1651,41 +1442,32 @@ proc flattenCurves(vertices: openArray[Vertex], numVertices: int, objspaceFlatne
           if pass == 1:
             result[numPoints].setFields(x, y)
           inc numPoints
-          # echo "\t\t start = ", start, "    numPoints = ", numPoints
         of Vline:
-          # echo "\t\t Vline"
           x = vertices[i].x.float
           y = vertices[i].y.float
           if pass == 1:
             result[numPoints].setFields(x, y)
           inc numPoints
-          # echo "\t\t numPoints = ", numPoints
         of Vcurve:
-          # echo "\t\t Vcurve"
           result.tesselateCurve(numPoints, x, y, vertices[i].cx.float, vertices[i].cy.float,
             vertices[i].x.float,  vertices[i].y.float, objspaceFlatnessSquared, pass, 0)
           x = vertices[i].x.float
           y = vertices[i].y.float
-          # echo "\t\t numPoints = ", numPoints
         of Vcubic:
-          # echo "\t\t Vcubic"
           result.tesselateCubic(numPoints, x, y,  vertices[i].cx.float, vertices[i].cy.float,
             vertices[i].cx1.float, vertices[i].cy1.float, vertices[i].x.float,  vertices[i].y.float,
             objspaceFlatnessSquared, pass, 0)
           x = vertices[i].x.float
           y = vertices[i].y.float
-          # echo "\t\t numPoints = ", numPoints
 
     contourLengths[n] = numPoints - start
-    # echo "\t\t n = ", n, "    contourLengths[n] = ", contourLengths[n]
 
 proc `<`(a, b: Edge): bool =
   a.y0 < b.y0
 
 #--- stbtt__sort_edges_quicksort
 # The original code used pointer arithmetic. What we really need is seq views
-# - but wemust make do with pointers until views are out of experimental
-# proc quickSort(e: var seq[Edge], nt: int) =
+# - but we must make do with pointers until views are out of experimental
 proc quickSort(e: ptr UncheckedArray[Edge], nt: int) =
   var n = nt
   var p = e
@@ -1775,9 +1557,7 @@ proc nextFreePtr(pool: var ActiveEdgePool): ptr ActiveEdge =
       result = cast[ptr ActiveEdge](pool.freshChunk[pool.nextFreshIndex].addr)
       inc pool.nextFreshIndex
     else:
-      # echo "Address of original chunk = ", toHex(cast[uint](pool.freshChunk[0].addr))
       pool.savedChunks.add(move(pool.freshChunk))
-      # echo "Address of last chunk in savedChunks = ", toHex(cast[uint](pool.savedChunks[^1][0].addr))
       pool.freshChunk = newSeq[ActiveEdge](pool.chunkSize)
       result = cast[ptr ActiveEdge](pool.freshChunk[0].addr)
       pool.nextFreshIndex = 1
@@ -2083,25 +1863,18 @@ proc rasterizeSortedEdges(bitmap: var Bitmap, edges: var openArray[Edge], n, off
   var y = offY
   edges[n].y0 = (offY + bitmap.height + 1).float
 
-  # echo "rasterizeSortedEdges offY = ", offY
-  # echo "rasterizeSortedEdges bitmap.height = ", bitmap.height
   var edgeIdx = 0
   var j = 0
   while j < bitmap.height:
-    # echo "\n\t j = ", j, "   y = ", y
     # Find center of pixel for this scanline
     let scanYTop = y.float
     let scanYBottom = scanYTop + 1.0
-    # echo "\t scanYTop = ", scanYTop, "   scanYBottom = ", scanYBottom
 
     zeroMem(scanline[0].addr, scanline.len * sizeof(float))
     zeroMem(scanline2[0].addr, scanline2.len * sizeof(float))
 
     # ----- Update all active edges -----
     # Remove all active edges that terminate before the top of this scanline
-    # echo "\n\t Before ActiveEdges pruning"
-    # headActive.printActiveEdges("\t\t")
-    # echo ""
     var step = headActive
     var prevActive: ptr ActiveEdge = nil    # Pointer to previous confirmed active edge
     while not step.isNil:
@@ -2121,27 +1894,16 @@ proc rasterizeSortedEdges(bitmap: var Bitmap, edges: var openArray[Edge], n, off
           headActive = step
         prevActive = step
         step = step.next    # Advance through list
-    
-    # echo "\n\t After ActiveEdges pruning"
-    # headActive.printActiveEdges("\t\t")
-    # echo ""
 
     # Insert all edges that start before the bottom of this scanline
     while edges[edgeIdx].y0 <= scanYBottom:
-      # echo "\t\t edgeIdx = ", edgeIdx
-      # echo "\t\t edges[edgeIdx].y0 = ", edges[edgeIdx].y0, "   edges[edgeIdx].y1 = ", edges[edgeIdx].y1
       if edges[edgeIdx].y0  != edges[edgeIdx].y1:
-        # echo "\t\t edges[edgeIdx] = \n\t\t\t", edges[edgeIdx]
         let z = pool.getNewActiveEdge(edges[edgeIdx], offX, scanYTop)
-        # echo "\t\t z.ey = ", z.ey
         if j == 0 and offY != 0:
           if z.ey < scanYTop:
             # From original code:
             # This can happen due to subpixel positioning and some kind of fp rounding error i think
-            # echo "\t\t Set z.ey to ", scanYTop
             z.ey = scanYTop
-        # echo "\t\t z.ey = ", z.ey, "    scanYTop = ", scanYTop
-        # z.printAttribs("\t\t")
         assert(z.ey >= scanYTop)  # If we get really unlucky a tiny bit of an edge can be out of bounds
         # Insert at front
         z.next = headActive
@@ -2178,13 +1940,10 @@ proc rasterize2(bitmap: var Bitmap, pts: openArray[Point], wcount: openArray[int
   if invert:
     yScaleInv = -scaleY
 
-  # echo "\nrasterize2 windings = ", windings
   # Now we have to blow out the windings into explicit edge lists
   var n = 0
   for i in 0 ..< windings:
-    # echo "\t i = ", i, "   wcount[i] = ", wcount[i]
     n += wcount[i]
-  # echo "rasterize2 n = ", n
   var edges = newSeq[Edge](n + 1)   # add an extra one as a sentinel
 
   n = 0
@@ -2234,30 +1993,20 @@ proc rasterize1(bitmap: var Bitmap, flatnessInPixels: float, vertices: openArray
   var windingCount = 0
   let windings = vertices.flattenCurves(numVertices, flatnessInPixels / scale, windingLengths,
     windingCount)
-  # echo "rasterize1 windingLengths.len = ", windingLengths.len
-  # echo "rasterize1 windings.len = ", windings.len
-  # echo "rasterize1 windingCount = ", windingCount
   if windings.len > 0:
     bitmap.rasterize2(windings, windingLengths, windingCount, scaleX, scaleY, shiftX, shiftY,
       xOff, yOff, invert)
 
-  # ORC/ARC should take care of the following
-  # windingLengths.setLen(0)
-  # windings.setLen(0)
+  # ORC/ARC should take care of de-alocating  windingLengths and windings
 
 #--- stbtt_MakeGlyphBitmapSubpixel
 proc makeGlyphBitmapSubpixel(info: FontInfo, output: ptr UncheckedArray[byte], outWidth, outHeight, outStride: Natural,
     scaleX, scaleY, shiftX, shiftY: float, glyphIndex: int) =
-  # echo "makeGlyphBitmapSubpixel output addr = ", toHex(cast[uint](output))
   var vertices = newSeq[Vertex](0)
   let numVertices = info.getGlyphShape(glyphIndex, vertices)
-  # echo "makeGlyphBitmapSubpixel vertices.len = ", vertices.len
-  # echo "makeGlyphBitmapSubpixel numVertices = ", numVertices
 
   let (ix0, iy0, _, _) = info.getGlyphBitmapBoxSubpixel(glyphIndex, scaleX, scaleY, shiftX, shiftY)
-  # echo "makeGlyphBitmapSubpixel ix0, iy0 = ", ix0, "  ", iy0
   var gbm = Bitmap(width: outWidth, height: outHeight, stride: outStride, pixels: output)
-  # echo "makeGlyphBitmapSubpixel gbm.pixels addr = ", toHex(cast[uint](gbm.pixels))
 
   if gbm.width > 0 and gbm.height > 0:
     gbm.rasterize1(0.35, vertices, numVertices, scaleX, scaleY, shiftX, shiftY, ix0, iy0, true)
@@ -2265,7 +2014,6 @@ proc makeGlyphBitmapSubpixel(info: FontInfo, output: ptr UncheckedArray[byte], o
 #--- stbtt_MakeGlyphBitmap
 proc makeGlyphBitmap*(info: FontInfo, output: ptr UncheckedArray[byte], outWidth, outHeight, outStride: Natural,
     scaleX, scaleY: float, glyphIndex: int) =
-  # echo "makeGlyphBitmap output addr = ", toHex(cast[uint](output))
   info.makeGlyphBitmapSubpixel(output, outWidth, outHeight, outStride, scaleX, scaleY, 0.0, 0.0, glyphIndex)
 
 when isMainModule:
