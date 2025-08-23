@@ -59,6 +59,7 @@ macro makeMenu*(name: string, b: untyped): untyped =
   result.add(s)
   makeMenuAux(i, b, result)
   result.add(i)
+  # echo "\n### Generated menu code equivalent:\n", repr(result), "\n\n"
 
 ################################################################################
 # Menu displaying
